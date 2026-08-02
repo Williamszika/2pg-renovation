@@ -1,0 +1,1116 @@
+<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}</style></head><body><title>2PG Pointage — prototype interactif</title>
+
+<style>
+  :root {
+    --ground:#F6F5F2; --surface:#FFFFFF; --surface-2:#EFEDE8; --surface-3:#E7E4DD;
+    --ink:#1B1F26; --ink-soft:#5A626E; --ink-faint:#8A909B;
+    --rule:#E2DFD8; --rule-soft:#EDEBE5;
+    --pigment:#2E3FA3; --pigment-soft:#4C5CBE; --pigment-w:#E8EAF7;
+    --ok:#2E7A57; --ok-w:#E3F0EA;
+    --warn:#A8721A; --warn-w:#F6EEDF;
+    --bad:#A93A34; --bad-w:#F7E7E5;
+    --shadow: 0 1px 2px rgba(27,31,38,.06), 0 8px 24px rgba(27,31,38,.07);
+
+    --serif: Charter, "Bitstream Charter", "Sitka Text", Cambria, ui-serif, Georgia, serif;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, "Helvetica Neue", Arial, sans-serif;
+    --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --ground:#111317; --surface:#191C21; --surface-2:#21252B; --surface-3:#2A2F36;
+      --ink:#E9E7E2; --ink-soft:#99A0AB; --ink-faint:#6E7681;
+      --rule:#2A2E35; --rule-soft:#222630;
+      --pigment:#8496F5; --pigment-soft:#6E82EE; --pigment-w:#1D2340;
+      --ok:#4FB183; --ok-w:#14291F;
+      --warn:#D3A24A; --warn-w:#2C2416;
+      --bad:#E2726B; --bad-w:#2E1917;
+      --shadow: 0 1px 2px rgba(0,0,0,.4), 0 10px 30px rgba(0,0,0,.35);
+    }
+  }
+  :root[data-theme="dark"] {
+    --ground:#111317; --surface:#191C21; --surface-2:#21252B; --surface-3:#2A2F36;
+    --ink:#E9E7E2; --ink-soft:#99A0AB; --ink-faint:#6E7681;
+    --rule:#2A2E35; --rule-soft:#222630;
+    --pigment:#8496F5; --pigment-soft:#6E82EE; --pigment-w:#1D2340;
+    --ok:#4FB183; --ok-w:#14291F; --warn:#D3A24A; --warn-w:#2C2416; --bad:#E2726B; --bad-w:#2E1917;
+    --shadow: 0 1px 2px rgba(0,0,0,.4), 0 10px 30px rgba(0,0,0,.35);
+  }
+  :root[data-theme="light"] {
+    --ground:#F6F5F2; --surface:#FFFFFF; --surface-2:#EFEDE8; --surface-3:#E7E4DD;
+    --ink:#1B1F26; --ink-soft:#5A626E; --ink-faint:#8A909B;
+    --rule:#E2DFD8; --rule-soft:#EDEBE5;
+    --pigment:#2E3FA3; --pigment-soft:#4C5CBE; --pigment-w:#E8EAF7;
+    --ok:#2E7A57; --ok-w:#E3F0EA; --warn:#A8721A; --warn-w:#F6EEDF; --bad:#A93A34; --bad-w:#F7E7E5;
+    --shadow: 0 1px 2px rgba(27,31,38,.06), 0 8px 24px rgba(27,31,38,.07);
+  }
+
+  body {
+    background: var(--ground); color: var(--ink);
+    font-family: var(--sans); font-size: 15px; line-height: 1.5;
+    -webkit-text-size-adjust: 100%;
+  }
+  button { font: inherit; color: inherit; cursor: pointer; border: 0; background: none; }
+  :focus-visible { outline: 2px solid var(--pigment); outline-offset: 2px; border-radius: 4px; }
+  .num, table td.n, .tnum { font-variant-numeric: tabular-nums; }
+
+  /* ============ harness ============ */
+
+  .wrap { max-width: 1500px; margin: 0 auto; padding: 22px 18px 64px; }
+
+  .top { display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-end; justify-content: space-between;
+         padding-bottom: 16px; border-bottom: 1px solid var(--rule); }
+  .top-id .eyebrow {
+    font-size: .66rem; font-weight: 700; letter-spacing: .14em;
+    text-transform: uppercase; color: var(--pigment);
+  }
+  .top-id h1 {
+    font-family: var(--serif); font-size: clamp(1.5rem, 3.4vw, 2.05rem);
+    font-weight: 700; letter-spacing: -.015em; line-height: 1.15; margin-top: 4px;
+  }
+  .top-id p { color: var(--ink-soft); font-size: .9rem; margin-top: 5px; max-width: 62ch; }
+  /* Sur mobile, l'intro repousse l'application sous la ligne de flottaison :
+     on garde l'essentiel et on masque le reste. */
+  @media (max-width: 700px) {
+    .wrap { padding-top: 16px; }
+    .top-id p .long { display: none; }
+    .top-id p { font-size: .86rem; }
+  }
+
+  .viewtabs { display: flex; gap: 3px; padding: 3px; background: var(--surface-2);
+              border: 1px solid var(--rule); border-radius: 8px; }
+  .viewtabs button {
+    padding: 7px 14px; border-radius: 6px; font-size: .84rem; font-weight: 600;
+    color: var(--ink-soft); white-space: nowrap;
+  }
+  .viewtabs button[aria-pressed="true"] { background: var(--surface); color: var(--ink); box-shadow: var(--shadow); }
+  @media (min-width: 1180px) { .viewtabs { display: none; } }
+
+  .stage { display: grid; gap: 26px; margin-top: 26px; align-items: start; }
+  /* Sans min-width:0, un élément de grille prend la largeur min-content de son
+     contenu — ici le tableau de présence, en nowrap — et déborde de la page
+     au lieu de laisser .tw défiler. */
+  .col-app, .col-db { min-width: 0; }
+  @media (min-width: 1180px) { .stage { grid-template-columns: 392px minmax(0, 1fr); gap: 40px; } }
+
+  @media (max-width: 1179px) {
+    .stage[data-view="ouvrier"] .col-db { display: none; }
+    .stage[data-view="patron"]  .col-app { display: none; }
+  }
+  @media (min-width: 1180px) { .col-app { position: sticky; top: 22px; } }
+
+  .col-label {
+    font-size: .64rem; font-weight: 700; letter-spacing: .13em; text-transform: uppercase;
+    color: var(--ink-faint); margin-bottom: 10px; display: flex; gap: 8px; align-items: center;
+  }
+  .col-label::after { content:""; flex:1; height:1px; background: var(--rule); }
+
+  /* ============ phone ============ */
+
+  .phone {
+    background: var(--surface); border: 1px solid var(--rule);
+    border-radius: 26px; box-shadow: var(--shadow); overflow: hidden;
+    display: flex; flex-direction: column; height: 720px; max-height: 82vh;
+  }
+  @media (max-width: 1179px) { .phone { height: 640px; max-height: none; border-radius: 18px; } }
+
+  .ph-status {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 9px 18px 4px; font-size: .72rem; font-weight: 650; color: var(--ink-faint);
+  }
+  .ph-head { padding: 6px 18px 14px; border-bottom: 1px solid var(--rule-soft); }
+  .ph-head b { display: block; font-size: 1.08rem; font-weight: 700; letter-spacing: -.01em; }
+  .ph-head span { font-size: .78rem; color: var(--ink-faint); }
+
+  .ph-body { flex: 1; overflow-y: auto; padding: 16px 18px 22px; display: flex; flex-direction: column; gap: 14px; }
+
+  .ph-nav {
+    display: grid; grid-template-columns: repeat(4, 1fr);
+    border-top: 1px solid var(--rule); background: var(--surface-2);
+  }
+  .ph-nav button {
+    padding: 9px 2px 11px; font-size: .63rem; font-weight: 650; color: var(--ink-faint);
+    display: flex; flex-direction: column; align-items: center; gap: 4px; letter-spacing: .01em;
+  }
+  .ph-nav button[aria-current="page"] { color: var(--pigment); }
+  .ph-nav .ic { width: 19px; height: 19px; display: block; }
+  .ph-nav .ic svg { width: 100%; height: 100%; display: block; }
+
+  .card {
+    background: var(--surface); border: 1px solid var(--rule);
+    border-radius: 12px; padding: 14px;
+  }
+  .card.flat { background: var(--surface-2); }
+
+  .site-name { font-size: 1.02rem; font-weight: 700; letter-spacing: -.01em; }
+  .site-addr { font-size: .86rem; color: var(--ink-soft); margin-top: 2px; }
+  .site-row { display: flex; gap: 10px; align-items: center; margin-top: 12px; flex-wrap: wrap; }
+
+  .chip {
+    display: inline-flex; align-items: center; gap: 5px;
+    font-size: .72rem; font-weight: 650; padding: 4px 9px; border-radius: 999px;
+    background: var(--surface-2); color: var(--ink-soft);
+  }
+  .btn-ghost {
+    font-size: .78rem; font-weight: 650; color: var(--pigment);
+    border: 1px solid var(--rule); border-radius: 8px; padding: 6px 11px; background: var(--surface);
+  }
+  .btn-ghost:hover { background: var(--pigment-w); }
+
+  /* distance bar */
+  .geo { padding: 13px 14px; }
+  .geo-line { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+  .geo-line b { font-size: .92rem; font-weight: 700; }
+  .geo-line span { font-size: .72rem; font-weight: 650; color: var(--ink-faint); }
+  .geo.in  { background: var(--ok-w);   border-color: transparent; }
+  .geo.in b { color: var(--ok); }
+  .geo.out { background: var(--warn-w); border-color: transparent; }
+  .geo.out b { color: var(--warn); }
+  .geo-track { position: relative; height: 6px; border-radius: 4px; background: var(--surface); margin-top: 11px; overflow: hidden; }
+  .geo-zone { position: absolute; inset: 0 auto 0 0; background: var(--ok); opacity: .3; }
+  .geo-dot  { position: absolute; top: 50%; width: 11px; height: 11px; border-radius: 50%;
+              transform: translate(-50%, -50%); border: 2px solid var(--surface); }
+  .geo.in  .geo-dot { background: var(--ok); }
+  .geo.out .geo-dot { background: var(--warn); }
+  .geo-scale { display: flex; justify-content: space-between; font-size: .64rem; color: var(--ink-faint); margin-top: 6px; font-weight: 600; }
+
+  /* big action */
+  .punch {
+    width: 100%; border-radius: 14px; padding: 19px 16px; color: #fff;
+    display: flex; flex-direction: column; align-items: center; gap: 3px;
+    transition: transform .12s ease, filter .12s ease;
+  }
+  .punch:hover { filter: brightness(1.06); }
+  .punch:active { transform: scale(.985); }
+  .punch b { font-size: 1.14rem; font-weight: 700; letter-spacing: .01em; }
+  .punch span { font-size: .76rem; opacity: .86; font-weight: 550; }
+  .punch.go   { background: var(--ok); }
+  .punch.go.risky { background: var(--warn); }
+  .punch.stop { background: var(--bad); }
+  .punch.done { background: var(--surface-2); color: var(--ink-faint); cursor: default; }
+  .punch.done:hover { filter: none; }
+
+  .btn-sec {
+    width: 100%; border: 1px solid var(--rule); border-radius: 12px; padding: 13px;
+    font-weight: 650; font-size: .92rem; background: var(--surface); color: var(--ink);
+  }
+  .btn-sec:hover { background: var(--surface-2); }
+
+  .chrono { text-align: center; padding: 18px 14px; }
+  .chrono .big {
+    font-size: 2.5rem; font-weight: 700; letter-spacing: -.03em; line-height: 1;
+    font-variant-numeric: tabular-nums;
+  }
+  .chrono .lab { font-size: .66rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-faint); }
+  .chrono .sub { display: flex; justify-content: center; gap: 18px; margin-top: 13px; font-size: .76rem; color: var(--ink-soft); }
+  .chrono .sub b { font-variant-numeric: tabular-nums; }
+  .chrono.paused .big { color: var(--warn); }
+
+  .rows { display: flex; flex-direction: column; }
+  .row {
+    display: flex; justify-content: space-between; align-items: baseline; gap: 10px;
+    padding: 10px 0; border-top: 1px solid var(--rule-soft); font-size: .86rem;
+  }
+  .row:first-child { border-top: 0; padding-top: 2px; }
+  .row .l b { display: block; font-weight: 650; }
+  .row .l span { font-size: .76rem; color: var(--ink-faint); }
+  .row .r { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .row .r b { display: block; font-weight: 650; }
+  .row .r span { font-size: .74rem; color: var(--ink-faint); }
+
+  .sec-title { font-size: .66rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-faint); }
+  .total-line {
+    display: flex; justify-content: space-between; align-items: baseline;
+    padding-top: 11px; margin-top: 3px; border-top: 1px solid var(--rule);
+    font-weight: 700;
+  }
+  .total-line b { font-size: 1.1rem; font-variant-numeric: tabular-nums; }
+
+  .note {
+    font-size: .78rem; color: var(--ink-soft); background: var(--pigment-w);
+    border-radius: 10px; padding: 11px 13px; line-height: 1.5;
+  }
+  .note b { color: var(--ink); }
+
+  /* motif sheet */
+  .sheet-bg {
+    position: absolute; inset: 0; background: rgba(15,17,21,.45);
+    display: flex; align-items: flex-end; z-index: 20;
+  }
+  .sheet {
+    background: var(--surface); width: 100%; border-radius: 16px 16px 0 0;
+    padding: 18px; display: flex; flex-direction: column; gap: 12px;
+  }
+  .sheet h4 { font-size: 1.02rem; font-weight: 700; }
+  .sheet p { font-size: .83rem; color: var(--ink-soft); }
+  .sheet textarea {
+    font: inherit; font-size: .88rem; width: 100%; min-height: 78px; resize: vertical;
+    border: 1px solid var(--rule); border-radius: 10px; padding: 10px;
+    background: var(--surface-2); color: var(--ink);
+  }
+  .sheet-acts { display: flex; gap: 9px; }
+  .sheet-acts button { flex: 1; border-radius: 10px; padding: 12px; font-weight: 650; font-size: .88rem; }
+  .sheet-acts .cancel { border: 1px solid var(--rule); color: var(--ink-soft); }
+  .sheet-acts .ok { background: var(--pigment); color: #fff; }
+  .sheet-acts .ok:disabled { opacity: .4; cursor: not-allowed; }
+  .phone { position: relative; }
+
+  /* ============ dashboard ============ */
+
+  .db { display: flex; flex-direction: column; gap: 18px; }
+
+  .db-head {
+    display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between; align-items: center;
+    background: var(--surface); border: 1px solid var(--rule); border-radius: 12px; padding: 14px 16px;
+  }
+  .db-head b { font-size: 1.02rem; font-weight: 700; letter-spacing: -.01em; }
+  .db-head span { display: block; font-size: .78rem; color: var(--ink-faint); }
+  .db-clock { font-size: 1.5rem; font-weight: 700; letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
+
+  .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(128px, 1fr)); gap: 12px; }
+  .kpi { background: var(--surface); border: 1px solid var(--rule); border-radius: 12px; padding: 13px 15px; }
+  .kpi span { font-size: .63rem; font-weight: 700; letter-spacing: .11em; text-transform: uppercase; color: var(--ink-faint); }
+  .kpi b { display: block; font-size: 1.75rem; font-weight: 700; letter-spacing: -.025em; margin-top: 2px; font-variant-numeric: tabular-nums; }
+  .kpi.k-ok b { color: var(--ok); } .kpi.k-warn b { color: var(--warn); } .kpi.k-bad b { color: var(--bad); }
+
+  .panel { background: var(--surface); border: 1px solid var(--rule); border-radius: 12px; overflow: hidden; }
+  .panel-head {
+    display: flex; justify-content: space-between; align-items: center; gap: 12px;
+    padding: 11px 15px; border-bottom: 1px solid var(--rule); background: var(--surface-2);
+  }
+  .panel-head h3 { font-size: .68rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-soft); }
+
+  .tw { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: .85rem; }
+  th {
+    text-align: left; font-size: .63rem; font-weight: 700; letter-spacing: .1em;
+    text-transform: uppercase; color: var(--ink-faint); padding: 9px 15px;
+    border-bottom: 1px solid var(--rule); white-space: nowrap;
+  }
+  td { padding: 11px 15px; border-bottom: 1px solid var(--rule-soft); vertical-align: middle; white-space: nowrap; }
+  tbody tr:last-child td { border-bottom: 0; }
+  td.n { text-align: right; }
+  tr.live td { background: var(--pigment-w); }
+  .who b { font-weight: 650; }
+  .who span { display: block; font-size: .74rem; color: var(--ink-faint); }
+
+  .pill {
+    display: inline-flex; align-items: center; gap: 5px;
+    font-size: .7rem; font-weight: 700; padding: 3px 8px; border-radius: 5px; white-space: nowrap;
+  }
+  .pill::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; flex: none; }
+  .pill.ok { color: var(--ok); background: var(--ok-w); }
+  .pill.warn { color: var(--warn); background: var(--warn-w); }
+  .pill.bad { color: var(--bad); background: var(--bad-w); }
+  .pill.idle { color: var(--ink-faint); background: var(--surface-2); }
+  .pill.pig { color: var(--pigment); background: var(--pigment-w); }
+
+  .alerts { display: flex; flex-direction: column; }
+  .alert-i { display: flex; gap: 11px; padding: 11px 15px; border-bottom: 1px solid var(--rule-soft); align-items: flex-start; }
+  .alert-i:last-child { border-bottom: 0; }
+  .alert-i .txt { font-size: .85rem; }
+  .alert-i .txt span { display: block; font-size: .73rem; color: var(--ink-faint); margin-top: 1px; }
+  .alert-i time { margin-left: auto; font-size: .73rem; color: var(--ink-faint); font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .empty { padding: 22px 15px; text-align: center; font-size: .84rem; color: var(--ink-faint); }
+
+  .sites { display: grid; gap: 12px; padding: 15px; }
+  @media (min-width: 760px) { .sites { grid-template-columns: 1fr 1fr; } }
+  .site {
+    border: 1px solid var(--rule); border-radius: 10px; padding: 13px;
+    background: var(--surface); display: flex; flex-direction: column; gap: 9px;
+  }
+  .site-h { display: flex; justify-content: space-between; gap: 10px; align-items: flex-start; }
+  .site-h b { font-size: .92rem; font-weight: 700; }
+  .site-h span { display: block; font-size: .75rem; color: var(--ink-faint); margin-top: 1px; }
+  .site-m { display: flex; gap: 16px; }
+  .site-m div span { font-size: .6rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-faint); display: block; }
+  .site-m div b { font-size: 1.02rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .site-m div.over b { color: var(--bad); }
+  .bar { height: 6px; border-radius: 4px; background: var(--surface-3); display: flex; overflow: hidden; }
+  .bar i { display: block; height: 100%; }
+  .bar i.q { background: var(--pigment); }
+  .bar i.o { background: var(--bad); }
+  .bar i.u { background: var(--ok); }
+
+  .btn-x {
+    font-size: .76rem; font-weight: 650; border: 1px solid var(--rule); border-radius: 7px;
+    padding: 5px 11px; background: var(--surface); color: var(--ink-soft);
+  }
+  .btn-x:hover { background: var(--surface-3); color: var(--ink); }
+
+  .csv {
+    margin: 0 15px 15px; border: 1px solid var(--rule); border-radius: 9px; overflow: hidden;
+  }
+  .csv-h { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 9px 12px; background: var(--surface-2); }
+  .csv-h b { font-size: .72rem; font-weight: 700; letter-spacing: .09em; text-transform: uppercase; color: var(--ink-soft); }
+  .csv pre {
+    font-family: var(--mono); font-size: .72rem; line-height: 1.65; padding: 12px;
+    overflow-x: auto; color: var(--ink-soft); background: var(--surface);
+  }
+
+  /* ============ demo console ============ */
+
+  .dc {
+    margin-top: 14px; border: 1px dashed var(--rule); border-radius: 12px;
+    background: var(--surface-2); padding: 14px;
+    display: flex; flex-direction: column; gap: 14px;
+  }
+  .dc-title {
+    font-size: .63rem; font-weight: 700; letter-spacing: .13em; text-transform: uppercase;
+    color: var(--ink-faint); display: flex; align-items: center; gap: 8px;
+  }
+  .dc-title::after { content: ""; flex: 1; height: 1px; background: var(--rule); }
+  .dc-grp { display: flex; flex-direction: column; gap: 7px; }
+  .dc-grp > label, .dc-lab {
+    font-size: .74rem; font-weight: 650; color: var(--ink-soft);
+    display: flex; justify-content: space-between; gap: 10px; align-items: baseline;
+  }
+  .dc-lab i { font-style: normal; font-variant-numeric: tabular-nums; color: var(--ink); font-weight: 700; }
+  .seg { display: flex; gap: 3px; padding: 3px; background: var(--surface); border: 1px solid var(--rule); border-radius: 8px; }
+  .seg button { flex: 1; padding: 6px 4px; border-radius: 6px; font-size: .76rem; font-weight: 650; color: var(--ink-soft); }
+  .seg button[aria-pressed="true"] { background: var(--pigment); color: #fff; }
+  input[type="range"] { width: 100%; accent-color: var(--pigment); }
+  .dc-btns { display: flex; gap: 8px; flex-wrap: wrap; }
+  .dc-btns button { flex: 1; min-width: 96px; border: 1px solid var(--rule); background: var(--surface);
+                    border-radius: 8px; padding: 8px; font-size: .78rem; font-weight: 650; color: var(--ink-soft); }
+  .dc-btns button:hover { background: var(--surface-3); color: var(--ink); }
+  .dc-hint { font-size: .73rem; color: var(--ink-faint); line-height: 1.5; }
+
+  footer {
+    margin-top: 34px; padding-top: 18px; border-top: 1px solid var(--rule);
+    font-size: .82rem; color: var(--ink-faint); line-height: 1.6;
+  }
+  footer h4 { font-size: .63rem; font-weight: 700; letter-spacing: .13em; text-transform: uppercase; margin-bottom: 8px; color: var(--ink-soft); }
+  footer ul { list-style: none; display: grid; gap: 5px; max-width: 78ch; }
+  footer li { padding-left: 15px; position: relative; }
+  footer li::before { content: "–"; position: absolute; left: 0; }
+  footer .cols { display: grid; gap: 22px; }
+  @media (min-width: 760px) { footer .cols { grid-template-columns: 1fr 1fr; } }
+
+  @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+</style>
+
+<div class="wrap">
+
+  <header class="top">
+    <div class="top-id">
+      <p class="eyebrow">2PG Rénovation · prototype</p>
+      <h1>Pointage sur chantier</h1>
+      <p>
+        Prototype cliquable : l'application de l'ouvrier et le tableau de bord du patron,
+        <strong>synchronisés en direct</strong><span class="long"> — chaque pointage apparaît
+        immédiatement côté patron</span>. La console de démo fait avancer l'heure et simule la
+        position GPS.
+      </p>
+    </div>
+    <div class="viewtabs" role="group" aria-label="Choisir la vue">
+      <button type="button" data-view-btn="ouvrier" aria-pressed="true">Vue ouvrier</button>
+      <button type="button" data-view-btn="patron" aria-pressed="false">Vue patron</button>
+    </div>
+  </header>
+
+  <div class="stage" data-view="ouvrier" id="stage">
+
+    <div class="col-app">
+      <p class="col-label">Application ouvrier — Karim</p>
+      <div class="phone" id="phone"></div>
+
+      <div class="dc">
+        <p class="dc-title">Console de démo</p>
+
+        <div class="dc-grp">
+          <p class="dc-lab"><span>Horloge</span><i id="dcClock">07:58</i></p>
+          <div class="seg" role="group" aria-label="Vitesse de l&apos;horloge">
+            <button type="button" data-speed="0" aria-pressed="false">Pause</button>
+            <button type="button" data-speed="1" aria-pressed="false">Temps réel</button>
+            <button type="button" data-speed="60" aria-pressed="true">Accéléré</button>
+          </div>
+        </div>
+
+        <div class="dc-grp">
+          <p class="dc-lab"><span>Distance simulée au chantier</span><i id="dcDist">23 m</i></p>
+          <input type="range" id="dcRange" min="0" max="2400" step="1" value="23" aria-label="Distance au chantier en mètres">
+          <p class="dc-hint">Rayon de tolérance du chantier : <strong>100 m</strong>. Au-delà, le pointage reste possible mais exige un motif écrit et déclenche une alerte.</p>
+        </div>
+
+        <div class="dc-btns">
+          <button type="button" id="dcJump">+ 1 heure</button>
+          <button type="button" id="dcReset">Réinitialiser</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-db">
+      <p class="col-label">Tableau de bord patron</p>
+      <div class="db" id="db"></div>
+    </div>
+
+  </div>
+
+  <footer>
+    <div class="cols">
+      <div>
+        <h4>Ce qui fonctionne vraiment dans ce prototype</h4>
+        <ul>
+          <li>Le cycle complet arrivée → pause → reprise → départ, avec chrono en direct</li>
+          <li>La vérification de distance et le blocage doux hors zone (motif obligatoire)</li>
+          <li>La remontée en direct vers le tableau de bord patron</li>
+          <li>Les alertes automatiques : retard, hors zone, départ anticipé, oubli de pointage</li>
+          <li>Le calcul devisé vs réalisé par chantier</li>
+          <li>L&apos;export CSV, réellement généré et téléchargeable</li>
+        </ul>
+      </div>
+      <div>
+        <h4>Ce qui est simulé, et le sera pour de vrai</h4>
+        <ul>
+          <li>La position GPS — remplacée ici par le curseur de la console</li>
+          <li>L&apos;horodatage — viendra du serveur, jamais du téléphone</li>
+          <li>Les autres ouvriers, Sofiane et Momo, joués par un scénario figé</li>
+          <li>La connexion, la carte des chantiers, les notifications push</li>
+          <li>Le mode hors ligne et la détection de GPS falsifié</li>
+        </ul>
+      </div>
+    </div>
+    <p style="margin-top:22px; max-width:78ch;">
+      Aucune donnée n&apos;est enregistrée : tout vit dans l&apos;onglet et disparaît au rechargement.
+      Dis-moi ce qu&apos;il faut changer — libellés, ordre des écrans, informations affichées,
+      couleurs — et je reprends.
+    </p>
+  </footer>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  // ---------- données de démo ----------
+
+  var RAYON = 100;
+  var JOURNEE = { debut: 8 * 60, fin: 17 * 60 };   // minutes depuis minuit
+
+  var CHANTIERS = [
+    { id: "c1", nom: "Mme Durand", detail: "Salle de bains + peinture", adresse: "12 rue des Lilas, 31700 Blagnac",
+      devise: 40, faitAvant: 55.5, rayon: 100 },
+    { id: "c2", nom: "M. Bertrand", detail: "Placo et faux plafond", adresse: "8 allée des Chênes, 31320 Castanet-Tolosan",
+      devise: 24, faitAvant: 13.5, rayon: 120 },
+    { id: "c3", nom: "SCI Pech", detail: "Peinture cage d&apos;escalier", adresse: "3 av. des Pyrénées, 31140 Aucamville",
+      devise: 60, faitAvant: 12, rayon: 150 }
+  ];
+
+  // Semaine déjà pointée par Karim (pour l'écran « Mes heures »)
+  var SEMAINE = [
+    { jour: "Lundi",    chantier: "Mme Durand",  a: "08:02", d: "17:05", min: 498 },
+    { jour: "Mardi",    chantier: "Mme Durand",  a: "07:56", d: "16:48", min: 487 },
+    { jour: "Mercredi", chantier: "M. Bertrand", a: "08:11", d: "17:20", min: 504 },
+    { jour: "Jeudi",    chantier: "Mme Durand",  a: "08:00", d: "12:30", min: 270 }
+  ];
+
+  var PLANNING = [
+    { j: "Demain",      c: "Mme Durand",  v: "Blagnac",           h: "08:00 – 17:00" },
+    { j: "Lundi 10",    c: "SCI Pech",    v: "Aucamville",        h: "08:00 – 17:00" },
+    { j: "Mardi 11",    c: "SCI Pech",    v: "Aucamville",        h: "08:00 – 17:00" },
+    { j: "Mercredi 12", c: "M. Bertrand", v: "Castanet-Tolosan",  h: "08:00 – 12:00" }
+  ];
+
+  // Collègues : scénario figé, pour montrer les trois états côté patron
+  var COLLEGUES = [
+    { nom: "Sofiane Mansour", chantier: "M. Bertrand", ville: "Castanet-Tolosan",
+      prevu: 8 * 60, arrivee: 9 * 60 + 47, depart: null, statut: "retard" },
+    { nom: "Momo Traoré", chantier: "SCI Pech", ville: "Aucamville",
+      prevu: 8 * 60, arrivee: null, depart: null, statut: "absent" }
+  ];
+
+  // ---------- état ----------
+
+  var S;
+  function etatInitial() {
+    return {
+      clock: minutesEnMs(7 * 60 + 58),
+      speed: 60,
+      distance: 23,
+      ecran: "today",
+      vue: "ouvrier",
+      sheet: false,
+      motif: "",
+      csv: false,
+      jour: {
+        statut: "avant",         // avant | travail | pause | fini
+        arrivee: null, depart: null,
+        pauseTotale: 0, pauseDebut: null,
+        // arrivée et départ sont vérifiés séparément : on peut arriver dans la
+        // zone et pointer son départ depuis la rue, ou l'inverse
+        horsZoneArr: false, motifArr: null, distArr: null,
+        horsZoneDep: false, motifDep: null, distDep: null
+      },
+      alertes: [],
+      vus: {}                    // alertes déjà émises, pour ne pas les répéter
+    };
+  }
+
+  var LE_JOUR = new Date();
+  function minutesEnMs(min) {
+    var d = new Date(LE_JOUR.getFullYear(), LE_JOUR.getMonth(), LE_JOUR.getDate(), 0, 0, 0, 0);
+    return d.getTime() + min * 60000;
+  }
+  function msEnMinutes(ms) {
+    var d = new Date(ms);
+    return d.getHours() * 60 + d.getMinutes();
+  }
+  function hhmm(ms) {
+    if (ms === null || ms === undefined) return "—";
+    var d = new Date(ms);
+    return pad(d.getHours()) + ":" + pad(d.getMinutes());
+  }
+  function pad(n) { return (n < 10 ? "0" : "") + n; }
+
+  function dureeCourte(min) {
+    min = Math.max(0, Math.round(min));
+    var h = Math.floor(min / 60), m = min % 60;
+    if (h === 0) return m + " min";
+    return h + " h " + pad(m);
+  }
+  function heuresDec(min) { return (min / 60); }
+  function fmtH(h) { return (Math.round(h * 10) / 10).toString().replace(".", ",") + " h"; }
+
+  // « dimanche 2 août », pas « Dimanche 2 Août » : en français seule
+  // la première lettre prend la majuscule.
+  function dateLongue(ms) {
+    var s = new Date(ms).toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" });
+    return s.charAt(0).toUpperCase() + s.slice(1);
+  }
+
+  function esc(s) {
+    return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+  }
+
+  // ---------- calculs ----------
+
+  var CHANTIER_DU_JOUR = CHANTIERS[0];
+
+  function minutesTravaillees() {
+    var j = S.jour;
+    if (!j.arrivee) return 0;
+    var fin = j.depart !== null ? j.depart : S.clock;
+    var brut = (fin - j.arrivee) / 60000;
+    var pause = j.pauseTotale;
+    if (j.statut === "pause" && j.pauseDebut !== null) pause += (S.clock - j.pauseDebut) / 60000;
+    return Math.max(0, brut - pause);
+  }
+  function pauseMinutes() {
+    var j = S.jour, p = j.pauseTotale;
+    if (j.statut === "pause" && j.pauseDebut !== null) p += (S.clock - j.pauseDebut) / 60000;
+    return p;
+  }
+  function dansZone() { return S.distance <= CHANTIER_DU_JOUR.rayon; }
+
+  function heuresReelles(chantierId) {
+    var c = null, i;
+    for (i = 0; i < CHANTIERS.length; i++) if (CHANTIERS[i].id === chantierId) c = CHANTIERS[i];
+    var h = c.faitAvant;
+    if (chantierId === CHANTIER_DU_JOUR.id) h += heuresDec(minutesTravaillees());
+    if (chantierId === "c2" && COLLEGUES[0].arrivee !== null) {
+      var fin = COLLEGUES[0].depart !== null ? COLLEGUES[0].depart : Math.max(COLLEGUES[0].arrivee, msEnMinutes(S.clock));
+      h += heuresDec(Math.max(0, fin - COLLEGUES[0].arrivee) - 45);
+    }
+    return h;
+  }
+
+  // ---------- alertes ----------
+
+  function pousserAlerte(cle, type, titre, detail) {
+    if (S.vus[cle]) return;
+    S.vus[cle] = true;
+    S.alertes.unshift({ type: type, titre: titre, detail: detail, t: S.clock });
+  }
+
+  function verifierAlertes() {
+    var m = msEnMinutes(S.clock);
+    var j = S.jour;
+
+    if (j.statut === "avant" && m > JOURNEE.debut + 30) {
+      pousserAlerte("retard-karim", "warn", "Karim n&apos;a pas pointé son arrivée",
+        "Attendu à 08:00 sur le chantier Mme Durand — Blagnac");
+    }
+    if (j.statut !== "avant" && j.statut !== "fini" && m > JOURNEE.fin + 30) {
+      pousserAlerte("oubli-karim", "warn", "Journée de Karim restée ouverte",
+        "Aucun pointage de départ après 17:30. Clôture automatique à arbitrer");
+    }
+    if (COLLEGUES[0].arrivee !== null && m >= COLLEGUES[0].arrivee) {
+      pousserAlerte("retard-sofiane", "warn", "Sofiane est arrivé avec 1 h 47 de retard",
+        "Chantier M. Bertrand — Castanet-Tolosan, attendu à 08:00");
+    }
+    if (m > JOURNEE.debut + 30) {
+      pousserAlerte("absent-momo", "bad", "Momo n&apos;est pas arrivé sur le chantier",
+        "Chantier SCI Pech — Aucamville, attendu à 08:00");
+    }
+  }
+
+  // ---------- actions ----------
+
+  function pointer(type) {
+    var hors = !dansZone();
+    if (hors && (type === "arrivee" || type === "depart") && !S.sheet) {
+      S.sheet = true; S.motif = ""; S.pending = type; render(); return;
+    }
+    appliquer(type, hors, S.motif);
+  }
+
+  function appliquer(type, hors, motif) {
+    var j = S.jour;
+    if (type === "arrivee") {
+      j.statut = "travail"; j.arrivee = S.clock;
+      j.horsZoneArr = hors; j.motifArr = hors ? motif : null; j.distArr = S.distance;
+      if (hors) {
+        pousserAlerte("horszone-arr", "bad", "Pointage hors zone — Karim",
+          "Arrivée déclarée à " + Math.round(S.distance) + " m du chantier (rayon " + CHANTIER_DU_JOUR.rayon + " m). Motif : " + (motif || "—"));
+      }
+    } else if (type === "pause") {
+      j.statut = "pause"; j.pauseDebut = S.clock;
+    } else if (type === "reprise") {
+      j.pauseTotale += (S.clock - j.pauseDebut) / 60000;
+      j.pauseDebut = null; j.statut = "travail";
+    } else if (type === "depart") {
+      if (j.statut === "pause" && j.pauseDebut !== null) {
+        j.pauseTotale += (S.clock - j.pauseDebut) / 60000; j.pauseDebut = null;
+      }
+      j.statut = "fini"; j.depart = S.clock;
+      j.horsZoneDep = hors; j.motifDep = hors ? motif : null; j.distDep = S.distance;
+      var m = msEnMinutes(S.clock);
+      if (hors) {
+        pousserAlerte("horszone-dep", "bad", "Pointage hors zone — Karim",
+          "Départ déclaré à " + Math.round(S.distance) + " m du chantier. Motif : " + (motif || "—"));
+      }
+      if (m < JOURNEE.fin - 60) {
+        pousserAlerte("anticipe-karim", "warn", "Départ anticipé — Karim",
+          "Parti à " + hhmm(S.clock) + " pour une fin prévue à 17:00");
+      }
+    }
+    S.sheet = false; S.motif = ""; S.pending = null;
+    render();
+  }
+
+  // ---------- rendu : téléphone ----------
+
+  var ICONS = {
+    today: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>',
+    hours: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16v15H4z"/><path d="M4 9h16M9 5V3M15 5V3"/></svg>',
+    sites: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-5.5 7-11a7 7 0 1 0-14 0c0 5.5 7 11 7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>',
+    me:    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.5"/><path d="M4.5 20a7.5 7.5 0 0 1 15 0"/></svg>'
+  };
+
+  function ecranAujourdhui() {
+    var j = S.jour, c = CHANTIER_DU_JOUR, h = "";
+    var dz = dansZone();
+    var pct = Math.min(100, (S.distance / 600) * 100);
+    var zonePct = Math.min(100, (c.rayon / 600) * 100);
+
+    h += '<div class="card">' +
+           '<p class="site-name">' + c.nom + '</p>' +
+           '<p class="site-addr">' + c.detail + ' · ' + c.adresse + '</p>' +
+           '<div class="site-row">' +
+             '<span class="chip">08:00 – 17:00</span>' +
+             '<button type="button" class="btn-ghost" data-act="itineraire">Itinéraire</button>' +
+           '</div>' +
+         '</div>';
+
+    if (j.statut !== "fini") {
+      h += '<div class="card geo ' + (dz ? "in" : "out") + '">' +
+             '<div class="geo-line">' +
+               '<b>' + (dz ? "Vous êtes sur le chantier" : "Vous êtes hors de la zone") + '</b>' +
+               '<span>' + Math.round(S.distance) + ' m</span>' +
+             '</div>' +
+             '<div class="geo-track">' +
+               '<div class="geo-zone" style="width:' + zonePct + '%"></div>' +
+               '<div class="geo-dot" style="left:' + pct + '%"></div>' +
+             '</div>' +
+             '<div class="geo-scale"><span>0 m</span><span>zone ' + c.rayon + ' m</span><span>600 m +</span></div>' +
+           '</div>';
+    }
+
+    if (j.statut === "avant") {
+      h += '<button type="button" class="punch go' + (dz ? "" : " risky") + '" data-act="arrivee">' +
+             '<b>Pointer mon arrivée</b>' +
+             '<span>' + (dz ? "Prêt · " + hhmm(S.clock) : "Hors zone · un motif sera demandé") + '</span>' +
+           '</button>';
+    } else {
+      var paused = j.statut === "pause";
+      h += '<div class="card chrono' + (paused ? " paused" : "") + '">' +
+             '<p class="lab">' + (paused ? "En pause" : (j.statut === "fini" ? "Journée terminée" : "Temps de travail")) + '</p>' +
+             '<p class="big" data-live="chrono">' + dureeCourte(minutesTravaillees()) + '</p>' +
+             '<div class="sub">' +
+               '<span>Arrivée <b>' + hhmm(j.arrivee) + '</b></span>' +
+               '<span>Pause <b data-live="pause">' + Math.round(pauseMinutes()) + ' min</b></span>' +
+               (j.depart ? '<span>Départ <b>' + hhmm(j.depart) + '</b></span>' : '') +
+             '</div>' +
+           '</div>';
+
+      if (j.statut === "travail") {
+        h += '<button type="button" class="btn-sec" data-act="pause">Prendre ma pause</button>';
+        h += '<button type="button" class="punch stop" data-act="depart"><b>Pointer mon départ</b><span>' + hhmm(S.clock) + '</span></button>';
+      } else if (j.statut === "pause") {
+        h += '<button type="button" class="punch go" data-act="reprise"><b>Reprendre le travail</b><span>' + hhmm(S.clock) + '</span></button>';
+        h += '<button type="button" class="btn-sec" data-act="depart">Pointer mon départ</button>';
+      } else {
+        h += '<div class="punch done"><b>Journée pointée</b><span>Transmise au bureau</span></div>';
+      }
+    }
+
+    if (j.horsZoneArr || j.horsZoneDep) {
+      var qui = [];
+      if (j.horsZoneArr) qui.push('arrivée à ' + Math.round(j.distArr) + ' m — « ' + esc(j.motifArr || "") + ' »');
+      if (j.horsZoneDep) qui.push('départ à ' + Math.round(j.distDep) + ' m — « ' + esc(j.motifDep || "") + ' »');
+      h += '<div class="note"><b>Pointage hors zone signalé.</b><br>' + qui.join('<br>') +
+           '<br>Le bureau arbitrera — vos heures sont bien enregistrées.</div>';
+    }
+    return h;
+  }
+
+  function ecranHeures() {
+    var h = '<p class="sec-title">Cette semaine</p><div class="card"><div class="rows">';
+    var total = 0, i;
+    for (i = 0; i < SEMAINE.length; i++) {
+      var d = SEMAINE[i]; total += d.min;
+      h += '<div class="row"><div class="l"><b>' + d.jour + '</b><span>' + d.chantier + '</span></div>' +
+           '<div class="r"><b>' + dureeCourte(d.min) + '</b><span>' + d.a + ' – ' + d.d + '</span></div></div>';
+    }
+    var aj = minutesTravaillees();
+    if (S.jour.arrivee) { total += aj; }
+    h += '<div class="row"><div class="l"><b>Aujourd&apos;hui</b><span>' + CHANTIER_DU_JOUR.nom + '</span></div>' +
+         '<div class="r"><b data-live="jour">' + (S.jour.arrivee ? dureeCourte(aj) : "—") + '</b><span>' +
+         (S.jour.arrivee ? hhmm(S.jour.arrivee) + " – " + (S.jour.depart ? hhmm(S.jour.depart) : "en cours") : "pas encore pointé") +
+         '</span></div></div>';
+    h += '</div><div class="total-line"><span>Total semaine</span><b data-live="semaine">' + dureeCourte(total) + '</b></div></div>';
+    h += '<div class="note"><b>Ces heures sont les vôtres.</b> Cet écran vous donne accès à tout moment au détail de vos pointages, sans avoir à en faire la demande.</div>';
+    return h;
+  }
+
+  function ecranChantiers() {
+    var h = '<p class="sec-title">À venir</p><div class="card"><div class="rows">', i;
+    for (i = 0; i < PLANNING.length; i++) {
+      var p = PLANNING[i];
+      h += '<div class="row"><div class="l"><b>' + p.c + '</b><span>' + p.j + ' · ' + p.v + '</span></div>' +
+           '<div class="r"><b>' + p.h + '</b></div></div>';
+    }
+    h += '</div></div>';
+    return h;
+  }
+
+  function ecranProfil() {
+    return '<div class="card"><div class="rows">' +
+      '<div class="row"><div class="l"><b>Karim Benali</b><span>Ouvrier · 2PG Rénovation</span></div></div>' +
+      '<div class="row"><div class="l"><b>Appareil</b><span>Validé le 12 mai 2026</span></div><div class="r"><b>Pixel 7a</b></div></div>' +
+      '<div class="row"><div class="l"><b>Contrat</b><span>35 h hebdomadaires</span></div></div>' +
+      '</div></div>' +
+      '<div class="note"><b>Vos données.</b> Votre position n&apos;est relevée qu&apos;au moment où vous appuyez sur Arrivée ou Départ. ' +
+      'Entre deux pointages, rien n&apos;est enregistré — ni vos trajets, ni vos pauses, ni vos soirées. ' +
+      'Les coordonnées sont effacées au bout de 2 mois ; seules vos heures sont conservées pour la paie.</div>' +
+      '<button type="button" class="btn-sec">Se déconnecter</button>';
+  }
+
+  function renderPhone() {
+    var ecrans = { today: ecranAujourdhui, hours: ecranHeures, sites: ecranChantiers, me: ecranProfil };
+    var titres = { today: "Aujourd&apos;hui", hours: "Mes heures", sites: "Mes chantiers", me: "Profil" };
+    var dateStr = dateLongue(S.clock);
+
+    var h = '';
+    h += '<div class="ph-status"><span data-live="phclock">' + hhmm(S.clock) + '</span><span>4G · 78 %</span></div>';
+    h += '<div class="ph-head"><b>' + titres[S.ecran] + '</b><span>' + dateStr + '</span></div>';
+    h += '<div class="ph-body">' + ecrans[S.ecran]() + '</div>';
+
+    h += '<nav class="ph-nav">';
+    var tabs = [["today", "Aujourd&apos;hui"], ["hours", "Mes heures"], ["sites", "Chantiers"], ["me", "Profil"]];
+    for (var i = 0; i < tabs.length; i++) {
+      var k = tabs[i][0];
+      h += '<button type="button" data-tab="' + k + '"' + (S.ecran === k ? ' aria-current="page"' : '') + '>' +
+             '<span class="ic">' + ICONS[k] + '</span>' + tabs[i][1] + '</button>';
+    }
+    h += '</nav>';
+
+    if (S.sheet) {
+      h += '<div class="sheet-bg"><div class="sheet">' +
+             '<h4>Vous êtes à ' + Math.round(S.distance) + ' m du chantier</h4>' +
+             '<p>Le pointage reste possible. Indiquez simplement pourquoi — le bureau en sera informé.</p>' +
+             '<textarea id="motifInput" placeholder="Ex. : pas de GPS dans le sous-sol, je pointe depuis la rue">' + esc(S.motif) + '</textarea>' +
+             '<div class="sheet-acts">' +
+               '<button type="button" class="cancel" data-act="annuler">Annuler</button>' +
+               '<button type="button" class="ok" data-act="confirmer"' + (S.motif.trim().length < 3 ? " disabled" : "") + '>Confirmer</button>' +
+             '</div>' +
+           '</div></div>';
+    }
+
+    document.getElementById("phone").innerHTML = h;
+  }
+
+  // ---------- rendu : tableau de bord ----------
+
+  function ligneKarim() {
+    var j = S.jour;
+    var statut, arrivee = j.arrivee ? hhmm(j.arrivee) : "—", ecart = "—", surPlace = "—";
+    if (j.statut === "avant") {
+      statut = msEnMinutes(S.clock) > JOURNEE.debut + 15
+        ? '<span class="pill warn">En retard</span>' : '<span class="pill idle">Attendu</span>';
+    } else {
+      var e = Math.round(msEnMinutes(j.arrivee) - JOURNEE.debut);
+      ecart = (e >= 0 ? "+" : "−") + dureeCourte(Math.abs(e));
+      surPlace = dureeCourte(minutesTravaillees());
+      if (j.statut === "fini") statut = '<span class="pill idle">Parti ' + hhmm(j.depart) + '</span>';
+      else if (j.statut === "pause") statut = '<span class="pill pig">En pause</span>';
+      else if (j.horsZoneArr || j.horsZoneDep) statut = '<span class="pill bad">Hors zone</span>';
+      else if (e > 15) statut = '<span class="pill warn">Retard</span>';
+      else statut = '<span class="pill ok">Sur place</span>';
+    }
+    return { statut: statut, arrivee: arrivee, ecart: ecart, surPlace: surPlace };
+  }
+
+  function renderDb() {
+    var m = msEnMinutes(S.clock), h = "";
+    var k = ligneKarim();
+    var dateStr = dateLongue(S.clock);
+
+    var presents = 0, retards = 0, absents = 0;
+    if (S.jour.statut === "travail" || S.jour.statut === "pause") presents++;
+    if (S.jour.statut === "avant" && m > JOURNEE.debut + 15) retards++;
+    if (COLLEGUES[0].arrivee !== null && m >= COLLEGUES[0].arrivee) { presents++; retards++; }
+    else if (m > JOURNEE.debut + 15) retards++;
+    if (m > JOURNEE.debut + 15) absents++;
+
+    var heuresJour = heuresDec(minutesTravaillees());
+    if (COLLEGUES[0].arrivee !== null && m >= COLLEGUES[0].arrivee) {
+      heuresJour += heuresDec(Math.max(0, m - COLLEGUES[0].arrivee) - (m > 13 * 60 ? 45 : 0));
+    }
+
+    h += '<div class="db-head"><div><b>2PG Rénovation</b><span>' + dateStr + '</span></div>' +
+         '<div class="db-clock" data-live="dbclock">' + hhmm(S.clock) + '</div></div>';
+
+    h += '<div class="kpis">' +
+      '<div class="kpi k-ok"><span>Sur chantier</span><b>' + presents + '</b></div>' +
+      '<div class="kpi k-warn"><span>Retards</span><b>' + retards + '</b></div>' +
+      '<div class="kpi k-bad"><span>Absents</span><b>' + absents + '</b></div>' +
+      '<div class="kpi"><span>Heures du jour</span><b data-live="dbheures">' + fmtH(heuresJour) + '</b></div>' +
+      '</div>';
+
+    // alertes
+    h += '<div class="panel"><div class="panel-head"><h3>Alertes</h3>' +
+         '<span class="pill ' + (S.alertes.length ? "warn" : "idle") + '">' + S.alertes.length + '</span></div>';
+    if (!S.alertes.length) {
+      h += '<p class="empty">Rien à signaler.</p>';
+    } else {
+      h += '<div class="alerts">';
+      for (var i = 0; i < S.alertes.length; i++) {
+        var a = S.alertes[i];
+        h += '<div class="alert-i"><span class="pill ' + a.type + '"></span>' +
+               '<div class="txt">' + a.titre + '<span>' + a.detail + '</span></div>' +
+               '<time>' + hhmm(a.t) + '</time></div>';
+      }
+      h += '</div>';
+    }
+    h += '</div>';
+
+    // présence
+    h += '<div class="panel"><div class="panel-head"><h3>Présence du jour</h3>' +
+         '<button type="button" class="btn-x" data-act="csv">' + (S.csv ? "Masquer l&apos;export" : "Exporter") + '</button></div>' +
+         '<div class="tw"><table><thead><tr>' +
+         '<th>Ouvrier</th><th>Chantier</th><th class="n">Prévu</th><th class="n">Arrivé</th>' +
+         '<th class="n">Écart</th><th class="n">Sur place</th><th>Statut</th></tr></thead><tbody>';
+
+    h += '<tr class="live"><td class="who"><b>Karim Benali</b><span>vous suivez cet ouvrier</span></td>' +
+         '<td>' + CHANTIER_DU_JOUR.nom + '<br><span style="color:var(--ink-faint);font-size:.75rem">Blagnac</span></td>' +
+         '<td class="n">08:00</td><td class="n" data-live="dbarr">' + k.arrivee + '</td>' +
+         '<td class="n">' + k.ecart + '</td><td class="n" data-live="dbsur">' + k.surPlace + '</td>' +
+         '<td>' + k.statut + '</td></tr>';
+
+    for (var c = 0; c < COLLEGUES.length; c++) {
+      var g = COLLEGUES[c];
+      var arr = "—", ec = "—", sp = "—", st = '<span class="pill idle">Attendu</span>';
+      if (g.arrivee !== null && m >= g.arrivee) {
+        arr = pad(Math.floor(g.arrivee / 60)) + ":" + pad(g.arrivee % 60);
+        var de = g.arrivee - g.prevu;
+        ec = "+" + dureeCourte(de);
+        sp = dureeCourte(Math.max(0, m - g.arrivee) - (m > 13 * 60 ? 45 : 0));
+        st = '<span class="pill warn">Retard</span>';
+      } else if (m > JOURNEE.debut + 30) {
+        st = g.statut === "absent" ? '<span class="pill bad">Absent</span>' : '<span class="pill warn">En retard</span>';
+      }
+      h += '<tr><td class="who"><b>' + g.nom + '</b></td>' +
+           '<td>' + g.chantier + '<br><span style="color:var(--ink-faint);font-size:.75rem">' + g.ville + '</span></td>' +
+           '<td class="n">08:00</td><td class="n">' + arr + '</td><td class="n">' + ec + '</td>' +
+           '<td class="n">' + sp + '</td><td>' + st + '</td></tr>';
+    }
+    h += '</tbody></table></div>';
+
+    if (S.csv) {
+      var txt = genererCsv();
+      h += '<div class="csv"><div class="csv-h"><b>pointages-' + new Date(S.clock).toISOString().slice(0, 10) + '.csv</b>' +
+           '<button type="button" class="btn-x" data-act="dl">Télécharger</button></div>' +
+           '<pre>' + esc(txt) + '</pre></div>';
+    }
+    h += '</div>';
+
+    // chantiers / marge
+    h += '<div class="panel"><div class="panel-head"><h3>Chantiers · devisé vs réalisé</h3></div><div class="sites">';
+    for (var s = 0; s < CHANTIERS.length; s++) {
+      var ch = CHANTIERS[s];
+      var reel = heuresReelles(ch.id);
+      var ecartPct = Math.round(((reel - ch.devise) / ch.devise) * 100);
+      var over = reel > ch.devise;
+      var wQ, wO;
+      if (over) { wQ = (ch.devise / reel) * 100; wO = 100 - wQ; }
+      else { wQ = (reel / ch.devise) * 100; wO = 0; }
+      h += '<div class="site">' +
+             '<div class="site-h"><div><b>' + ch.nom + '</b><span>' + ch.detail + '</span></div>' +
+             '<span class="pill ' + (over ? "bad" : "ok") + '">' + (ecartPct >= 0 ? "+" : "−") + Math.abs(ecartPct) + ' %</span></div>' +
+             '<div class="site-m">' +
+               '<div><span>Devisé</span><b>' + fmtH(ch.devise) + '</b></div>' +
+               '<div class="' + (over ? "over" : "") + '"><span>Réalisé</span><b>' + fmtH(reel) + '</b></div>' +
+               '<div class="' + (over ? "over" : "") + '"><span>' + (over ? "Dépassement" : "Reste") + '</span>' +
+               '<b>' + fmtH(Math.abs(ch.devise - reel)) + '</b></div>' +
+             '</div>' +
+             '<div class="bar"><i class="' + (over ? "q" : "u") + '" style="width:' + wQ + '%"></i>' +
+             (over ? '<i class="o" style="width:' + wO + '%"></i>' : '') + '</div>' +
+           '</div>';
+    }
+    h += '</div></div>';
+
+    document.getElementById("db").innerHTML = h;
+  }
+
+  function genererCsv() {
+    // Arrivée et départ sont vérifiés séparément — une seule colonne « dans_zone »
+    // pour la journée masquerait un départ pointé depuis la rue.
+    var l = ["salarie;date;chantier;arrivee;arrivee_zone;arrivee_dist_m;depart;depart_zone;depart_dist_m;pause_min;duree_h"];
+    var dt = new Date(S.clock).toISOString().slice(0, 10);
+    var j = S.jour;
+    l.push([
+      "Karim Benali", dt, CHANTIER_DU_JOUR.nom,
+      j.arrivee ? hhmm(j.arrivee) : "",
+      j.arrivee ? (j.horsZoneArr ? "hors" : "oui") : "",
+      j.distArr !== null ? Math.round(j.distArr) : "",
+      j.depart ? hhmm(j.depart) : "",
+      j.depart ? (j.horsZoneDep ? "hors" : "oui") : "",
+      j.distDep !== null ? Math.round(j.distDep) : "",
+      j.arrivee ? Math.round(pauseMinutes()) : "",
+      j.arrivee ? (Math.round(heuresDec(minutesTravaillees()) * 100) / 100).toString().replace(".", ",") : ""
+    ].join(";"));
+    l.push("Sofiane Mansour;" + dt + ";M. Bertrand;09:47;oui;31;;;;45;");
+    l.push("Momo Traore;" + dt + ";SCI Pech;;;;;;;;");
+    return l.join("\n");
+  }
+
+  // ---------- boucle ----------
+
+  function render() {
+    document.getElementById("stage").setAttribute("data-view", S.vue);
+    renderPhone();
+    renderDb();
+    majConsole();
+    var ta = document.getElementById("motifInput");
+    if (ta) { ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length); }
+  }
+
+  function majConsole() {
+    document.getElementById("dcClock").textContent = hhmm(S.clock);
+    document.getElementById("dcDist").textContent = Math.round(S.distance) + " m";
+    var b = document.querySelectorAll("[data-speed]");
+    for (var i = 0; i < b.length; i++) {
+      b[i].setAttribute("aria-pressed", String(Number(b[i].getAttribute("data-speed")) === S.speed));
+    }
+    var v = document.querySelectorAll("[data-view-btn]");
+    for (var k = 0; k < v.length; k++) {
+      v[k].setAttribute("aria-pressed", String(v[k].getAttribute("data-view-btn") === S.vue));
+    }
+  }
+
+  function tick() {
+    if (S.speed > 0) S.clock += 1000 * S.speed;
+    var avant = S.alertes.length;
+    verifierAlertes();
+    if (S.alertes.length !== avant) { render(); return; }
+
+    setTxt('[data-live="phclock"]', hhmm(S.clock));
+    setTxt('[data-live="dbclock"]', hhmm(S.clock));
+    document.getElementById("dcClock").textContent = hhmm(S.clock);
+
+    if (S.jour.statut === "travail" || S.jour.statut === "pause") {
+      setTxt('[data-live="chrono"]', dureeCourte(minutesTravaillees()));
+      setTxt('[data-live="pause"]', Math.round(pauseMinutes()) + " min");
+      setTxt('[data-live="dbsur"]', dureeCourte(minutesTravaillees()));
+    }
+    // En accéléré les heures réalisées bougent vite : on rafraîchit les marges,
+    // mais toutes les 5 s seulement — reconstruire le tableau chaque seconde
+    // ferait sauter les clics du patron.
+    ticks++;
+    if (S.speed >= 60 && ticks % 5 === 0 &&
+        (S.jour.statut === "travail" || S.jour.statut === "pause")) renderDb();
+  }
+  var ticks = 0;
+
+  function setTxt(sel, v) {
+    var e = document.querySelector(sel);
+    if (e) e.textContent = v;
+  }
+
+  // ---------- évènements ----------
+
+  document.addEventListener("click", function (ev) {
+    var t = ev.target.closest("[data-act], [data-tab], [data-speed], [data-view-btn]");
+    if (!t) return;
+
+    if (t.hasAttribute("data-tab")) { S.ecran = t.getAttribute("data-tab"); render(); return; }
+    if (t.hasAttribute("data-view-btn")) { S.vue = t.getAttribute("data-view-btn"); render(); return; }
+    if (t.hasAttribute("data-speed")) { S.speed = Number(t.getAttribute("data-speed")); majConsole(); return; }
+
+    var a = t.getAttribute("data-act");
+    if (a === "arrivee" || a === "depart") { pointer(a); }
+    else if (a === "pause") { appliquer("pause", false, null); }
+    else if (a === "reprise") { appliquer("reprise", false, null); }
+    else if (a === "annuler") { S.sheet = false; S.motif = ""; S.pending = null; render(); }
+    else if (a === "confirmer") { if (S.motif.trim().length >= 3) appliquer(S.pending, true, S.motif.trim()); }
+    else if (a === "csv") { S.csv = !S.csv; renderDb(); }
+    else if (a === "dl") { telecharger(); }
+    else if (a === "itineraire") {
+      t.textContent = "Ouvre Waze…";
+      setTimeout(function () { t.textContent = "Itinéraire"; }, 1400);
+    }
+  });
+
+  document.addEventListener("input", function (ev) {
+    if (ev.target.id === "motifInput") {
+      S.motif = ev.target.value;
+      var ok = document.querySelector('.sheet-acts .ok');
+      if (ok) ok.disabled = S.motif.trim().length < 3;
+    }
+    if (ev.target.id === "dcRange") {
+      S.distance = Number(ev.target.value);
+      document.getElementById("dcDist").textContent = Math.round(S.distance) + " m";
+      if (S.ecran === "today" && !S.sheet) renderPhone();
+    }
+  });
+
+  function telecharger() {
+    try {
+      var blob = new Blob(["﻿" + genererCsv()], { type: "text/csv;charset=utf-8" });
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement("a");
+      a.href = url;
+      a.download = "pointages-" + new Date(S.clock).toISOString().slice(0, 10) + ".csv";
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(function () { URL.revokeObjectURL(url); }, 2000);
+    } catch (e) { /* le contenu reste visible à l'écran */ }
+  }
+
+  document.getElementById("dcJump").addEventListener("click", function () {
+    S.clock += 3600000; verifierAlertes(); render();
+  });
+  document.getElementById("dcReset").addEventListener("click", function () {
+    S = etatInitial();
+    document.getElementById("dcRange").value = S.distance;
+    render();
+  });
+
+  // ---------- démarrage ----------
+
+  S = etatInitial();
+  render();
+  setInterval(tick, 1000);
+})();
+</script>
+</body></html>
