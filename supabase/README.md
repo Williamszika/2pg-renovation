@@ -14,6 +14,7 @@ concaténation, régénérée par `./build-setup.sh`. Ne modifiez jamais `setup.
 | `0004_bootstrap.sql` | Création de la première entreprise et rattachement des ouvriers |
 | `0005_lecture.sql` | Vues et fonctions de lecture pour les deux applications |
 | `0006_outils.sql` | `cron_planifie()`, utilisée par `verification.sql` |
+| `0007_ordre_pointages.sql` | Ordonne les pointages par ordre d'insertion, pas par horodatage |
 
 ## Pourquoi des fonctions plutôt que des écritures directes
 
@@ -43,3 +44,26 @@ select cron.schedule('verifier-alertes',   '*/5 * * * *', $$select verifier_aler
 
 La purge efface les coordonnées GPS de plus de 2 mois (doctrine CNIL) sans toucher aux durées
 de travail, conservées 5 ans pour la paie.
+
+## Pourquoi les pointages s'ordonnent par `seq` et pas par horodatage
+
+`now()` renvoie l'heure de **début de transaction**. Deux pointages enregistrés dans la même
+transaction — ou simplement dans la même milliseconde — portent le même horodatage, et
+`order by horodatage desc limit 1` devient indéterminé. Toute la validation de séquence part
+avec : « pas deux pauses de suite » laisse passer une double pause, « pas de reprise sans
+pause » refuse une reprise légitime, et l'appariement pause/reprise peut croiser les
+intervalles. Un double appui sur le bouton Pause suffit à déclencher le cas.
+
+D'où la colonne `seq` (`bigserial`) sur `pointages` : on ordonne par ordre d'insertion, qui
+est exactement ce que la vérification de séquence cherche à contrôler.
+
+## Fichiers de test
+
+| Fichier | Ce qu'il vérifie |
+|---|---|
+| `verification.sql` | L'installation : extensions, tables, RLS, fonctions, tâches planifiées |
+| `test-metier.sql` | Le comportement, contre la vraie base : distances, refus, séquences, durées, alertes, export. Nettoie tout derrière lui |
+| `test-projet.mjs` | La même chose depuis l'extérieur, avec un vrai compte — seul moyen de tester aussi l'isolation entre entreprises |
+
+`test-metier.sql` s'exécute dans l'éditeur SQL, donc en propriétaire : il ne teste **pas**
+l'isolation, puisque le propriétaire contourne RLS par conception.
