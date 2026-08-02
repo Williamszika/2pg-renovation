@@ -250,6 +250,36 @@
   .form-2 { display: grid; gap: 15px; }
   @media (min-width: 620px) { .form-2 { grid-template-columns: 1fr 1fr; } }
 
+  /* recherche d'adresse */
+  .ac { display: flex; flex-direction: column; gap: 8px; }
+  .sug { list-style: none; border: 1px solid var(--rule); border-radius: 10px; overflow: hidden; background: var(--surface); }
+  .sug li + li { border-top: 1px solid var(--rule-soft); }
+  .sug button { width: 100%; text-align: left; padding: 10px 12px; display: flex; flex-direction: column; gap: 1px; }
+  .sug button:hover { background: var(--pigment-w); }
+  .sug-v { font-size: .89rem; font-weight: 600; }
+  .sug-c { font-size: .76rem; color: var(--ink-faint); }
+  .sug-c em { font-style: normal; color: var(--pigment); font-weight: 650; }
+  .sug mark { background: transparent; color: var(--pigment); font-weight: 700; }
+  .sug-none { padding: 11px 12px; font-size: .82rem; color: var(--ink-faint); }
+  .sug-raw { font-size: .82rem !important; color: var(--ink-soft); }
+  .sug .sug-raw { font-weight: 600; }
+
+  .picked { display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+            border: 1px solid var(--pigment); background: var(--pigment-w);
+            border-radius: 10px; padding: 10px 12px; }
+  .picked-t { min-width: 0; flex: 1; }
+  .picked-t b { display: block; font-size: .9rem; font-weight: 700; }
+  .picked-t span { font-size: .76rem; color: var(--ink-soft); }
+  .picked-geo { font-family: var(--mono); font-size: .7rem; color: var(--pigment);
+                background: var(--surface); border-radius: 5px; padding: 3px 7px; white-space: nowrap; }
+
+  .quick { display: flex; gap: 7px; flex-wrap: wrap; }
+  .qchip { border: 1px solid var(--rule); border-radius: 9px; padding: 7px 11px; background: var(--surface-2);
+           font-size: .82rem; font-weight: 650; display: flex; flex-direction: column; gap: 0; line-height: 1.3; }
+  .qchip:hover { border-color: var(--pigment); background: var(--pigment-w); color: var(--pigment); }
+  .qchip span { font-size: .7rem; font-weight: 550; color: var(--ink-faint); }
+  .qchip:hover span { color: var(--pigment-soft); }
+
   .seg { display: flex; gap: 3px; padding: 3px; background: var(--surface-2); border: 1px solid var(--rule); border-radius: 9px; }
   .seg button { flex: 1; padding: 8px 4px; border-radius: 6px; font-size: .8rem; font-weight: 650;
                 color: var(--ink-soft); line-height: 1.25; }
@@ -431,6 +461,40 @@
       adresse: "3 av. des Pyrénées", ville: "31140 Aucamville", devise: 60, faitAvant: 12 }
   ];
 
+  // Corpus de recherche local. Dans la vraie application, cette liste est
+  // remplacée par un appel à l'API Adresse (api-adresse.data.gouv.fr) à chaque
+  // frappe — même forme de réponse, même comportement.
+  var BAN = [
+    { v: "12 rue des Lilas",            cp: "31700", c: "Blagnac",                  lat: 43.6357, lon: 1.3897, ch: "c1" },
+    { v: "3 avenue du Général de Gaulle", cp: "31700", c: "Blagnac",                lat: 43.6391, lon: 1.3944 },
+    { v: "24 rue de Grenade",           cp: "31700", c: "Blagnac",                  lat: 43.6428, lon: 1.3812 },
+    { v: "8 allée des Chênes",          cp: "31320", c: "Castanet-Tolosan",         lat: 43.5163, lon: 1.4977, ch: "c2" },
+    { v: "15 avenue de Toulouse",       cp: "31320", c: "Castanet-Tolosan",         lat: 43.5201, lon: 1.4938 },
+    { v: "2 rue de la République",      cp: "31320", c: "Castanet-Tolosan",         lat: 43.5148, lon: 1.5012 },
+    { v: "3 avenue des Pyrénées",       cp: "31140", c: "Aucamville",               lat: 43.6607, lon: 1.4302, ch: "c3" },
+    { v: "27 rue de Fronton",           cp: "31140", c: "Aucamville",               lat: 43.6641, lon: 1.4271 },
+    { v: "9 chemin de Bourdette",       cp: "31140", c: "Aucamville",               lat: 43.6588, lon: 1.4344 },
+    { v: "14 rue des Écoles",           cp: "31240", c: "Saint-Jean",               lat: 43.6598, lon: 1.4923 },
+    { v: "5 avenue des Nobles",         cp: "31240", c: "Saint-Jean",               lat: 43.6572, lon: 1.4881 },
+    { v: "12 avenue des Pyrénées",      cp: "31240", c: "L&apos;Union",             lat: 43.6551, lon: 1.4742 },
+    { v: "6 rue du Moulin",             cp: "31700", c: "Beauzelle",                lat: 43.6663, lon: 1.3742 },
+    { v: "21 avenue de Grandselve",     cp: "31700", c: "Beauzelle",                lat: 43.6701, lon: 1.3788 },
+    { v: "34 rue de Ribaute",           cp: "31650", c: "Saint-Orens-de-Gameville", lat: 43.5527, lon: 1.5372 },
+    { v: "11 avenue de Gameville",      cp: "31650", c: "Saint-Orens-de-Gameville", lat: 43.5561, lon: 1.5418 },
+    { v: "45 rue du Taur",              cp: "31000", c: "Toulouse",                 lat: 43.6053, lon: 1.4423 },
+    { v: "18 allée Jean Jaurès",        cp: "31000", c: "Toulouse",                 lat: 43.6088, lon: 1.4497 },
+    { v: "7 rue de la Colombette",      cp: "31000", c: "Toulouse",                 lat: 43.6062, lon: 1.4531 },
+    { v: "23 rue Bayard",               cp: "31000", c: "Toulouse",                 lat: 43.6103, lon: 1.4498 },
+    { v: "62 avenue de Muret",          cp: "31300", c: "Toulouse",                 lat: 43.5843, lon: 1.4181 },
+    { v: "9 impasse des Tilleuls",      cp: "31400", c: "Toulouse",                 lat: 43.5794, lon: 1.4552 },
+    { v: "30 route de Narbonne",        cp: "31400", c: "Toulouse",                 lat: 43.5709, lon: 1.4498 },
+    { v: "4 chemin des Vignes",         cp: "31130", c: "Balma",                    lat: 43.6112, lon: 1.4993 },
+    { v: "16 rue Gambetta",             cp: "31770", c: "Colomiers",                lat: 43.6116, lon: 1.3348 },
+    { v: "28 avenue de Toulouse",       cp: "31170", c: "Tournefeuille",            lat: 43.5842, lon: 1.3441 },
+    { v: "3 rue des Bruyères",          cp: "31520", c: "Ramonville-Saint-Agne",    lat: 43.5479, lon: 1.4762 },
+    { v: "7 rue de la Fontaine",        cp: "31270", c: "Cugnaux",                  lat: 43.5382, lon: 1.3452 }
+  ];
+
   var OUVRIERS = [
     { id: "karim",   nom: "Karim Benali",    role: "Peintre" },
     { id: "sofiane", nom: "Sofiane Mansour", role: "Plaquiste" },
@@ -466,7 +530,8 @@
       // 50 m par défaut : assez serré pour prouver la présence à l'adresse, assez
       // large pour absorber la dérive du GPS contre une façade. 20 m reste
       // disponible pour qui veut le seuil strict.
-      form: { adresse: "c1", heure: "08:00", rayon: 50, dest: { karim: true, sofiane: true, momo: true } },
+      form: { q: "", pick: null, libelle: "", heure: "08:00", rayon: 50,
+              dest: { karim: true, sofiane: true, momo: true } },
       mission: null,
       statuts: {},            // par ouvrier : { etat, vueLe, confirmeLe, dist, manuel, motif }
       jour: {
@@ -510,6 +575,43 @@
   function adresseParId(id) {
     for (var i = 0; i < ADRESSES.length; i++) if (ADRESSES[i].id === id) return ADRESSES[i];
     return null;
+  }
+
+  // ---------- recherche d'adresse ----------
+
+  function norm(s) {
+    return String(s).toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/&apos;/g, "'");
+  }
+
+  // Tous les mots tapés doivent apparaître, dans n'importe quel ordre :
+  // « lilas blagnac » comme « blagnac lilas » trouvent la même adresse.
+  function chercher(q) {
+    var t = norm(q).split(/[\s,]+/).filter(Boolean), out = [];
+    if (!t.length) return out;
+    for (var i = 0; i < BAN.length && out.length < 6; i++) {
+      var a = BAN[i], full = norm(a.v + " " + a.cp + " " + a.c), ok = true;
+      for (var j = 0; j < t.length; j++) if (full.indexOf(t[j]) < 0) { ok = false; break; }
+      if (ok) out.push(a);
+    }
+    return out;
+  }
+
+  function surligner(texte, q) {
+    var t = norm(q).split(/[\s,]+/).filter(Boolean), n = norm(texte), marques = new Array(texte.length);
+    for (var j = 0; j < t.length; j++) {
+      var from = 0, k;
+      while ((k = n.indexOf(t[j], from)) >= 0) {
+        for (var p = k; p < k + t[j].length; p++) marques[p] = 1;
+        from = k + t[j].length;
+      }
+    }
+    var out = "", ouvert = false;
+    for (var i = 0; i < texte.length; i++) {
+      if (marques[i] && !ouvert) { out += "<mark>"; ouvert = true; }
+      else if (!marques[i] && ouvert) { out += "</mark>"; ouvert = false; }
+      out += esc(texte[i]);
+    }
+    return out + (ouvert ? "</mark>" : "");
   }
 
   // ---------- règles ----------
@@ -587,14 +689,17 @@
   // ---------- actions patron ----------
 
   function envoyer() {
-    var f = S.form, a = adresseParId(f.adresse);
+    var f = S.form, p = f.pick;
     var dest = [];
     for (var k in f.dest) if (f.dest[k]) dest.push(k);
-    if (!dest.length) return;
+    if (!dest.length || !p) return;
 
+    var ch = p.ch ? adresseParId(p.ch) : null;
     S.mission = {
-      chantierId: a.id, libelle: a.nom, detail: a.detail,
-      adresse: a.adresse, ville: a.ville,
+      chantierId: ch ? ch.id : null,
+      libelle: f.libelle.trim() || (ch ? ch.nom : p.v.replace(/&apos;/g, "'")),
+      detail: ch ? ch.detail : "",
+      adresse: p.v, ville: p.cp + " " + p.c,
       heure: f.heure, heureMin: heureEnMin(f.heure),
       rayon: f.rayon, envoyeeLe: S.clock, dest: dest
     };
@@ -611,7 +716,11 @@
     S.mission = null; S.statuts = {};
     S.jour = etatInitial().jour;
     S.alertes = []; S.vus = {};
+    // On repart sur un champ adresse vide, mais on garde l'heure, le seuil et
+    // les destinataires : d'un envoi à l'autre, ils changent rarement.
+    S.form.q = ""; S.form.pick = null; S.form.libelle = "";
     render();
+    focusAdr();
   }
 
   // Le bureau tranche quand le GPS ne permet pas de confirmer.
@@ -705,8 +814,9 @@
     return '<div class="card' + (neuf ? " hot" : "") + '">' +
       (neuf ? '<span class="newflag">Nouvelle adresse</span>' : '') +
       '<p class="site-name">' + m.libelle + '</p>' +
-      '<p class="site-addr">' + m.detail + '</p>' +
-      '<p class="site-addr"><strong>' + m.adresse + '</strong>, ' + m.ville + '</p>' +
+      (m.detail ? '<p class="site-addr">' + m.detail + '</p>' : '') +
+      '<p class="site-addr"><strong>' + m.adresse + '</strong>' +
+        (m.ville.trim() ? ', ' + m.ville.trim() : '') + '</p>' +
       '<div class="site-row">' +
         '<span class="chip">Rendez-vous ' + m.heure + '</span>' +
         '<button type="button" class="btn-ghost" data-act="itineraire">Itinéraire</button>' +
@@ -894,22 +1004,66 @@
 
   // ---------- rendu tableau de bord ----------
 
+  // Liste de suggestions : re-rendue seule pendant la frappe, jamais via
+  // renderDb() — reconstruire le panneau ferait perdre le focus et le curseur.
+  function blocSuggestions() {
+    var f = S.form;
+    if (f.pick || !f.q.trim()) return "";
+    var res = chercher(f.q), h = '<ul class="sug">', i;
+    for (i = 0; i < res.length; i++) {
+      var a = res[i];
+      h += '<li><button type="button" data-sug="' + i + '">' +
+        '<span class="sug-v">' + surligner(a.v.replace(/&apos;/g, "'"), f.q) + '</span>' +
+        '<span class="sug-c">' + surligner(a.cp + " " + a.c, f.q) +
+        (a.ch ? ' · <em>chantier en cours</em>' : '') + '</span></button></li>';
+    }
+    if (!res.length) {
+      h += '<li class="sug-none">Aucune adresse trouvée</li>';
+    }
+    h += '<li><button type="button" class="sug-raw" data-pick-raw="1">' +
+      'Utiliser « ' + esc(f.q.trim()) +' » telle quelle</button></li>';
+    return h + '</ul>';
+  }
+
+  function blocChoix() {
+    var p = S.form.pick;
+    if (!p) return "";
+    return '<div class="picked">' +
+      '<div class="picked-t"><b>' + p.v.replace(/&apos;/g, "&apos;") + '</b>' +
+      '<span>' + p.cp + ' ' + p.c + '</span></div>' +
+      '<span class="picked-geo">' + (p.lat
+        ? p.lat.toFixed(4) + ", " + p.lon.toFixed(4)
+        : "à géocoder") + '</span>' +
+      '<button type="button" class="btn-x" data-act="clear-adr">Modifier</button></div>';
+  }
+
   function formulaire() {
-    var f = S.form, a = adresseParId(f.adresse);
-    var n = 0, k;
+    var f = S.form, n = 0, k, i;
     for (k in f.dest) if (f.dest[k]) n++;
 
     var h = '<div class="panel accent"><div class="panel-head"><h3>Envoyer une adresse</h3>' +
       '<span class="pill pig nodot">Étape 1</span></div><div class="form">';
 
-    h += '<div class="fld"><label for="fAdr">Chantier</label>' +
-      '<select id="fAdr">';
-    for (var i = 0; i < ADRESSES.length; i++) {
-      var ad = ADRESSES[i];
-      h += '<option value="' + ad.id + '"' + (ad.id === f.adresse ? " selected" : "") + '>' +
-        ad.nom + ' — ' + ad.adresse + ', ' + ad.ville + '</option>';
+    h += '<div class="fld"><label for="fAdr">Adresse du chantier</label>' +
+      '<div class="ac">' +
+        '<input type="text" id="fAdr" autocomplete="off" spellcheck="false"' +
+          (f.pick ? ' hidden' : '') +
+          ' placeholder="Tapez une rue, une ville…" value="' + esc(f.q) + '">' +
+        '<div id="fPick">' + blocChoix() + '</div>' +
+        '<div id="fSug">' + blocSuggestions() + '</div>' +
+      '</div></div>';
+
+    if (!f.pick) {
+      h += '<div class="fld"><span class="fld-lab">Chantiers en cours</span><div class="quick">';
+      for (i = 0; i < ADRESSES.length; i++) {
+        h += '<button type="button" class="qchip" data-quick="' + ADRESSES[i].id + '">' +
+          ADRESSES[i].nom + '<span>' + ADRESSES[i].ville.replace(/^\d+\s*/, "") + '</span></button>';
+      }
+      h += '</div></div>';
     }
-    h += '</select><p class="fld-hint">' + a.detail + '</p></div>';
+
+    h += '<div class="fld"><label for="fLib">Client ou libellé</label>' +
+      '<input type="text" id="fLib" autocomplete="off" placeholder="Ex. : Mme Durand — salle de bains" value="' + esc(f.libelle) + '"></div>';
 
     h += '<div class="form-2">' +
       '<div class="fld"><label for="fHeure">Heure de rendez-vous</label>' +
@@ -931,8 +1085,11 @@
     }
     h += '</div></div>';
 
-    h += '<button type="button" class="btn-send" data-act="envoyer"' + (n ? "" : " disabled") + '>' +
-      (n ? "Envoyer l&apos;adresse à " + n + " ouvrier" + (n > 1 ? "s" : "") : "Sélectionnez au moins un ouvrier") +
+    var pret = n && f.pick;
+    h += '<button type="button" class="btn-send" id="fSend" data-act="envoyer"' + (pret ? "" : " disabled") + '>' +
+      (!f.pick ? "Choisissez une adresse"
+        : !n ? "Sélectionnez au moins un ouvrier"
+        : "Envoyer l&apos;adresse à " + n + " ouvrier" + (n > 1 ? "s" : "")) +
       '</button>';
 
     h += '</div></div>';
@@ -946,7 +1103,8 @@
 
     h += '<div class="form" style="gap:11px">' +
       '<div><b style="font-size:.98rem">' + m.libelle + '</b>' +
-      '<p style="font-size:.85rem;color:var(--ink-soft);margin-top:2px">' + m.adresse + ', ' + m.ville + '</p></div>' +
+      '<p style="font-size:.85rem;color:var(--ink-soft);margin-top:2px">' + m.adresse +
+      (m.ville.trim() ? ', ' + m.ville.trim() : '') + '</p></div>' +
       '<div style="display:flex;gap:8px;flex-wrap:wrap">' +
         '<span class="chip">Envoyée à ' + hhmm(m.envoyeeLe) + '</span>' +
         '<span class="chip">Rendez-vous ' + m.heure + '</span>' +
@@ -1200,7 +1358,8 @@
   // ---------- évènements ----------
 
   document.addEventListener("click", function (ev) {
-    var t = ev.target.closest("[data-act], [data-tab], [data-speed], [data-view-btn], [data-rayon], [data-valider]");
+    var t = ev.target.closest("[data-act], [data-tab], [data-speed], [data-view-btn], [data-rayon]," +
+                              "[data-valider], [data-sug], [data-pick-raw], [data-quick]");
     if (!t) return;
 
     if (t.hasAttribute("data-tab")) { S.ecran = t.getAttribute("data-tab"); render(); return; }
@@ -1209,8 +1368,25 @@
     if (t.hasAttribute("data-rayon")) { S.form.rayon = Number(t.getAttribute("data-rayon")); renderDb(); return; }
     if (t.hasAttribute("data-valider")) { validerManuellement(t.getAttribute("data-valider")); return; }
 
+    if (t.hasAttribute("data-sug")) {
+      var res = chercher(S.form.q), a = res[Number(t.getAttribute("data-sug"))];
+      if (a) choisirAdresse(a);
+      return;
+    }
+    if (t.hasAttribute("data-pick-raw")) {
+      var brut = S.form.q.trim();
+      if (brut) choisirAdresse({ v: brut, cp: "", c: "", lat: null, lon: null });
+      return;
+    }
+    if (t.hasAttribute("data-quick")) {
+      var ch = adresseParId(t.getAttribute("data-quick"));
+      for (var q = 0; q < BAN.length; q++) if (BAN[q].ch === ch.id) { choisirAdresse(BAN[q]); return; }
+      return;
+    }
+
     var a = t.getAttribute("data-act");
-    if (a === "envoyer") { envoyer(); }
+    if (a === "clear-adr") { S.form.pick = null; S.form.q = ""; renderDb(); focusAdr(); }
+    else if (a === "envoyer") { envoyer(); }
     else if (a === "nouvel-envoi") { nouvelEnvoi(); }
     else if (a === "confirmer-presence") { confirmerPresence(); }
     else if (a === "probleme") { S.sheet = "probleme"; S.motif = ""; render(); }
@@ -1251,13 +1427,47 @@
       if (S.ecran === "today" && !S.sheet) renderPhone();
       return;
     }
-    if (el.id === "fAdr") { S.form.adresse = el.value; renderDb(); return; }
+    // Frappe dans le champ adresse : on ne re-rend QUE la liste de suggestions,
+    // sinon le champ perdrait le focus à chaque caractère.
+    if (el.id === "fAdr") { S.form.q = el.value; majSuggestions(); return; }
+    if (el.id === "fLib") { S.form.libelle = el.value; return; }
     if (el.id === "fHeure") { S.form.heure = el.value || "08:00"; return; }
     if (el.hasAttribute && el.hasAttribute("data-dest")) {
       S.form.dest[el.getAttribute("data-dest")] = el.checked;
-      renderDb();
+      majBoutonEnvoi();
     }
   });
+
+  function majSuggestions() {
+    var s = document.getElementById("fSug");
+    if (s) s.innerHTML = blocSuggestions();
+    majBoutonEnvoi();
+  }
+
+  function majBoutonEnvoi() {
+    var b = document.getElementById("fSend");
+    if (!b) return;
+    var f = S.form, n = 0, k;
+    for (k in f.dest) if (f.dest[k]) n++;
+    b.disabled = !(n && f.pick);
+    b.textContent = !f.pick ? "Choisissez une adresse"
+      : !n ? "Sélectionnez au moins un ouvrier"
+      : "Envoyer l'adresse à " + n + " ouvrier" + (n > 1 ? "s" : "");
+  }
+
+  function choisirAdresse(a) {
+    S.form.pick = a;
+    S.form.q = a.v.replace(/&apos;/g, "'");
+    if (!S.form.libelle.trim() && a.ch) S.form.libelle = adresseParId(a.ch).nom;
+    renderDb();
+    var l = document.getElementById("fLib");
+    if (l && !l.value) l.focus();
+  }
+
+  function focusAdr() {
+    var e = document.getElementById("fAdr");
+    if (e) e.focus();
+  }
 
   function telecharger() {
     try {
