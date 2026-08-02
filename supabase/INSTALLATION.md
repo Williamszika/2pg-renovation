@@ -80,13 +80,17 @@ elles affichent `A REGLER`, la colonne `a_faire` dit quoi faire.
 
 ## 5. Récupérer les clés
 
-Menu **Project Settings** (roue dentée) → **API**. Trois valeurs à noter :
+Menu **Project Settings** (roue dentée) → **API Keys**. Trois valeurs à noter :
 
 | Valeur | Où elle va | Sensibilité |
 |---|---|---|
 | **Project URL** | `apps/web/.env.local` et `apps/mobile/.env` | publique |
-| **anon public** | idem | publique par nature — elle ne donne accès qu'à ce que les règles de sécurité autorisent |
-| **service_role** | `apps/web/.env.local` **uniquement** | **secrète** — elle contourne toutes les règles de sécurité |
+| **publishable** (`sb_publishable_…`) ou **anon** (`eyJ…`) | idem | publique par nature — elle ne donne accès qu'à ce que les règles de sécurité autorisent |
+| **secret** (`sb_secret_…`) ou **service_role** (`eyJ…`) | `apps/web/.env.local` **uniquement** | **secrète** — elle contourne toutes les règles de sécurité |
+
+Supabase délivre désormais le format `sb_publishable_…` / `sb_secret_…`. Les
+projets plus anciens ont des clés en `eyJ…`. Les deux fonctionnent : prenez
+celles que votre projet affiche.
 
 > La clé `service_role` ne sert qu'à créer les comptes des ouvriers, côté
 > serveur. Elle ne doit jamais être préfixée `NEXT_PUBLIC_`, jamais être mise
