@@ -107,14 +107,44 @@
   .ph-head span { font-size: .78rem; color: var(--ink-faint); }
   .ph-body { flex: 1; overflow-y: auto; padding: 16px 18px 22px; display: flex; flex-direction: column; gap: 14px; }
 
-  .ph-nav { display: grid; grid-template-columns: repeat(4, 1fr); border-top: 1px solid var(--rule); background: var(--surface-2); }
-  .ph-nav button { padding: 9px 2px 11px; font-size: .63rem; font-weight: 650; color: var(--ink-faint);
-                   display: flex; flex-direction: column; align-items: center; gap: 4px; position: relative; }
-  .ph-nav button[aria-current="page"] { color: var(--pigment); }
-  .ph-nav .ic { width: 19px; height: 19px; display: block; }
-  .ph-nav .ic svg { width: 100%; height: 100%; display: block; }
-  .ph-nav .badge { position: absolute; top: 6px; right: 50%; margin-right: -16px; width: 8px; height: 8px;
-                   border-radius: 50%; background: var(--bad); }
+  .ph-foot { padding: 9px 18px 12px; border-top: 1px solid var(--rule-soft); background: var(--surface-2);
+             font-size: .68rem; color: var(--ink-faint); text-align: center; }
+
+  /* notification de proximité */
+  .notif { display: flex; gap: 11px; align-items: flex-start; padding: 12px 13px;
+           border-radius: 12px; background: var(--pigment); color: #fff; }
+  .notif-ic { width: 19px; height: 19px; flex: none; margin-top: 1px; }
+  .notif-ic svg { width: 100%; height: 100%; display: block; }
+  .notif-t { min-width: 0; }
+  .notif-t b { display: block; font-size: .89rem; font-weight: 700; }
+  .notif-t span { display: block; font-size: .78rem; opacity: .88; margin-top: 1px; }
+
+  /* l'adresse est le bouton d'itinéraire */
+  .adr { width: 100%; display: flex; gap: 12px; align-items: center; text-align: left;
+         border: 1px solid var(--rule); border-radius: 14px; padding: 15px;
+         background: var(--surface); transition: border-color .12s ease, background .12s ease; }
+  .adr:hover { border-color: var(--pigment); background: var(--pigment-w); }
+  .adr:active { transform: scale(.995); }
+  .adr-txt { flex: 1; min-width: 0; }
+  .adr-name { display: block; font-size: .78rem; font-weight: 650; color: var(--ink-faint); }
+  .adr-line { display: block; font-size: 1.18rem; line-height: 1.32; margin-top: 3px; letter-spacing: -.01em; }
+  .adr-line strong { font-weight: 700; }
+  .adr-go { flex: none; display: flex; flex-direction: column; align-items: center; gap: 3px;
+            color: var(--pigment); font-size: .64rem; font-weight: 700;
+            letter-spacing: .04em; text-transform: uppercase; }
+  .adr-go svg { width: 26px; height: 26px; display: block; }
+
+  .rdv { font-size: .82rem; color: var(--ink-soft); text-align: center; }
+  .rdv b { color: var(--ink); font-weight: 700; }
+
+  /* fin de journée */
+  .fin { text-align: center; padding: 40px 16px; display: flex; flex-direction: column; align-items: center; gap: 5px; }
+  .fin-ic { width: 46px; height: 46px; border-radius: 50%; background: var(--ok-w); color: var(--ok);
+            display: flex; align-items: center; justify-content: center; font-size: 1.4rem;
+            font-weight: 700; margin-bottom: 8px; }
+  .fin b { font-size: 1.12rem; font-weight: 700; }
+  .fin-d { font-size: 2rem; font-weight: 700; letter-spacing: -.03em; font-variant-numeric: tabular-nums; margin-top: 4px; }
+  .fin-h { font-size: .84rem; color: var(--ink-faint); font-variant-numeric: tabular-nums; }
 
   .card { background: var(--surface); border: 1px solid var(--rule); border-radius: 12px; padding: 14px; }
   .card.hot { border-color: var(--pigment); box-shadow: 0 0 0 3px var(--pigment-w); }
@@ -183,11 +213,6 @@
   .row .r { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
   .row .r b { display: block; font-weight: 650; } .row .r span { font-size: .74rem; color: var(--ink-faint); }
 
-  .sec-title { font-size: .66rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-faint); }
-  .total-line { display: flex; justify-content: space-between; align-items: baseline; padding-top: 11px;
-                margin-top: 3px; border-top: 1px solid var(--rule); font-weight: 700; }
-  .total-line b { font-size: 1.1rem; font-variant-numeric: tabular-nums; }
-
   .note { font-size: .78rem; color: var(--ink-soft); background: var(--pigment-w);
           border-radius: 10px; padding: 11px 13px; line-height: 1.5; }
   .note b { color: var(--ink); }
@@ -227,6 +252,16 @@
   .kpi span { font-size: .63rem; font-weight: 700; letter-spacing: .11em; text-transform: uppercase; color: var(--ink-faint); }
   .kpi b { display: block; font-size: 1.75rem; font-weight: 700; letter-spacing: -.025em; margin-top: 2px; font-variant-numeric: tabular-nums; }
   .kpi.k-ok b { color: var(--ok); } .kpi.k-warn b { color: var(--warn); } .kpi.k-bad b { color: var(--bad); }
+  .kpi b em { font-style: normal; font-size: .95rem; font-weight: 600; color: var(--ink-faint); letter-spacing: 0; }
+
+  /* avancement du temps de service */
+  .svc { display: flex; align-items: center; gap: 8px; }
+  .svc-bar { flex: 1; min-width: 56px; height: 6px; border-radius: 4px; background: var(--surface-3);
+             display: flex; overflow: hidden; }
+  .svc-bar i { display: block; height: 100%; }
+  .svc-bar i.u { background: var(--ok); } .svc-bar i.q { background: var(--pigment); } .svc-bar i.o { background: var(--bad); }
+  .svc span { font-size: .72rem; font-weight: 650; color: var(--ink-faint);
+              font-variant-numeric: tabular-nums; min-width: 34px; text-align: right; }
 
   .panel { background: var(--surface); border: 1px solid var(--rule); border-radius: 12px; overflow: hidden; }
   .panel.accent { border-color: var(--pigment); }
@@ -450,8 +485,6 @@
 (function () {
   "use strict";
 
-  var JOURNEE = { fin: 17 * 60 };
-
   var ADRESSES = [
     { id: "c1", nom: "Mme Durand", detail: "Salle de bains + peinture",
       adresse: "12 rue des Lilas", ville: "31700 Blagnac", devise: 40, faitAvant: 55.5 },
@@ -504,13 +537,6 @@
   // Scénario figé pour les collègues : Sofiane confirme à 09:47 à 31 m, Momo jamais.
   var SCENARIO = { sofiane: { confirmeA: 9 * 60 + 47, dist: 31 }, momo: { confirmeA: null } };
 
-  var SEMAINE = [
-    { jour: "Lundi",    chantier: "Mme Durand",  a: "08:02", d: "17:05", min: 498 },
-    { jour: "Mardi",    chantier: "Mme Durand",  a: "07:56", d: "16:48", min: 487 },
-    { jour: "Mercredi", chantier: "M. Bertrand", a: "08:11", d: "17:20", min: 504 },
-    { jour: "Jeudi",    chantier: "Mme Durand",  a: "08:00", d: "12:30", min: 270 }
-  ];
-
   // ---------- état ----------
 
   var S, ticks = 0;
@@ -522,7 +548,7 @@
       speed: 60,
       distance: 840,          // Karim est encore sur la route
       precision: 7,
-      ecran: "today",
+      approche: false,        // signal de proximité déjà déclenché ?
       vue: "patron",          // on démarre côté patron : c'est lui qui envoie
       sheet: null,            // null | "probleme" | "motifDepart"
       motif: "",
@@ -530,7 +556,7 @@
       // 50 m par défaut : assez serré pour prouver la présence à l'adresse, assez
       // large pour absorber la dérive du GPS contre une façade. 20 m reste
       // disponible pour qui veut le seuil strict.
-      form: { q: "", pick: null, libelle: "", heure: "08:00", rayon: 50,
+      form: { q: "", pick: null, libelle: "", heure: "08:00", duree: 480, rayon: 50,
               dest: { karim: true, sofiane: true, momo: true } },
       mission: null,
       statuts: {},            // par ouvrier : { etat, vueLe, confirmeLe, dist, manuel, motif }
@@ -552,7 +578,10 @@
   function msEnMinutes(ms) { var d = new Date(ms); return d.getHours() * 60 + d.getMinutes(); }
   function pad(n) { return (n < 10 ? "0" : "") + n; }
   function hhmm(ms) { if (ms === null || ms === undefined) return "—"; var d = new Date(ms); return pad(d.getHours()) + ":" + pad(d.getMinutes()); }
-  function hhmmMin(min) { return pad(Math.floor(min / 60)) + ":" + pad(min % 60); }
+  function hhmmMin(min) {
+    min = Math.round(((min % 1440) + 1440) % 1440);
+    return pad(Math.floor(min / 60)) + ":" + pad(min % 60);
+  }
   function heureEnMin(s) { var p = String(s).split(":"); return Number(p[0]) * 60 + Number(p[1] || 0); }
 
   function dureeCourte(min) {
@@ -624,6 +653,18 @@
   function gpsFiable() { return S.precision <= seuil(); }
   function peutConfirmer() { return assezPres() && gpsFiable(); }
 
+  // Le temps de service est une durée due sur le chantier, pas un horaire fixe :
+  // arrivé plus tard, l'ouvrier finit plus tard. Les pauses la décalent d'autant.
+  function finPrevueMin() {
+    var m = S.mission, j = S.jour;
+    if (!m) return 0;
+    if (j.arrivee) return msEnMinutes(j.arrivee) + m.dureeMin + Math.round(pauseMinutes());
+    return m.heureMin + m.dureeMin;
+  }
+
+  // Distance à laquelle le téléphone prévient l'ouvrier qu'il arrive.
+  function rayonApproche() { return Math.max(300, seuil() * 5); }
+
   function minutesTravaillees() {
     var j = S.jour;
     if (!j.arrivee) return 0;
@@ -679,9 +720,14 @@
       }
     }
     if (S.jour.statut === "travail" || S.jour.statut === "pause") {
-      if (m > JOURNEE.fin + 30) {
-        pousserAlerte("oubli-karim", "warn", "Journée de Karim restée ouverte",
-          "Aucun pointage de départ après 17:30. Clôture automatique à arbitrer");
+      var fin = finPrevueMin();
+      if (m > fin) {
+        pousserAlerte("depassement-karim", "warn", "Temps de service dépassé — Karim",
+          dureeCourte(S.mission.dureeMin) + " prévues, fin attendue à " + hhmmMin(fin));
+      }
+      if (m > fin + 30) {
+        pousserAlerte("oubli-karim", "bad", "Journée de Karim restée ouverte",
+          "Aucun départ pointé 30 min après la fin de service. Clôture automatique à arbitrer");
       }
     }
   }
@@ -700,9 +746,10 @@
       libelle: f.libelle.trim() || (ch ? ch.nom : p.v.replace(/&apos;/g, "'")),
       detail: ch ? ch.detail : "",
       adresse: p.v, ville: p.cp + " " + p.c,
-      heure: f.heure, heureMin: heureEnMin(f.heure),
+      heure: f.heure, heureMin: heureEnMin(f.heure), dureeMin: f.duree,
       rayon: f.rayon, envoyeeLe: S.clock, dest: dest
     };
+    S.approche = false;
     S.statuts = {};
     for (var i = 0; i < dest.length; i++) {
       S.statuts[dest[i]] = { etat: "envoye", vueLe: null, confirmeLe: null, dist: null, manuel: false, motif: null };
@@ -773,6 +820,7 @@
       if (j.statut === "pause" && j.pauseDebut !== null) {
         j.pauseTotale += (S.clock - j.pauseDebut) / 60000; j.pauseDebut = null;
       }
+      var fin = finPrevueMin();          // calculée AVANT de figer le départ
       j.statut = "fini"; j.depart = S.clock;
       j.horsZoneDep = hors; j.motifDep = hors ? motif : null; j.distDep = S.distance;
       var m = msEnMinutes(S.clock);
@@ -780,9 +828,11 @@
         pousserAlerte("horszone-dep", "bad", "Départ pointé hors zone — Karim",
           "Départ déclaré à " + Math.round(S.distance) + " m du chantier. Motif : " + (motif || "—"));
       }
-      if (m < JOURNEE.fin - 60) {
-        pousserAlerte("anticipe-karim", "warn", "Départ anticipé — Karim",
-          "Parti à " + hhmm(S.clock) + " pour une fin prévue à 17:00");
+      var manque = fin - m;
+      if (manque > 15) {
+        pousserAlerte("anticipe-karim", "warn", "Départ avant la fin du service — Karim",
+          "Parti à " + hhmm(S.clock) + " pour une fin prévue à " + hhmmMin(fin) +
+          " — il manque " + dureeCourte(manque));
       }
     }
     S.sheet = null; S.motif = "";
@@ -802,25 +852,21 @@
 
   // ---------- rendu téléphone ----------
 
-  var ICONS = {
-    today: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>',
-    hours: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16v15H4z"/><path d="M4 9h16M9 5V3M15 5V3"/></svg>',
-    sites: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-5.5 7-11a7 7 0 1 0-14 0c0 5.5 7 11 7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>',
-    me:    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.5"/><path d="M4.5 20a7.5 7.5 0 0 1 15 0"/></svg>'
-  };
+  var IC_NAV = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l18-8-8 18-2-8-8-2z"/></svg>';
+  var IC_BELL = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>';
 
-  function carteAdresse(neuf) {
+  // La carte d'adresse EST le bouton d'itinéraire : sur un chantier, on tape
+  // l'adresse pour lancer le GPS, pas un lien secondaire.
+  function carteAdresse() {
     var m = S.mission;
-    return '<div class="card' + (neuf ? " hot" : "") + '">' +
-      (neuf ? '<span class="newflag">Nouvelle adresse</span>' : '') +
-      '<p class="site-name">' + m.libelle + '</p>' +
-      (m.detail ? '<p class="site-addr">' + m.detail + '</p>' : '') +
-      '<p class="site-addr"><strong>' + m.adresse + '</strong>' +
-        (m.ville.trim() ? ', ' + m.ville.trim() : '') + '</p>' +
-      '<div class="site-row">' +
-        '<span class="chip">Rendez-vous ' + m.heure + '</span>' +
-        '<button type="button" class="btn-ghost" data-act="itineraire">Itinéraire</button>' +
-      '</div></div>';
+    return '<button type="button" class="adr" data-act="itineraire">' +
+      '<span class="adr-txt">' +
+        '<span class="adr-name">' + m.libelle + '</span>' +
+        '<span class="adr-line"><strong>' + m.adresse + '</strong>' +
+          (m.ville.trim() ? '<br>' + m.ville.trim() : '') + '</span>' +
+      '</span>' +
+      '<span class="adr-go">' + IC_NAV + '<span>Itinéraire</span></span>' +
+    '</button>';
   }
 
   function carteGeo() {
@@ -840,37 +886,47 @@
         '<div class="geo-dot" style="left:' + pct + '%"></div>' +
       '</div>' +
       '<div class="geo-scale"><span>0 m</span><span>seuil ' + r + ' m</span><span>' + Math.round(ech) + ' m +</span></div>' +
-      '<div class="geo-prec' + (fiable ? "" : " bad") + '">' +
-        '<span>Précision GPS ± ' + Math.round(S.precision) + ' m</span>' +
-        '<span>' + (fiable ? "suffisante" : "insuffisante") + '</span>' +
-      '</div></div>';
+      // La précision ne s'affiche que lorsqu'elle pose problème : sinon c'est du
+      // bruit technique sur un écran qui doit rester lisible d'un coup d'œil.
+      (fiable ? '' :
+        '<div class="geo-prec bad"><span>Précision GPS ± ' + Math.round(S.precision) + ' m</span>' +
+        '<span>insuffisante</span></div>') +
+      '</div>';
   }
 
-  function ecranAujourdhui() {
+  function ecranOuvrier() {
     var j = S.jour, h = "";
 
     if (j.statut === "sans_mission") {
-      return '<div class="empty-ph"><b>Aucune adresse reçue</b>' +
-        '<span>Le bureau ne vous a rien envoyé pour aujourd&apos;hui.</span></div>';
+      return '<div class="empty-ph"><b>Rien pour aujourd&apos;hui</b>' +
+        '<span>Le bureau ne vous a envoyé aucune adresse.</span></div>';
     }
 
     if (j.statut === "recue") {
-      var pres = assezPres(), fiable = gpsFiable(), ok = peutConfirmer(), r = seuil();
+      var fiable = gpsFiable(), ok = peutConfirmer(), r = seuil();
       var st = S.statuts.karim;
 
-      h += carteAdresse(true);
+      if (S.approche && !ok) {
+        h += '<div class="notif"><span class="notif-ic">' + IC_BELL + '</span>' +
+             '<span class="notif-t"><b>Vous approchez du chantier</b>' +
+             '<span data-live="notif">' + Math.round(S.distance) + ' m — ' + S.mission.libelle + '</span></span></div>';
+      }
+
+      h += carteAdresse();
+      h += '<p class="rdv">Rendez-vous <b>' + S.mission.heure + '</b> · ' +
+           dureeCourte(S.mission.dureeMin) + ' de service</p>';
       h += carteGeo();
 
       if (ok) {
         h += '<button type="button" class="punch go" data-act="confirmer-presence">' +
-             '<b>Je confirme être sur place</b>' +
+             '<b>Je suis arrivé</b>' +
              '<span>À ' + Math.round(S.distance) + ' m · ' + hhmm(S.clock) + '</span></button>';
       } else if (!fiable) {
         h += '<div class="punch off"><b>GPS trop imprécis</b>' +
              '<span>± ' + Math.round(S.precision) + ' m pour un seuil de ' + r + ' m</span></div>';
       } else {
         h += '<div class="punch off"><b>Encore ' + Math.round(S.distance - r) + ' m</b>' +
-             '<span>Confirmation à moins de ' + r + ' m</span></div>';
+             '<span>Le bouton s&apos;active à moins de ' + r + ' m</span></div>';
       }
 
       if (!ok) {
@@ -883,101 +939,42 @@
       return h;
     }
 
-    // journée démarrée
-    h += carteAdresse(false);
-    if (j.statut !== "fini") h += carteGeo();
+    if (j.statut === "fini") {
+      return '<div class="fin"><span class="fin-ic">✓</span>' +
+        '<b>Journée terminée</b>' +
+        '<span class="fin-d">' + dureeCourte(minutesTravaillees()) + ' sur le chantier</span>' +
+        '<span class="fin-h">' + hhmm(j.arrivee) + ' – ' + hhmm(j.depart) + '</span></div>' +
+        (j.horsZoneDep ? '<div class="note warn"><b>Départ hors zone</b> · ' + Math.round(j.distDep) +
+          ' m<br>« ' + esc(j.motifDep || "") + ' »</div>' : '');
+    }
 
+    // sur le chantier
     var paused = j.statut === "pause";
+    h += carteAdresse();
+
     h += '<div class="card chrono' + (paused ? " paused" : "") + '">' +
-      '<p class="lab">' + (paused ? "En pause" : (j.statut === "fini" ? "Journée terminée" : "Temps de travail")) + '</p>' +
+      '<p class="lab">' + (paused ? "En pause" : "Sur le chantier depuis") + '</p>' +
       '<p class="big" data-live="chrono">' + dureeCourte(minutesTravaillees()) + '</p>' +
       '<div class="sub">' +
-        '<span>Sur place <b>' + hhmm(j.arrivee) + '</b></span>' +
-        '<span>Pause <b data-live="pause">' + Math.round(pauseMinutes()) + ' min</b></span>' +
-        (j.depart ? '<span>Départ <b>' + hhmm(j.depart) + '</b></span>' : '') +
+        '<span>Arrivé <b>' + hhmm(j.arrivee) + '</b></span>' +
+        '<span>Fin prévue <b>' + hhmmMin(finPrevueMin()) + '</b></span>' +
       '</div></div>';
 
-    h += '<div class="note ok"><b>Présence confirmée à ' + hhmm(j.arrivee) + '</b> · ' +
-      (j.manuel ? "validée par le bureau" : "à " + Math.round(j.distConfirm) + " m de l&apos;adresse") + '</div>';
-
-    if (j.statut === "travail") {
-      h += '<button type="button" class="btn-sec" data-act="pause">Prendre ma pause</button>';
-      h += '<button type="button" class="punch stop" data-act="depart"><b>Pointer mon départ</b><span>' + hhmm(S.clock) + '</span></button>';
-    } else if (j.statut === "pause") {
-      h += '<button type="button" class="punch go" data-act="reprise"><b>Reprendre le travail</b><span>' + hhmm(S.clock) + '</span></button>';
-      h += '<button type="button" class="btn-sec" data-act="depart">Pointer mon départ</button>';
+    if (paused) {
+      h += '<button type="button" class="punch go" data-act="reprise"><b>Reprendre</b><span>' + hhmm(S.clock) + '</span></button>';
     } else {
-      h += '<div class="punch done"><b>Journée pointée</b><span>Transmise au bureau</span></div>';
-      if (j.horsZoneDep) {
-        h += '<div class="note warn"><b>Départ hors zone</b> · ' + Math.round(j.distDep) +
-             ' m<br>« ' + esc(j.motifDep || "") + ' »</div>';
-      }
+      h += '<button type="button" class="punch stop" data-act="depart"><b>J&apos;ai terminé</b><span>' + hhmm(S.clock) + '</span></button>';
+      h += '<button type="button" class="btn-sec quiet" data-act="pause">Prendre ma pause</button>';
     }
     return h;
-  }
-
-  function ecranHeures() {
-    var h = '<p class="sec-title">Cette semaine</p><div class="card"><div class="rows">', total = 0, i;
-    for (i = 0; i < SEMAINE.length; i++) {
-      var d = SEMAINE[i]; total += d.min;
-      h += '<div class="row"><div class="l"><b>' + d.jour + '</b><span>' + d.chantier + '</span></div>' +
-           '<div class="r"><b>' + dureeCourte(d.min) + '</b><span>' + d.a + ' – ' + d.d + '</span></div></div>';
-    }
-    var aj = minutesTravaillees();
-    if (S.jour.arrivee) total += aj;
-    h += '<div class="row"><div class="l"><b>Aujourd&apos;hui</b><span>' +
-         (S.mission ? S.mission.libelle : "aucune adresse") + '</span></div>' +
-         '<div class="r"><b>' + (S.jour.arrivee ? dureeCourte(aj) : "—") + '</b><span>' +
-         (S.jour.arrivee ? hhmm(S.jour.arrivee) + " – " + (S.jour.depart ? hhmm(S.jour.depart) : "en cours") : "pas encore confirmé") +
-         '</span></div></div>';
-    h += '</div><div class="total-line"><span>Total semaine</span><b>' + dureeCourte(total) + '</b></div></div>';
-    return h;
-  }
-
-  function ecranChantiers() {
-    if (!S.mission) {
-      return '<div class="empty-ph"><b>Rien de prévu</b><span>Aucune adresse ne vous a été envoyée.</span></div>';
-    }
-    var m = S.mission;
-    return '<p class="sec-title">Adresse reçue aujourd&apos;hui</p>' + carteAdresse(false) +
-      '<div class="card"><div class="rows">' +
-      '<div class="row"><div class="l"><b>Envoyée par le bureau</b></div><div class="r"><b>' + hhmm(m.envoyeeLe) + '</b></div></div>' +
-      '<div class="row"><div class="l"><b>Seuil de confirmation</b></div><div class="r"><b>' + m.rayon + ' m</b></div></div>' +
-      '<div class="row"><div class="l"><b>Également envoyée à</b></div><div class="r"><b>' + (m.dest.length - 1) + ' collègue' + (m.dest.length > 2 ? "s" : "") + '</b></div></div>' +
-      '</div></div>';
-  }
-
-  function ecranProfil() {
-    return '<div class="card"><div class="rows">' +
-      '<div class="row"><div class="l"><b>Karim Benali</b><span>Peintre · 2PG Rénovation</span></div></div>' +
-      '<div class="row"><div class="l"><b>Appareil</b><span>Validé le 12 mai 2026</span></div><div class="r"><b>Pixel 7a</b></div></div>' +
-      '<div class="row"><div class="l"><b>Contrat</b><span>35 h hebdomadaires</span></div></div>' +
-      '</div></div>' +
-      '<div class="note"><b>Vos données</b><br>Position relevée uniquement au moment de la confirmation ' +
-      'et du départ. Coordonnées effacées à 2 mois, heures conservées 5 ans.</div>' +
-      '<button type="button" class="btn-sec">Se déconnecter</button>';
   }
 
   function renderPhone() {
-    var ecrans = { today: ecranAujourdhui, hours: ecranHeures, sites: ecranChantiers, me: ecranProfil };
-    var titres = { today: "Aujourd&apos;hui", hours: "Mes heures", sites: "Mon adresse", me: "Profil" };
-    var neuf = S.jour.statut === "recue";
-
     var h = '';
     h += '<div class="ph-status"><span data-live="phclock">' + hhmm(S.clock) + '</span><span>4G · 78 %</span></div>';
-    h += '<div class="ph-head"><b>' + titres[S.ecran] + '</b><span>' + dateLongue(S.clock) + '</span></div>';
-    h += '<div class="ph-body">' + ecrans[S.ecran]() + '</div>';
-
-    h += '<nav class="ph-nav">';
-    var tabs = [["today", "Aujourd&apos;hui"], ["hours", "Mes heures"], ["sites", "Mon adresse"], ["me", "Profil"]];
-    for (var i = 0; i < tabs.length; i++) {
-      var k = tabs[i][0];
-      h += '<button type="button" data-tab="' + k + '"' + (S.ecran === k ? ' aria-current="page"' : '') + '>' +
-        '<span class="ic">' + ICONS[k] + '</span>' + tabs[i][1] +
-        (neuf && (k === "today" || k === "sites") && S.ecran !== k ? '<span class="badge"></span>' : '') +
-        '</button>';
-    }
-    h += '</nav>';
+    h += '<div class="ph-head"><b>Bonjour Karim</b><span>' + dateLongue(S.clock) + '</span></div>';
+    h += '<div class="ph-body">' + ecranOuvrier() + '</div>';
+    h += '<p class="ph-foot">Position relevée uniquement à l&apos;arrivée et au départ.</p>';
 
     if (S.sheet === "probleme") {
       h += feuille("Signaler au bureau",
@@ -1068,6 +1065,16 @@
     h += '<div class="form-2">' +
       '<div class="fld"><label for="fHeure">Heure de rendez-vous</label>' +
         '<input type="time" id="fHeure" value="' + f.heure + '"></div>' +
+      '<div class="fld"><label for="fDuree">Temps de service</label><select id="fDuree">' +
+        (function () {
+          var o = "";
+          for (var d = 60; d <= 660; d += 30) {
+            o += '<option value="' + d + '"' + (d === f.duree ? " selected" : "") + '>' +
+              dureeCourte(d) + '</option>';
+          }
+          return o;
+        })() +
+      '</select></div>' +
       '<div class="fld"><span class="fld-lab">Seuil de confirmation</span>' +
         '<div class="seg" role="group" aria-label="Seuil de confirmation">' +
           '<button type="button" data-rayon="20" aria-pressed="' + (f.rayon === 20) + '">20 m<br><em>strict</em></button>' +
@@ -1108,6 +1115,7 @@
       '<div style="display:flex;gap:8px;flex-wrap:wrap">' +
         '<span class="chip">Envoyée à ' + hhmm(m.envoyeeLe) + '</span>' +
         '<span class="chip">Rendez-vous ' + m.heure + '</span>' +
+        '<span class="chip">Service ' + dureeCourte(m.dureeMin) + '</span>' +
         '<span class="chip">Confirmation sous ' + m.rayon + ' m</span>' +
       '</div></div>';
 
@@ -1174,11 +1182,13 @@
       heuresJour += heuresDec(Math.max(0, m - msEnMinutes(sof.confirmeLe) - (m > 13 * 60 ? 45 : 0)));
     }
 
+    var prevuTotal = heuresDec(S.mission.dureeMin) * confirmes;
     h += '<div class="kpis">' +
-      '<div class="kpi k-ok"><span>Confirmés sur place</span><b>' + confirmes + ' / ' + d.length + '</b></div>' +
+      '<div class="kpi k-ok"><span>Sur le chantier</span><b>' + confirmes + ' / ' + d.length + '</b></div>' +
       '<div class="kpi k-warn"><span>En attente</span><b>' + attente + '</b></div>' +
       '<div class="kpi k-bad"><span>Bloqués</span><b>' + bloques + '</b></div>' +
-      '<div class="kpi"><span>Heures du jour</span><b>' + fmtH(heuresJour) + '</b></div>' +
+      '<div class="kpi"><span>Réalisé / prévu</span><b>' + fmtH(heuresJour) +
+        '<em> / ' + fmtH(prevuTotal) + '</em></b></div>' +
       '</div>';
 
     h += suiviEnvoi();
@@ -1199,16 +1209,17 @@
     }
     h += '</div>';
 
-    // journée de Karim
-    h += '<div class="panel"><div class="panel-head"><h3>Journée de travail</h3>' +
+    // temps de service
+    h += '<div class="panel"><div class="panel-head"><h3>Temps de service · ' + dureeCourte(S.mission.dureeMin) + ' prévues</h3>' +
       '<button type="button" class="btn-x" data-act="csv">' + (S.csv ? "Masquer l&apos;export" : "Exporter") + '</button></div>' +
-      '<div class="tw"><table><thead><tr><th>Ouvrier</th><th class="n">Sur place</th><th class="n">Pause</th>' +
-      '<th class="n">Départ</th><th class="n">Durée</th><th>État</th></tr></thead><tbody>';
+      '<div class="tw"><table><thead><tr><th>Ouvrier</th><th class="n">Arrivé</th><th class="n">Pause</th>' +
+      '<th class="n">Départ</th><th class="n">Réalisé</th><th style="width:130px">Avancement</th>' +
+      '<th class="n">Écart</th><th>État</th></tr></thead><tbody>';
 
     var j = S.jour, etatK;
     if (j.statut === "fini") etatK = '<span class="pill idle">Journée close</span>';
     else if (j.statut === "pause") etatK = '<span class="pill pig">En pause</span>';
-    else if (j.statut === "travail") etatK = '<span class="pill ok">Au travail</span>';
+    else if (j.statut === "travail") etatK = '<span class="pill ok">Sur le chantier</span>';
     else etatK = '<span class="pill idle">Pas commencé</span>';
 
     h += '<tr class="live"><td class="who"><b>Karim Benali</b><span>' + S.mission.libelle + '</span></td>' +
@@ -1216,14 +1227,18 @@
       '<td class="n">' + (j.arrivee ? Math.round(pauseMinutes()) + " min" : "—") + '</td>' +
       '<td class="n">' + (j.depart ? hhmm(j.depart) : "—") + '</td>' +
       '<td class="n" data-live="dbdur">' + (j.arrivee ? dureeCourte(minutesTravaillees()) : "—") + '</td>' +
+      '<td>' + barreService(j.arrivee ? minutesTravaillees() : 0) + '</td>' +
+      '<td class="n">' + ecartService(j.arrivee ? minutesTravaillees() : null) + '</td>' +
       '<td>' + etatK + '</td></tr>';
 
     if (sof && sof.etat === "confirme") {
-      var dur = Math.max(0, m - msEnMinutes(sof.confirmeLe) - (m > 13 * 60 ? 45 : 0));
+      var pauseS = m > 13 * 60 ? 45 : 0;
+      var dur = Math.max(0, m - msEnMinutes(sof.confirmeLe) - pauseS);
       h += '<tr><td class="who"><b>Sofiane Mansour</b><span>' + S.mission.libelle + '</span></td>' +
-        '<td class="n">' + hhmm(sof.confirmeLe) + '</td><td class="n">' + (m > 13 * 60 ? "45 min" : "—") + '</td>' +
+        '<td class="n">' + hhmm(sof.confirmeLe) + '</td><td class="n">' + (pauseS ? pauseS + " min" : "—") + '</td>' +
         '<td class="n">—</td><td class="n">' + dureeCourte(dur) + '</td>' +
-        '<td><span class="pill ok">Au travail</span></td></tr>';
+        '<td>' + barreService(dur) + '</td><td class="n">' + ecartService(dur) + '</td>' +
+        '<td><span class="pill ok">Sur le chantier</span></td></tr>';
     }
     h += '</tbody></table></div>';
 
@@ -1235,6 +1250,23 @@
     h += '</div>';
 
     document.getElementById("db").innerHTML = h + panneauChantiers();
+  }
+
+  function barreService(fait) {
+    var du = S.mission.dureeMin, pct = Math.min(100, (fait / du) * 100);
+    var over = fait > du;
+    return '<div class="svc"><div class="svc-bar">' +
+      '<i class="' + (over ? "q" : "u") + '" style="width:' + (over ? (du / fait) * 100 : pct) + '%"></i>' +
+      (over ? '<i class="o" style="width:' + (100 - (du / fait) * 100) + '%"></i>' : '') +
+      '</div><span>' + Math.round((fait / du) * 100) + ' %</span></div>';
+  }
+
+  function ecartService(fait) {
+    if (fait === null) return "—";
+    var d = fait - S.mission.dureeMin;
+    if (Math.abs(d) < 1) return "à l&apos;heure";
+    return '<span style="color:var(--' + (d > 0 ? "bad" : "ink-soft") + ')">' +
+      (d > 0 ? "+" : "−") + dureeCourte(Math.abs(d)) + '</span>';
   }
 
   function panneauChantiers() {
@@ -1358,11 +1390,10 @@
   // ---------- évènements ----------
 
   document.addEventListener("click", function (ev) {
-    var t = ev.target.closest("[data-act], [data-tab], [data-speed], [data-view-btn], [data-rayon]," +
+    var t = ev.target.closest("[data-act], [data-speed], [data-view-btn], [data-rayon]," +
                               "[data-valider], [data-sug], [data-pick-raw], [data-quick]");
     if (!t) return;
 
-    if (t.hasAttribute("data-tab")) { S.ecran = t.getAttribute("data-tab"); render(); return; }
     if (t.hasAttribute("data-view-btn")) { S.vue = t.getAttribute("data-view-btn"); render(); return; }
     if (t.hasAttribute("data-speed")) { S.speed = Number(t.getAttribute("data-speed")); majConsole(); return; }
     if (t.hasAttribute("data-rayon")) { S.form.rayon = Number(t.getAttribute("data-rayon")); renderDb(); return; }
@@ -1418,13 +1449,14 @@
     if (el.id === "dcRange") {
       S.distance = Number(el.value);
       document.getElementById("dcDist").textContent = Math.round(S.distance) + " m";
-      if (S.ecran === "today" && !S.sheet) renderPhone();
+      majApproche();
+      if (!S.sheet) renderPhone();
       return;
     }
     if (el.id === "dcPrec2") {
       S.precision = Number(el.value);
       document.getElementById("dcPrec").textContent = "± " + Math.round(S.precision) + " m";
-      if (S.ecran === "today" && !S.sheet) renderPhone();
+      if (!S.sheet) renderPhone();
       return;
     }
     // Frappe dans le champ adresse : on ne re-rend QUE la liste de suggestions,
@@ -1432,11 +1464,21 @@
     if (el.id === "fAdr") { S.form.q = el.value; majSuggestions(); return; }
     if (el.id === "fLib") { S.form.libelle = el.value; return; }
     if (el.id === "fHeure") { S.form.heure = el.value || "08:00"; return; }
+    if (el.id === "fDuree") { S.form.duree = Number(el.value); return; }
     if (el.hasAttribute && el.hasAttribute("data-dest")) {
       S.form.dest[el.getAttribute("data-dest")] = el.checked;
       majBoutonEnvoi();
     }
   });
+
+  // Franchir le rayon d'approche déclenche le signal, une seule fois par mission.
+  // Dans l'application c'est une surveillance de zone du système (region
+  // monitoring) : l'OS réveille l'app à l'entrée, sans jamais lui livrer un flux
+  // de positions.
+  function majApproche() {
+    if (!S.mission || S.jour.statut !== "recue") return;
+    if (!S.approche && S.distance <= rayonApproche()) S.approche = true;
+  }
 
   function majSuggestions() {
     var s = document.getElementById("fSug");
