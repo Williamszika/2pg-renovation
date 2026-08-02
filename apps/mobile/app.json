@@ -1,0 +1,47 @@
+{
+  "expo": {
+    "name": "2PG Pointage",
+    "slug": "2pg-pointage",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "scheme": "pg2pointage",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "splash": {
+      "resizeMode": "contain",
+      "backgroundColor": "#2E3FA3"
+    },
+    "assetBundlePatterns": ["**/*"],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "fr.pg2renovation.pointage",
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "Votre position est relevée uniquement au moment où vous confirmez votre arrivée sur le chantier et où vous pointez votre départ. Elle n'est jamais enregistrée entre les deux.",
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "Autoriser « Toujours » permet à l'application de vous prévenir quand vous arrivez à proximité du chantier. Le système ne lui transmet que le franchissement de la zone, jamais vos déplacements."
+      }
+    },
+    "android": {
+      "package": "fr.pg2renovation.pointage",
+      "adaptiveIcon": { "backgroundColor": "#2E3FA3" },
+      "permissions": [
+        "ACCESS_COARSE_LOCATION",
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_BACKGROUND_LOCATION"
+      ]
+    },
+    "plugins": [
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Votre position est relevée uniquement à l'arrivée et au départ du chantier.",
+          "locationAlwaysAndWhenInUsePermission": "Pour vous prévenir quand vous approchez du chantier.",
+          "isAndroidBackgroundLocationEnabled": true
+        }
+      ],
+      ["expo-notifications", { "color": "#2E3FA3" }]
+    ],
+    "extra": {
+      "eas": { "projectId": "" }
+    }
+  }
+}
