@@ -53,6 +53,23 @@ menu ⋮ → *Ajouter à l'écran d'accueil*.
 **iPhone** — ouvrir l'adresse **dans Safari** (Chrome iOS ne sait pas installer), bouton
 Partager, puis *Sur l'écran d'accueil*.
 
+## Cartes et itinéraires
+
+Trois usages distincts, trois choix différents :
+
+| Usage | Service | Pourquoi |
+|---|---|---|
+| Chercher l'adresse à la frappe | **Base Adresse Nationale** | Gratuit, sans clé, base officielle française — meilleur que Google sur les adresses françaises |
+| Aperçu avant envoi | **OpenStreetMap** (iframe) | Gratuit, sans clé. Une carte Google exigerait une clé et un compte de facturation |
+| Ouvrir / itinéraire | **Google Maps** | C'est ce que tout le monde connaît, et l'URL universelle ouvre l'application installée sur iPhone comme sur Android |
+
+L'aperçu n'est pas décoratif : un géocodage peut poser le point au mauvais endroit, et
+l'ouvrier ne pourrait alors jamais confirmer sa présence. Le patron le voit avant d'envoyer.
+
+Les destinations sont passées en **coordonnées**, jamais en texte : elles viennent de la BAN et
+désignent exactement le point validé sur l'aperçu, là où une adresse en toutes lettres pourrait
+être réinterprétée par le service de navigation.
+
 ## Ce que cette version ne fait pas
 
 **Pas de signal d'approche en arrière-plan.** iOS n'autorise pas la surveillance de zone pour

@@ -95,6 +95,19 @@ td.n,.tnum{font-variant-numeric:tabular-nums}
 .choisie .t span{font-size:.76rem;color:var(--encre-douce)}
 .choisie .geo{font-family:var(--mono);font-size:.7rem;color:var(--pigment);background:var(--surface);border-radius:5px;padding:3px 7px;white-space:nowrap}
 
+/* Aperçu cartographique : un géocodage peut poser le point au mauvais endroit,
+   et l'ouvrier ne pourrait alors jamais confirmer. On le montre avant l'envoi. */
+.apercu{border:1px solid var(--trait);border-radius:10px;overflow:hidden;background:var(--surface-2)}
+.apercu iframe{display:block;width:100%;height:190px;border:0}
+.apercu .pied{display:flex;justify-content:space-between;align-items:center;gap:10px;
+              padding:9px 11px;border-top:1px solid var(--trait);flex-wrap:wrap}
+.apercu .pied span{font-size:.74rem;color:var(--encre-pale)}
+.lien-gmaps{display:inline-flex;align-items:center;gap:6px;font-size:.78rem;font-weight:650;
+            color:var(--pigment);border:1px solid var(--trait);border-radius:8px;
+            padding:6px 11px;background:var(--surface);text-decoration:none;white-space:nowrap}
+.lien-gmaps:hover{background:var(--pigment-pale)}
+.lien-gmaps svg{width:14px;height:14px}
+
 .dest{display:grid;gap:8px}
 @media (min-width:640px){.dest{grid-template-columns:repeat(auto-fit,minmax(160px,1fr))}}
 .dest label{display:flex;align-items:center;gap:10px;border:1px solid var(--trait);border-radius:10px;padding:11px 12px;cursor:pointer;background:var(--surface-2);font-size:.88rem;font-weight:600}
@@ -743,8 +756,12 @@ function dessinerMissions() {
     return '<section class="panel"><div class="panel-head">' +
       "<h2>" + esc(m.libelle) + " · " + heureCourte(m.heure_rdv) + " · service " + duree(m.duree_service_min) + "</h2>" +
       '<span class="pastille pig nodot">Confirmation sous ' + m.rayon_m + " m</span></div>" +
-      '<div style="padding:12px 16px;border-bottom:1px solid var(--trait-pale);font-size:.85rem;color:var(--encre-douce)">' +
-      esc(m.adresse) + (m.code_postal || m.ville ? ", " + esc([m.code_postal, m.ville].filter(Boolean).join(" ")) : "") + "</div>" +
+      '<div style="padding:12px 16px;border-bottom:1px solid var(--trait-pale);display:flex;' +
+      'justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">' +
+      '<span style="font-size:.85rem;color:var(--encre-douce)">' + esc(m.adresse) +
+      (m.code_postal || m.ville ? ", " + esc([m.code_postal, m.ville].filter(Boolean).join(" ")) : "") + "</span>" +
+      '<a class="lien-gmaps" href="' + lienGoogleMaps(m.lat, m.lon) + '" target="_blank" rel="noopener">' +
+      IC_PIN + "Google Maps</a></div>" +
       '<div class="tw"><table><thead><tr><th>Ouvrier</th><th class="n">Arrivé</th><th class="n">Distance</th>' +
       '<th class="n">Pause</th><th class="n">Départ</th><th class="n">Réalisé</th><th style="width:130px">Avancement</th>' +
       '<th class="n">Écart</th><th>État</th><th></th></tr></thead><tbody>' + lignes + "</tbody></table></div></section>";
@@ -865,6 +882,36 @@ async function chercherAdresse() {
   }
 }
 
+const IC_PIN = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" ' +
+  'stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-5.5 7-11a7 7 0 1 0-14 0c0 5.5 7 11 7 11z"/>' +
+  '<circle cx="12" cy="10" r="2.5"/></svg>';
+
+/** Lien Google Maps sur les coordonnées exactes, pas sur le texte de l'adresse. */
+function lienGoogleMaps(lat, lon) {
+  return "https://www.google.com/maps/search/?api=1&query=" + lat + "," + lon;
+}
+
+/**
+ * Aperçu cartographique, via OpenStreetMap : gratuit, sans clé ni compte de
+ * facturation, là où une carte Google exigerait les deux. Le bouton, lui,
+ * ouvre bien Google Maps — c'est ce que tout le monde connaît.
+ */
+function apercuCarte(lat, lon, rayon) {
+  // Cadrage : environ six fois le rayon de confirmation, pour situer le point
+  // dans sa rue sans perdre le contexte.
+  const m = Math.max(300, rayon * 6);
+  const dLat = m / 111320;
+  const dLon = m / (111320 * Math.cos((lat * Math.PI) / 180));
+  const bbox = [lon - dLon, lat - dLat, lon + dLon, lat + dLat].map((v) => v.toFixed(6)).join(",");
+  const carte = "https://www.openstreetmap.org/export/embed.html?bbox=" + bbox +
+                "&layer=mapnik&marker=" + lat + "," + lon;
+  return '<div class="apercu">' +
+    '<iframe src="' + carte + '" loading="lazy" title="Emplacement du chantier"></iframe>' +
+    '<div class="pied"><span>Vérifiez que le point est au bon endroit</span>' +
+    '<a class="lien-gmaps" href="' + lienGoogleMaps(lat, lon) + '" target="_blank" rel="noopener">' +
+    IC_PIN + "Ouvrir dans Google Maps</a></div></div>";
+}
+
 function choisir(a) {
   S.form.pick = a;
   $("adr").value = a.label;
@@ -874,7 +921,8 @@ function choisir(a) {
     '<div class="choisie"><div class="t"><b>' + esc(a.voie) + "</b>" +
     "<span>" + esc(a.cp + " " + a.ville) + "</span></div>" +
     '<span class="geo">' + a.lat.toFixed(4) + ", " + a.lon.toFixed(4) + "</span>" +
-    '<button type="button" class="btn-x" id="btnModifierAdr">Modifier</button></div>';
+    '<button type="button" class="btn-x" id="btnModifierAdr">Modifier</button></div>' +
+    apercuCarte(a.lat, a.lon, S.form.rayon);
   $("adr").hidden = true;
   $("btnModifierAdr").addEventListener("click", () => {
     S.form.pick = null; S.form.chantierId = null;
@@ -893,6 +941,8 @@ $("seuils").querySelectorAll("[data-rayon]").forEach((b) =>
     $("seuils").querySelectorAll("button").forEach((x) =>
       x.setAttribute("aria-pressed", String(Number(x.dataset.rayon) === S.form.rayon)));
     $("aideSeuil").hidden = S.form.rayon > 20;
+    // Le cadrage de l'aperçu dépend du rayon : on le redessine.
+    if (S.form.pick) choisir(S.form.pick);
   })
 );
 
@@ -1314,18 +1364,26 @@ function brancherOuvrier() {
   if (valide) valide.addEventListener("click", validerFeuille);
 }
 
+/**
+ * Itinéraire vers le chantier, dans Google Maps.
+ *
+ * On passe par l'URL universelle plutôt que par un schéma propre à la
+ * plateforme (`geo:` ou `maps://`) : elle ouvre l'application Google Maps
+ * quand elle est installée, iOS comme Android, et bascule sur la version web
+ * sinon. Un `geo:` ouvrirait l'application de cartes par défaut, qui est Plans
+ * sur iPhone.
+ *
+ * La destination est en coordonnées, pas en texte : elles viennent de la Base
+ * Adresse Nationale et désignent exactement le point que le patron a validé sur
+ * l'aperçu. Une adresse en toutes lettres pourrait être réinterprétée.
+ */
 function ouvrirItineraire() {
   const m = O.data.mission;
-  const label = encodeURIComponent([m.adresse, m.code_postal, m.ville].filter(Boolean).join(" "));
-  const ios = /iPad|iPhone|iPod/.test(navigator.userAgent);
-  // On passe les coordonnées ET le libellé : l'application de navigation
-  // affiche le nom de la rue plutôt qu'un point sans contexte.
-  const url = ios
-    ? "maps://?daddr=" + m.lat + "," + m.lon + "&q=" + label
-    : "geo:" + m.lat + "," + m.lon + "?q=" + m.lat + "," + m.lon + "(" + label + ")";
-  const repli = "https://www.google.com/maps/dir/?api=1&destination=" + m.lat + "," + m.lon;
-  try { location.href = url; setTimeout(() => { window.open(repli, "_blank"); }, 1200); }
-  catch { window.open(repli, "_blank"); }
+  window.open(
+    "https://www.google.com/maps/dir/?api=1&destination=" + m.lat + "," + m.lon +
+      "&travelmode=driving",
+    "_blank", "noopener"
+  );
 }
 
 async function confirmerArrivee() {
