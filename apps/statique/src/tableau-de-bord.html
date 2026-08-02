@@ -1,0 +1,977 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>2PG — Suivi de chantier</title>
+<style>
+:root {
+  --fond:#f6f5f2; --surface:#fff; --surface-2:#efede8; --surface-3:#e7e4dd;
+  --encre:#1b1f26; --encre-douce:#5a626e; --encre-pale:#8a909b;
+  --trait:#e2dfd8; --trait-pale:#edebe5;
+  --pigment:#2e3fa3; --pigment-pale:#e8eaf7;
+  --ok:#2e7a57; --ok-pale:#e3f0ea;
+  --alerte:#a8721a; --alerte-pale:#f6eedf;
+  --arret:#a93a34; --arret-pale:#f7e7e5;
+  --ombre:0 1px 2px rgba(27,31,38,.06), 0 8px 24px rgba(27,31,38,.07);
+  --serif:Charter,"Bitstream Charter","Sitka Text",Cambria,ui-serif,Georgia,serif;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,"Helvetica Neue",Arial,sans-serif;
+  --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --fond:#111317; --surface:#191c21; --surface-2:#21252b; --surface-3:#2a2f36;
+    --encre:#e9e7e2; --encre-douce:#99a0ab; --encre-pale:#6e7681;
+    --trait:#2a2e35; --trait-pale:#222630;
+    --pigment:#8496f5; --pigment-pale:#1d2340;
+    --ok:#4fb183; --ok-pale:#14291f;
+    --alerte:#d3a24a; --alerte-pale:#2c2416;
+    --arret:#e2726b; --arret-pale:#2e1917;
+    --ombre:0 1px 2px rgba(0,0,0,.4), 0 10px 30px rgba(0,0,0,.35);
+  }
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--fond);color:var(--encre);font-family:var(--sans);font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased}
+button{font:inherit;color:inherit;cursor:pointer;border:0;background:none}
+input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--pigment);outline-offset:2px;border-radius:4px}
+td.n,.tnum{font-variant-numeric:tabular-nums}
+[hidden]{display:none !important}
+
+.wrap{max-width:1240px;margin:0 auto;padding:24px 20px 72px}
+.top{display:flex;flex-wrap:wrap;gap:16px;justify-content:space-between;align-items:flex-end;padding-bottom:16px;border-bottom:1px solid var(--trait)}
+.top h1{font-family:var(--serif);font-size:clamp(1.5rem,3.2vw,2rem);font-weight:700;letter-spacing:-.015em;line-height:1.15}
+.eyebrow{font-size:.66rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--pigment)}
+.jour{font-size:.88rem;color:var(--encre-pale);margin-top:3px}
+.pile{display:flex;flex-direction:column;gap:18px;margin-top:22px}
+
+.panel{background:var(--surface);border:1px solid var(--trait);border-radius:12px;overflow:hidden}
+.panel.accent{border-color:var(--pigment)}
+.panel-head{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:11px 16px;border-bottom:1px solid var(--trait);background:var(--surface-2)}
+.panel.accent .panel-head{background:var(--pigment-pale);border-bottom-color:var(--pigment)}
+.panel-head h2{font-size:.68rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--encre-douce)}
+.panel.accent .panel-head h2{color:var(--pigment)}
+.corps{padding:16px;display:flex;flex-direction:column;gap:16px}
+
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px}
+.kpi{background:var(--surface);border:1px solid var(--trait);border-radius:12px;padding:13px 15px}
+.kpi span{font-size:.63rem;font-weight:700;letter-spacing:.11em;text-transform:uppercase;color:var(--encre-pale)}
+.kpi b{display:block;font-size:1.7rem;font-weight:700;letter-spacing:-.025em;margin-top:2px;font-variant-numeric:tabular-nums}
+.kpi.ok b{color:var(--ok)} .kpi.warn b{color:var(--alerte)} .kpi.bad b{color:var(--arret)}
+.kpi b em{font-style:normal;font-size:.95rem;font-weight:600;color:var(--encre-pale)}
+
+.champ{display:flex;flex-direction:column;gap:6px}
+.champ>label,.label{font-size:.64rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--encre-pale)}
+.champ input,.champ select{width:100%;border:1px solid var(--trait);border-radius:9px;padding:10px 11px;font-size:.92rem;background:var(--surface-2)}
+.aide{font-size:.74rem;color:var(--encre-pale);line-height:1.45}
+.aide.warn{color:var(--alerte)} .aide.bad{color:var(--arret)} .aide.ok{color:var(--ok)}
+.deux{display:grid;gap:16px}
+@media (min-width:640px){.deux{grid-template-columns:1fr 1fr}}
+
+.seg{display:flex;gap:3px;padding:3px;background:var(--surface-2);border:1px solid var(--trait);border-radius:9px}
+.seg button{flex:1;padding:8px 4px;border-radius:6px;font-size:.8rem;font-weight:650;color:var(--encre-douce);line-height:1.25}
+.seg button[aria-pressed="true"]{background:var(--pigment);color:#fff}
+.seg em{font-style:normal;display:block;font-size:.64rem;font-weight:600;opacity:.72}
+
+.ac{display:flex;flex-direction:column;gap:8px}
+.sug{list-style:none;border:1px solid var(--trait);border-radius:10px;overflow:hidden;background:var(--surface)}
+.sug li+li{border-top:1px solid var(--trait-pale)}
+.sug button{width:100%;text-align:left;padding:10px 12px;display:flex;flex-direction:column;gap:1px}
+.sug button:hover{background:var(--pigment-pale)}
+.sug .v{font-size:.89rem;font-weight:600}
+.sug .c{font-size:.76rem;color:var(--encre-pale)}
+.sug .vide{padding:11px 12px;font-size:.82rem;color:var(--encre-pale)}
+.choisie{display:flex;align-items:center;gap:10px;flex-wrap:wrap;border:1px solid var(--pigment);background:var(--pigment-pale);border-radius:10px;padding:10px 12px}
+.choisie .t{flex:1;min-width:0}
+.choisie .t b{display:block;font-size:.9rem;font-weight:700}
+.choisie .t span{font-size:.76rem;color:var(--encre-douce)}
+.choisie .geo{font-family:var(--mono);font-size:.7rem;color:var(--pigment);background:var(--surface);border-radius:5px;padding:3px 7px;white-space:nowrap}
+
+.dest{display:grid;gap:8px}
+@media (min-width:640px){.dest{grid-template-columns:repeat(auto-fit,minmax(160px,1fr))}}
+.dest label{display:flex;align-items:center;gap:10px;border:1px solid var(--trait);border-radius:10px;padding:11px 12px;cursor:pointer;background:var(--surface-2);font-size:.88rem;font-weight:600}
+.dest label:hover{background:var(--surface-3)}
+.dest label:has(input:checked){border-color:var(--pigment);background:var(--pigment-pale);color:var(--pigment)}
+.dest input{width:18px;height:18px;accent-color:var(--pigment);flex:none;cursor:pointer}
+.dest .qui{display:flex;flex-direction:column;min-width:0}
+.dest .qui span{font-size:.72rem;font-weight:550;color:var(--encre-pale)}
+.dest label:has(input:checked) .qui span{color:var(--pigment);opacity:.8}
+
+.envoyer{background:var(--pigment);color:#fff;border-radius:11px;padding:14px;font-weight:700;font-size:.95rem;width:100%}
+.envoyer:hover{filter:brightness(1.07)}
+.envoyer:disabled{opacity:.4;cursor:not-allowed;filter:none}
+
+.tw{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:.85rem}
+th{text-align:left;font-size:.63rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--encre-pale);padding:9px 16px;border-bottom:1px solid var(--trait);white-space:nowrap}
+td{padding:11px 16px;border-bottom:1px solid var(--trait-pale);vertical-align:middle;white-space:nowrap}
+tbody tr:last-child td{border-bottom:0}
+td.n{text-align:right}
+.qui-cell b{font-weight:650}
+.qui-cell span{display:block;font-size:.74rem;color:var(--encre-pale);white-space:normal}
+
+.pastille{display:inline-flex;align-items:center;gap:5px;font-size:.7rem;font-weight:700;padding:3px 8px;border-radius:5px;white-space:nowrap}
+.pastille::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor;flex:none}
+.pastille.nodot::before{display:none}
+.pastille.ok{color:var(--ok);background:var(--ok-pale)}
+.pastille.warn{color:var(--alerte);background:var(--alerte-pale)}
+.pastille.bad{color:var(--arret);background:var(--arret-pale)}
+.pastille.idle{color:var(--encre-pale);background:var(--surface-2)}
+.pastille.pig{color:var(--pigment);background:var(--pigment-pale)}
+
+.barre{display:flex;align-items:center;gap:8px}
+.barre .piste{flex:1;min-width:56px;height:6px;border-radius:4px;background:var(--surface-3);display:flex;overflow:hidden}
+.barre .piste i{display:block;height:100%}
+.barre .piste i.u{background:var(--ok)} .barre .piste i.q{background:var(--pigment)} .barre .piste i.o{background:var(--arret)}
+.barre>span{font-size:.72rem;font-weight:650;color:var(--encre-pale);font-variant-numeric:tabular-nums;min-width:34px;text-align:right}
+
+.btn-x{font-size:.76rem;font-weight:650;border:1px solid var(--trait);border-radius:7px;padding:5px 11px;background:var(--surface);color:var(--encre-douce)}
+.btn-x:hover{background:var(--surface-3);color:var(--encre)}
+.btn-x.solide{background:var(--pigment);color:#fff;border-color:var(--pigment)}
+.btn-x.solide:hover{filter:brightness(1.08)}
+.btn-x:disabled{opacity:.45;cursor:not-allowed}
+
+.vide-msg{padding:24px 16px;text-align:center;font-size:.85rem;color:var(--encre-pale)}
+.alerte-i{display:flex;gap:11px;padding:11px 16px;border-bottom:1px solid var(--trait-pale);align-items:flex-start}
+.alerte-i:last-child{border-bottom:0}
+.alerte-i .txt{font-size:.85rem;min-width:0;flex:1}
+.alerte-i .txt span{display:block;font-size:.73rem;color:var(--encre-pale);margin-top:1px}
+.alerte-i time{font-size:.73rem;color:var(--encre-pale);font-variant-numeric:tabular-nums;white-space:nowrap}
+
+.chantiers{display:grid;gap:12px;padding:16px}
+@media (min-width:760px){.chantiers{grid-template-columns:1fr 1fr}}
+.chantier{border:1px solid var(--trait);border-radius:10px;padding:13px;display:flex;flex-direction:column;gap:9px}
+.chantier .h{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+.chantier .h b{font-size:.92rem;font-weight:700}
+.chantier .h span{display:block;font-size:.75rem;color:var(--encre-pale);margin-top:1px}
+.chantier .m{display:flex;gap:16px}
+.chantier .m div span{display:block;font-size:.6rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--encre-pale)}
+.chantier .m div b{font-size:1.02rem;font-weight:700;font-variant-numeric:tabular-nums}
+.chantier .m div.over b{color:var(--arret)}
+
+.login{min-height:100vh;display:grid;place-items:center;padding:24px}
+.login-box{width:100%;max-width:380px;display:flex;flex-direction:column;gap:12px}
+.login-box .marque{font-size:.7rem;font-weight:800;letter-spacing:.25em;color:var(--pigment);text-align:center}
+.login-box h1{font-family:var(--serif);font-size:1.7rem;font-weight:700;text-align:center;margin-bottom:12px;letter-spacing:-.02em}
+
+.csv{margin:0 16px 16px;border:1px solid var(--trait);border-radius:9px;overflow:hidden}
+.csv .h{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:9px 12px;background:var(--surface-2)}
+.csv .h b{font-size:.72rem;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--encre-douce)}
+.csv pre{font-family:var(--mono);font-size:.72rem;line-height:1.65;padding:12px;overflow-x:auto;color:var(--encre-douce);max-height:260px}
+
+.sql-bloc{border:1px solid var(--alerte);background:var(--alerte-pale);border-radius:10px;overflow:hidden}
+.sql-bloc .h{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:9px 12px}
+.sql-bloc .h b{font-size:.74rem;font-weight:700;color:var(--alerte)}
+.sql-bloc pre{font-family:var(--mono);font-size:.7rem;line-height:1.6;padding:12px;overflow-x:auto;background:var(--surface);color:var(--encre-douce);white-space:pre-wrap;word-break:break-word}
+
+@media (prefers-reduced-motion: reduce){*{animation:none !important;transition:none !important}}
+</style>
+</head>
+<body>
+
+<!-- ══ Connexion ═══════════════════════════════════════════════════════════ -->
+<main class="login" id="ecranLogin">
+  <form class="login-box" id="formLogin">
+    <p class="marque">2PG</p>
+    <h1>Suivi de chantier</h1>
+    <div class="champ">
+      <label for="email">Adresse e-mail</label>
+      <input id="email" type="email" autocomplete="username" required>
+    </div>
+    <div class="champ">
+      <label for="mdp">Mot de passe</label>
+      <input id="mdp" type="password" autocomplete="current-password" required>
+    </div>
+    <p class="aide bad" id="erreurLogin" hidden></p>
+    <button type="submit" class="envoyer" id="btnLogin">Se connecter</button>
+  </form>
+</main>
+
+<!-- ══ Tableau de bord ═════════════════════════════════════════════════════ -->
+<div class="wrap" id="ecranBord" hidden>
+  <header class="top">
+    <div>
+      <p class="eyebrow" id="nomEntreprise">—</p>
+      <h1>Suivi de chantier</h1>
+      <p class="jour" id="ligneJour">—</p>
+    </div>
+    <button type="button" class="btn-x" id="btnDeconnexion">Se déconnecter</button>
+  </header>
+
+  <div class="pile">
+    <div class="kpis" id="kpis"></div>
+
+    <!-- Envoi d'adresse -->
+    <section class="panel accent">
+      <div class="panel-head"><h2>Envoyer une adresse</h2></div>
+      <div class="corps">
+        <div class="champ">
+          <label for="adr">Adresse du chantier</label>
+          <div class="ac">
+            <input id="adr" type="text" autocomplete="off" spellcheck="false" placeholder="Tapez une rue, une ville…">
+            <div id="choisie"></div>
+            <div id="suggestions"></div>
+          </div>
+        </div>
+
+        <div class="champ" id="blocRaccourcis" hidden>
+          <span class="label">Chantiers en cours</span>
+          <div id="raccourcis" style="display:flex;gap:7px;flex-wrap:wrap"></div>
+        </div>
+
+        <div class="champ">
+          <label for="libelle">Client ou libellé</label>
+          <input id="libelle" type="text" placeholder="Ex. : Mme Durand — salle de bains">
+        </div>
+
+        <div class="deux">
+          <div class="champ">
+            <label for="heure">Heure de rendez-vous</label>
+            <input id="heure" type="time" value="08:00">
+          </div>
+          <div class="champ">
+            <label for="duree">Temps de service</label>
+            <select id="duree"></select>
+          </div>
+        </div>
+
+        <div class="champ">
+          <span class="label">Seuil de confirmation</span>
+          <div class="seg" id="seuils" role="group" aria-label="Seuil de confirmation">
+            <button type="button" data-rayon="20">20 m<em>strict</em></button>
+            <button type="button" data-rayon="50" aria-pressed="true">50 m<em>conseillé</em></button>
+            <button type="button" data-rayon="100">100 m<em>ville dense</em></button>
+          </div>
+          <p class="aide warn" id="aideSeuil" hidden>Souvent hors de portée du GPS.</p>
+        </div>
+
+        <div class="champ">
+          <span class="label">Envoyer à</span>
+          <div class="dest" id="destinataires"></div>
+        </div>
+
+        <p class="aide bad" id="erreurEnvoi" hidden></p>
+        <button type="button" class="envoyer" id="btnEnvoyer" disabled>Choisissez une adresse</button>
+      </div>
+    </section>
+
+    <!-- Alertes -->
+    <section class="panel">
+      <div class="panel-head">
+        <h2>Alertes</h2>
+        <span class="pastille idle" id="compteurAlertes">0</span>
+      </div>
+      <div id="listeAlertes"></div>
+    </section>
+
+    <!-- Missions du jour -->
+    <div id="missions"></div>
+
+    <!-- Chantiers -->
+    <section class="panel">
+      <div class="panel-head">
+        <h2>Chantiers · devisé vs réalisé</h2>
+        <button type="button" class="btn-x" id="btnExport">Exporter le mois</button>
+      </div>
+      <div id="blocCsv"></div>
+      <div id="listeChantiers"></div>
+    </section>
+
+    <!-- Équipe -->
+    <section class="panel">
+      <div class="panel-head">
+        <h2 id="titreEquipe">Équipe</h2>
+        <button type="button" class="btn-x" id="btnOuvrirEquipe">Ajouter un ouvrier</button>
+      </div>
+      <div class="corps" id="formEquipe" hidden style="border-bottom:1px solid var(--trait)">
+        <div class="deux">
+          <div class="champ">
+            <label for="ouvNom">Nom complet</label>
+            <input id="ouvNom" type="text">
+          </div>
+          <div class="champ">
+            <label for="ouvEmail">Adresse e-mail</label>
+            <input id="ouvEmail" type="email" autocomplete="off">
+          </div>
+        </div>
+        <div class="champ">
+          <label for="ouvMdp">Mot de passe provisoire</label>
+          <input id="ouvMdp" type="text" autocomplete="off" placeholder="8 caractères minimum">
+          <p class="aide">À remettre à l'ouvrier avec l'adresse e-mail. C'est avec ces deux informations qu'il se connecte à l'application mobile.</p>
+        </div>
+        <p class="aide" id="msgEquipe" hidden></p>
+        <div id="sqlSecours"></div>
+        <button type="button" class="envoyer" id="btnCreerOuvrier" disabled>Créer le compte</button>
+      </div>
+      <div id="listeEquipe"></div>
+    </section>
+  </div>
+</div>
+
+<!-- INJECTION:supabase-js -->
+<script>
+"use strict";
+(function () {
+
+// ══ Configuration ═════════════════════════════════════════════════════════
+// L'URL et la clé publique sont faites pour être distribuées : elles ne
+// donnent accès qu'à ce que les règles de sécurité de la base autorisent.
+// La clé secrète n'a rien à faire ici et n'y est pas.
+const CONFIG = {
+  url: "https://xugujaxoqzsypltvzyny.supabase.co",
+  cle: "sb_publishable__jvFyZBXCQaJoorIxLGJIQ_F0Us5-9N",
+};
+
+const sb = supabase.createClient(CONFIG.url, CONFIG.cle);
+const $ = (id) => document.getElementById(id);
+
+// ══ Formatage ═════════════════════════════════════════════════════════════
+const dd = (n) => (n < 10 ? "0" + n : String(n));
+
+function heure(d) {
+  if (!d) return "—";
+  const x = typeof d === "string" ? new Date(d) : d;
+  return dd(x.getHours()) + ":" + dd(x.getMinutes());
+}
+function duree(min) {
+  if (min == null) return "—";
+  const m = Math.max(0, Math.round(min));
+  const h = Math.floor(m / 60);
+  return h === 0 ? m + " min" : h + " h " + dd(m % 60);
+}
+function ecart(min) {
+  if (Math.abs(min) < 1) return "à l'heure";
+  return (min > 0 ? "+ " : "− ") + duree(Math.abs(min));
+}
+function metres(m) {
+  if (m == null) return "—";
+  return m >= 1000 ? (m / 1000).toFixed(1).replace(".", ",") + " km" : Math.round(m) + " m";
+}
+function heuresDec(min) {
+  if (min == null) return "—";
+  return (Math.round((min / 60) * 10) / 10).toString().replace(".", ",") + " h";
+}
+function heureCourte(t) { return t ? t.slice(0, 5) : "—"; }
+function jourISO(d) {
+  d = d || new Date();
+  return d.getFullYear() + "-" + dd(d.getMonth() + 1) + "-" + dd(d.getDate());
+}
+// « dimanche 2 août » — en français seule la première lettre prend la majuscule.
+function dateLongue(d) {
+  const s = (d || new Date()).toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" });
+  return s.charAt(0).toUpperCase() + s.slice(1);
+}
+function esc(s) {
+  return String(s == null ? "" : s)
+    .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+}
+function roleTexte(r) {
+  return r === "patron" ? "Patron" : r === "chef_equipe" ? "Chef d'équipe" : "Ouvrier";
+}
+
+// Un « Failed to fetch » ne dit rien à un artisan sur un chantier. On traduit
+// les cas qu'il rencontrera vraiment, et on laisse le reste tel quel plutôt
+// que de masquer une erreur qu'on n'a pas prévue.
+function messageLisible(m) {
+  m = m || "";
+  if (/failed to fetch|networkerror|load failed/i.test(m)) {
+    return "Pas de connexion au serveur. Vérifiez votre connexion internet, puis réessayez.";
+  }
+  if (/invalid login/i.test(m)) return "Identifiant ou mot de passe incorrect.";
+  if (/email not confirmed/i.test(m)) {
+    return "Ce compte n'a pas été confirmé. L'administrateur doit le valider dans Supabase, "
+         + "onglet Authentication → Users.";
+  }
+  if (/rate limit|too many/i.test(m)) {
+    return "Trop de tentatives. Attendez une minute avant de réessayer.";
+  }
+  return m;
+}
+
+// ══ État ══════════════════════════════════════════════════════════════════
+const S = {
+  moi: null, entreprise: "",
+  equipe: [], chantiers: [], missions: [], alertes: [], marges: [],
+  form: { q: "", pick: null, chantierId: null, rayon: 50 },
+  csv: null,
+  suggestionsEnCours: null,
+};
+
+// ══ Connexion ═════════════════════════════════════════════════════════════
+$("formLogin").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const b = $("btnLogin"), err = $("erreurLogin");
+  b.disabled = true; b.textContent = "Connexion…"; err.hidden = true;
+  const { error } = await sb.auth.signInWithPassword({
+    email: $("email").value.trim().toLowerCase(),
+    password: $("mdp").value,
+  });
+  if (error) {
+    err.textContent = messageLisible(error.message);
+    err.hidden = false;
+    b.disabled = false; b.textContent = "Se connecter";
+    return;
+  }
+  await demarrer();
+});
+
+$("btnDeconnexion").addEventListener("click", async () => {
+  await sb.auth.signOut();
+  location.reload();
+});
+
+async function demarrer() {
+  const { data: { user } } = await sb.auth.getUser();
+  if (!user) { $("ecranLogin").hidden = false; $("ecranBord").hidden = true; return; }
+
+  const { data: moi } = await sb.from("utilisateurs")
+    .select("id, nom, role, entreprise_id").eq("id", user.id).maybeSingle();
+
+  if (!moi) {
+    $("erreurLogin").textContent =
+      "Ce compte n'est rattaché à aucune entreprise. Contactez l'administrateur.";
+    $("erreurLogin").hidden = false;
+    $("btnLogin").disabled = false; $("btnLogin").textContent = "Se connecter";
+    await sb.auth.signOut();
+    return;
+  }
+  if (moi.role === "ouvrier") {
+    $("erreurLogin").textContent =
+      "Ce tableau de bord est réservé à l'encadrement. Le pointage se fait depuis l'application mobile.";
+    $("erreurLogin").hidden = false;
+    $("btnLogin").disabled = false; $("btnLogin").textContent = "Se connecter";
+    await sb.auth.signOut();
+    return;
+  }
+
+  S.moi = moi;
+  const { data: ent } = await sb.from("entreprises").select("nom").eq("id", moi.entreprise_id).maybeSingle();
+  S.entreprise = (ent && ent.nom) || "2PG Rénovation";
+
+  $("ecranLogin").hidden = true;
+  $("ecranBord").hidden = false;
+  $("nomEntreprise").textContent = S.entreprise;
+  $("ligneJour").textContent = dateLongue() + " · connecté en tant que " + moi.nom;
+
+  remplirDurees();
+  await charger();
+  brancherTempsReel();
+  // Les durées en cours avancent sans qu'aucun évènement ne soit émis :
+  // le rafraîchissement périodique reste nécessaire même avec le temps réel.
+  setInterval(charger, 60000);
+}
+
+// ══ Chargement ════════════════════════════════════════════════════════════
+async function charger() {
+  const [u, c, m, a, mg] = await Promise.all([
+    sb.from("utilisateurs").select("*").eq("actif", true).order("nom"),
+    sb.from("chantiers").select("*").in("statut", ["prevu", "en_cours"]).order("libelle"),
+    sb.rpc("missions_du_jour", { p_jour: jourISO() }),
+    sb.from("alertes").select("*").eq("lue", false).order("cree_le", { ascending: false }).limit(30),
+    sb.from("v_marge_chantier").select("*"),
+  ]);
+  if (u.data) S.equipe = u.data;
+  if (c.data) S.chantiers = c.data;
+  if (m.data) S.missions = m.data;
+  if (a.data) S.alertes = a.data;
+  if (mg.data) S.marges = mg.data;
+  dessiner();
+}
+
+function brancherTempsReel() {
+  sb.channel("suivi")
+    .on("postgres_changes", { event: "*", schema: "public", table: "pointages" }, charger)
+    .on("postgres_changes", { event: "*", schema: "public", table: "mission_destinataires" }, charger)
+    .on("postgres_changes", { event: "INSERT", schema: "public", table: "alertes" }, charger)
+    .subscribe();
+}
+
+// ══ Rendu ═════════════════════════════════════════════════════════════════
+function dessiner() {
+  dessinerKpis();
+  dessinerDestinataires();
+  dessinerRaccourcis();
+  dessinerAlertes();
+  dessinerMissions();
+  dessinerChantiers();
+  dessinerEquipe();
+  majBoutonEnvoi();
+}
+
+function dessinerKpis() {
+  const tous = S.missions.flatMap((m) => m.destinataires || []);
+  const surPlace = tous.filter((d) => d.etat === "confirme" && !d.depart).length;
+  const attente = tous.filter((d) => d.etat === "envoye" || d.etat === "vue").length;
+  const bloques = tous.filter((d) => d.etat === "probleme").length;
+  const realise = tous.reduce((s, d) => s + Number(d.duree_min || 0), 0);
+  // Le prévu ne compte que ceux qui ont confirmé : un ouvrier jamais arrivé ne
+  // doit pas gonfler l'objectif de la journée.
+  const prevu = S.missions.reduce((s, m) =>
+    s + m.mission.duree_service_min * (m.destinataires || []).filter((d) => d.etat === "confirme").length, 0);
+
+  $("kpis").innerHTML =
+    '<div class="kpi ok"><span>Sur le chantier</span><b>' + surPlace + "</b></div>" +
+    '<div class="kpi warn"><span>En attente</span><b>' + attente + "</b></div>" +
+    '<div class="kpi bad"><span>Bloqués</span><b>' + bloques + "</b></div>" +
+    '<div class="kpi"><span>Réalisé / prévu</span><b>' + heuresDec(realise) +
+      "<em> / " + heuresDec(prevu) + "</em></b></div>";
+}
+
+function dessinerDestinataires() {
+  const el = $("destinataires");
+  if (!S.equipe.length) {
+    el.innerHTML = '<p class="aide">Aucun compte enregistré.</p>';
+    return;
+  }
+  const coches = new Set([...el.querySelectorAll("input:checked")].map((i) => i.dataset.id));
+  el.innerHTML = S.equipe.map((u) =>
+    '<label><input type="checkbox" data-id="' + u.id + '"' + (coches.has(u.id) ? " checked" : "") + ">" +
+    '<span class="qui">' + esc(u.nom.split(" ")[0]) + "<span>" + roleTexte(u.role) + "</span></span></label>"
+  ).join("");
+  el.querySelectorAll("input").forEach((i) => i.addEventListener("change", majBoutonEnvoi));
+}
+
+function dessinerRaccourcis() {
+  const bloc = $("blocRaccourcis");
+  if (S.form.pick || !S.chantiers.length) { bloc.hidden = true; return; }
+  bloc.hidden = false;
+  $("raccourcis").innerHTML = S.chantiers.map((c) =>
+    '<button type="button" class="btn-x" data-chantier="' + c.id + '">' + esc(c.libelle) + "</button>"
+  ).join("");
+  $("raccourcis").querySelectorAll("[data-chantier]").forEach((b) =>
+    b.addEventListener("click", () => {
+      const c = S.chantiers.find((x) => x.id === b.dataset.chantier);
+      $("adr").value = [c.adresse, c.code_postal, c.ville].filter(Boolean).join(" ");
+      $("libelle").value = c.libelle;
+      S.form.chantierId = c.id;
+      S.form.q = $("adr").value;
+      S.form.pick = null;
+      chercherAdresse();
+      $("adr").focus();
+    })
+  );
+}
+
+function dessinerAlertes() {
+  const c = $("compteurAlertes");
+  c.textContent = S.alertes.length;
+  c.className = "pastille " + (S.alertes.length ? "warn" : "idle");
+
+  if (!S.alertes.length) {
+    $("listeAlertes").innerHTML = '<p class="vide-msg">Rien à signaler.</p>';
+    return;
+  }
+  const graves = ["absence", "hors_zone", "gps_insuffisant", "gps_suspect", "oubli_pointage"];
+  $("listeAlertes").innerHTML = S.alertes.map((a) =>
+    '<div class="alerte-i"><span class="pastille ' + (graves.includes(a.type) ? "bad" : "warn") + '"></span>' +
+    '<div class="txt">' + esc(a.titre) + (a.detail ? "<span>" + esc(a.detail) + "</span>" : "") + "</div>" +
+    "<time>" + heure(a.cree_le) + "</time>" +
+    '<button type="button" class="btn-x" data-lue="' + a.id + '">Vu</button></div>'
+  ).join("");
+  $("listeAlertes").querySelectorAll("[data-lue]").forEach((b) =>
+    b.addEventListener("click", async () => {
+      await sb.from("alertes").update({ lue: true }).eq("id", b.dataset.lue);
+      S.alertes = S.alertes.filter((x) => x.id !== b.dataset.lue);
+      dessinerAlertes();
+    })
+  );
+}
+
+function etatDestinataire(d, heureRdv) {
+  if (d.etat === "confirme") {
+    return d.depart
+      ? '<span class="pastille idle">Journée close</span>'
+      : '<span class="pastille ok">Sur le chantier</span>';
+  }
+  if (d.etat === "probleme") return '<span class="pastille bad">Ne peut pas confirmer</span>';
+  const p = (heureRdv || "08:00").split(":");
+  const rdv = new Date(); rdv.setHours(Number(p[0]), Number(p[1]), 0, 0);
+  if (Date.now() > rdv.getTime() + 30 * 60000) return '<span class="pastille bad">Absent</span>';
+  if (d.vue_le) return '<span class="pastille pig">Vue ' + heure(d.vue_le) + "</span>";
+  return '<span class="pastille idle">Envoyée</span>';
+}
+
+function barreAvancement(fait, prevu) {
+  if (fait == null) return '<span style="color:var(--encre-pale)">—</span>';
+  const over = fait > prevu;
+  const pct = Math.round((fait / prevu) * 100);
+  const q = over ? (prevu / fait) * 100 : Math.min(100, pct);
+  return '<div class="barre"><div class="piste"><i class="' + (over ? "q" : "u") + '" style="width:' + q + '%"></i>' +
+    (over ? '<i class="o" style="width:' + (100 - q) + '%"></i>' : "") + "</div><span>" + pct + " %</span></div>";
+}
+
+function dessinerMissions() {
+  const el = $("missions");
+  if (!S.missions.length) {
+    el.innerHTML = '<section class="panel"><div class="panel-head"><h2>Journée</h2></div>' +
+      '<p class="vide-msg">Aucune adresse envoyée aujourd\'hui.<br>Le suivi apparaîtra ici dès le premier envoi.</p></section>';
+    return;
+  }
+  el.innerHTML = S.missions.map((s) => {
+    const m = s.mission, ds = s.destinataires || [];
+    const lignes = ds.map((d) => {
+      const fait = d.duree_min != null ? Number(d.duree_min) : null;
+      return "<tr>" +
+        '<td class="qui-cell"><b>' + esc(d.nom) + "</b>" + (d.motif ? "<span>« " + esc(d.motif) + " »</span>" : "") + "</td>" +
+        '<td class="n">' + heure(d.arrivee || d.confirme_le) + "</td>" +
+        '<td class="n">' + (d.confirme_source === "bureau" ? "validé bureau" : metres(d.confirme_dist_m)) + "</td>" +
+        '<td class="n">' + (d.pause_min ? Math.round(Number(d.pause_min)) + " min" : "—") + "</td>" +
+        '<td class="n">' + heure(d.depart) + "</td>" +
+        '<td class="n">' + duree(fait) + "</td>" +
+        "<td>" + barreAvancement(fait, m.duree_service_min) + "</td>" +
+        '<td class="n">' + (fait == null ? "—" :
+          '<span style="color:' + (fait > m.duree_service_min ? "var(--arret)" : "inherit") + '">' +
+          ecart(fait - m.duree_service_min) + "</span>") + "</td>" +
+        "<td>" + etatDestinataire(d, m.heure_rdv) + "</td>" +
+        '<td class="n">' + (d.etat !== "confirme"
+          ? '<button type="button" class="btn-x ' + (d.etat === "probleme" ? "solide" : "") +
+            '" data-valider="' + d.destinataire_id + '">Valider</button>' : "") + "</td>" +
+        "</tr>";
+    }).join("");
+
+    return '<section class="panel"><div class="panel-head">' +
+      "<h2>" + esc(m.libelle) + " · " + heureCourte(m.heure_rdv) + " · service " + duree(m.duree_service_min) + "</h2>" +
+      '<span class="pastille pig nodot">Confirmation sous ' + m.rayon_m + " m</span></div>" +
+      '<div style="padding:12px 16px;border-bottom:1px solid var(--trait-pale);font-size:.85rem;color:var(--encre-douce)">' +
+      esc(m.adresse) + (m.code_postal || m.ville ? ", " + esc([m.code_postal, m.ville].filter(Boolean).join(" ")) : "") + "</div>" +
+      '<div class="tw"><table><thead><tr><th>Ouvrier</th><th class="n">Arrivé</th><th class="n">Distance</th>' +
+      '<th class="n">Pause</th><th class="n">Départ</th><th class="n">Réalisé</th><th style="width:130px">Avancement</th>' +
+      '<th class="n">Écart</th><th>État</th><th></th></tr></thead><tbody>' + lignes + "</tbody></table></div></section>";
+  }).join("");
+
+  el.querySelectorAll("[data-valider]").forEach((b) =>
+    b.addEventListener("click", async () => {
+      b.disabled = true;
+      const { error } = await sb.rpc("valider_presence", { p_dest_id: b.dataset.valider });
+      if (error) { alert(error.message); b.disabled = false; return; }
+      await charger();
+    })
+  );
+}
+
+function dessinerChantiers() {
+  if (!S.marges.length) {
+    $("listeChantiers").innerHTML = '<p class="vide-msg">Aucun chantier enregistré.</p>';
+    return;
+  }
+  $("listeChantiers").innerHTML = '<div class="chantiers">' + S.marges.map((c) => {
+    const devise = Number(c.heures_devisees || 0);
+    const reel = Number(c.heures_realisees || 0);
+    const over = devise > 0 && reel > devise;
+    return '<article class="chantier"><div class="h"><div><b>' + esc(c.libelle) + "</b>" +
+      (c.client_nom ? "<span>" + esc(c.client_nom) + "</span>" : "") + "</div>" +
+      (c.ecart_pct != null
+        ? '<span class="pastille ' + (over ? "bad" : "ok") + '">' +
+          (Number(c.ecart_pct) >= 0 ? "+" : "−") + Math.abs(Number(c.ecart_pct)) + " %</span>"
+        : "") + "</div>" +
+      '<div class="m"><div><span>Devisé</span><b>' + (devise ? devise + " h" : "—") + "</b></div>" +
+      '<div class="' + (over ? "over" : "") + '"><span>Réalisé</span><b>' + reel + " h</b></div>" +
+      (devise > 0
+        ? '<div class="' + (over ? "over" : "") + '"><span>' + (over ? "Dépassement" : "Reste") + "</span><b>" +
+          Math.abs(Math.round((devise - reel) * 10) / 10) + " h</b></div>"
+        : "") + "</div></article>";
+  }).join("") + "</div>";
+}
+
+function dessinerEquipe() {
+  $("titreEquipe").textContent = "Équipe · " + S.equipe.length;
+  const lignes = S.equipe.map((u) =>
+    "<tr><td><b>" + esc(u.nom) + "</b></td><td>" + roleTexte(u.role) + "</td>" +
+    "<td>" + esc(u.telephone || "—") + "</td>" +
+    "<td>" + esc(u.appareil_nom || "—") +
+    (u.appareil_nom && !u.appareil_valide_le ? ' <span class="pastille bad">À valider</span>' : "") + "</td>" +
+    '<td class="n">' + (u.appareil_nom && !u.appareil_valide_le
+      ? '<button type="button" class="btn-x solide" data-appareil="' + u.id + '">Valider l\'appareil</button>' : "") +
+    "</td></tr>"
+  ).join("");
+
+  $("listeEquipe").innerHTML = '<div class="tw"><table><thead><tr><th>Nom</th><th>Rôle</th>' +
+    "<th>Téléphone</th><th>Appareil</th><th></th></tr></thead><tbody>" +
+    (lignes || '<tr><td colspan="5" class="vide-msg">Aucun compte.</td></tr>') + "</tbody></table></div>";
+
+  $("listeEquipe").querySelectorAll("[data-appareil]").forEach((b) =>
+    b.addEventListener("click", async () => {
+      const { error } = await sb.from("utilisateurs")
+        .update({ appareil_valide_le: new Date().toISOString() }).eq("id", b.dataset.appareil);
+      if (error) { alert(error.message); return; }
+      await charger();
+    })
+  );
+}
+
+// ══ Recherche d'adresse (Base Adresse Nationale) ═══════════════════════════
+// api-adresse.data.gouv.fr : service public français, gratuit, sans clé, et
+// meilleur que Google sur les adresses françaises puisque c'est la base
+// officielle. La navigation, elle, reste déléguée à Google Maps ou Waze côté
+// application mobile.
+let minuteurRecherche = null;
+
+$("adr").addEventListener("input", () => {
+  S.form.q = $("adr").value;
+  S.form.pick = null;
+  S.form.chantierId = null;
+  clearTimeout(minuteurRecherche);
+  minuteurRecherche = setTimeout(chercherAdresse, 220);
+  majBoutonEnvoi();
+});
+
+async function chercherAdresse() {
+  const q = S.form.q.trim();
+  const el = $("suggestions");
+  if (S.form.pick || q.length < 3) { el.innerHTML = ""; return; }
+
+  if (S.suggestionsEnCours) S.suggestionsEnCours.abort();
+  const ctrl = new AbortController();
+  S.suggestionsEnCours = ctrl;
+
+  el.innerHTML = '<ul class="sug"><li class="vide">Recherche…</li></ul>';
+  try {
+    const url = new URL("https://api-adresse.data.gouv.fr/search/");
+    url.searchParams.set("q", q);
+    url.searchParams.set("limit", "6");
+    url.searchParams.set("autocomplete", "1");
+    const r = await fetch(url, { signal: ctrl.signal });
+    if (!r.ok) throw new Error("HTTP " + r.status);
+    const j = await r.json();
+    const res = j.features.map((f) => ({
+      label: f.properties.label, voie: f.properties.name,
+      cp: f.properties.postcode, ville: f.properties.city,
+      lat: f.geometry.coordinates[1], lon: f.geometry.coordinates[0],
+      type: f.properties.type,
+    }));
+    if (!res.length) { el.innerHTML = '<ul class="sug"><li class="vide">Aucune adresse trouvée</li></ul>'; return; }
+    el.innerHTML = '<ul class="sug">' + res.map((a, i) =>
+      '<li><button type="button" data-sug="' + i + '"><span class="v">' + esc(a.voie) + "</span>" +
+      '<span class="c">' + esc(a.cp + " " + a.ville) +
+      (a.type !== "housenumber" ? " · adresse approximative" : "") + "</span></button></li>"
+    ).join("") + "</ul>";
+    el.querySelectorAll("[data-sug]").forEach((b) =>
+      b.addEventListener("click", () => choisir(res[Number(b.dataset.sug)]))
+    );
+  } catch (e) {
+    if (e.name === "AbortError") return;
+    el.innerHTML = '<ul class="sug"><li class="vide">Recherche d\'adresse indisponible</li></ul>';
+  }
+}
+
+function choisir(a) {
+  S.form.pick = a;
+  $("adr").value = a.label;
+  $("suggestions").innerHTML = "";
+  if (!$("libelle").value.trim()) $("libelle").value = a.voie;
+  $("choisie").innerHTML =
+    '<div class="choisie"><div class="t"><b>' + esc(a.voie) + "</b>" +
+    "<span>" + esc(a.cp + " " + a.ville) + "</span></div>" +
+    '<span class="geo">' + a.lat.toFixed(4) + ", " + a.lon.toFixed(4) + "</span>" +
+    '<button type="button" class="btn-x" id="btnModifierAdr">Modifier</button></div>';
+  $("adr").hidden = true;
+  $("btnModifierAdr").addEventListener("click", () => {
+    S.form.pick = null; S.form.chantierId = null;
+    $("choisie").innerHTML = ""; $("adr").hidden = false; $("adr").value = ""; S.form.q = "";
+    dessinerRaccourcis(); majBoutonEnvoi(); $("adr").focus();
+  });
+  dessinerRaccourcis();
+  majBoutonEnvoi();
+  if (!$("libelle").value) $("libelle").focus();
+}
+
+// ══ Seuil et durée ════════════════════════════════════════════════════════
+$("seuils").querySelectorAll("[data-rayon]").forEach((b) =>
+  b.addEventListener("click", () => {
+    S.form.rayon = Number(b.dataset.rayon);
+    $("seuils").querySelectorAll("button").forEach((x) =>
+      x.setAttribute("aria-pressed", String(Number(x.dataset.rayon) === S.form.rayon)));
+    $("aideSeuil").hidden = S.form.rayon > 20;
+  })
+);
+
+function remplirDurees() {
+  const s = $("duree");
+  let h = "";
+  for (let d = 60; d <= 660; d += 30) {
+    h += '<option value="' + d + '"' + (d === 480 ? " selected" : "") + ">" + duree(d) + "</option>";
+  }
+  s.innerHTML = h;
+}
+
+// ══ Envoi ═════════════════════════════════════════════════════════════════
+function destinatairesCoches() {
+  return [...$("destinataires").querySelectorAll("input:checked")].map((i) => i.dataset.id);
+}
+
+function majBoutonEnvoi() {
+  const b = $("btnEnvoyer");
+  if (!b) return;
+  const n = destinatairesCoches().length;
+  b.disabled = !S.form.pick || n === 0;
+  b.textContent = !S.form.pick ? "Choisissez une adresse"
+    : n === 0 ? "Sélectionnez au moins un ouvrier"
+    : "Envoyer l'adresse à " + n + " ouvrier" + (n > 1 ? "s" : "");
+}
+
+$("btnEnvoyer").addEventListener("click", async () => {
+  const p = S.form.pick;
+  if (!p) return;
+  const b = $("btnEnvoyer"), err = $("erreurEnvoi");
+  b.disabled = true; b.textContent = "Envoi…"; err.hidden = true;
+
+  const { error } = await sb.rpc("creer_mission", {
+    p_libelle: $("libelle").value.trim() || p.voie,
+    p_adresse: p.voie,
+    p_code_postal: p.cp || null,
+    p_ville: p.ville || null,
+    p_lat: p.lat,
+    p_lon: p.lon,
+    p_rayon_m: S.form.rayon,
+    p_jour: jourISO(),
+    p_heure_rdv: $("heure").value || "08:00",
+    p_duree_min: Number($("duree").value),
+    p_chantier_id: S.form.chantierId,
+    p_destinataires: destinatairesCoches(),
+  });
+
+  if (error) {
+    err.textContent = error.message; err.hidden = false;
+    b.disabled = false; majBoutonEnvoi();
+    return;
+  }
+  S.form.pick = null; S.form.chantierId = null; S.form.q = "";
+  $("adr").value = ""; $("adr").hidden = false; $("choisie").innerHTML = ""; $("libelle").value = "";
+  await charger();
+});
+
+// ══ Export ════════════════════════════════════════════════════════════════
+$("btnExport").addEventListener("click", async () => {
+  if (S.csv) { S.csv = null; $("blocCsv").innerHTML = ""; $("btnExport").textContent = "Exporter le mois"; return; }
+  const d = new Date();
+  const debut = d.getFullYear() + "-" + dd(d.getMonth() + 1) + "-01";
+  const { data, error } = await sb.rpc("export_mois", { p_debut: debut, p_fin: jourISO() });
+  if (error) { alert(error.message); return; }
+  const lignes = data || [];
+  if (!lignes.length) {
+    S.csv = "Aucune journée sur la période.";
+  } else {
+    const cols = Object.keys(lignes[0]);
+    S.csv = [cols.join(";")].concat(
+      lignes.map((l) => cols.map((k) => String(l[k] == null ? "" : l[k]).replace(".", ",")).join(";"))
+    ).join("\n");
+  }
+  $("btnExport").textContent = "Masquer l'export";
+  $("blocCsv").innerHTML = '<div class="csv"><div class="h"><b>pointages-' + jourISO() + ".csv</b>" +
+    '<button type="button" class="btn-x" id="btnTelecharger">Télécharger</button></div>' +
+    "<pre>" + esc(S.csv) + "</pre></div>";
+  $("btnTelecharger").addEventListener("click", () => {
+    const blob = new Blob(["﻿" + S.csv], { type: "text/csv;charset=utf-8" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "pointages-" + jourISO() + ".csv";
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+  });
+});
+
+// ══ Ajout d'un ouvrier ════════════════════════════════════════════════════
+$("btnOuvrirEquipe").addEventListener("click", () => {
+  const f = $("formEquipe");
+  f.hidden = !f.hidden;
+  $("btnOuvrirEquipe").textContent = f.hidden ? "Ajouter un ouvrier" : "Fermer";
+});
+
+["ouvNom", "ouvEmail", "ouvMdp"].forEach((id) =>
+  $(id).addEventListener("input", () => {
+    $("btnCreerOuvrier").disabled = !(
+      $("ouvNom").value.trim().length > 1 &&
+      /.+@.+\..+/.test($("ouvEmail").value) &&
+      $("ouvMdp").value.length >= 8
+    );
+  })
+);
+
+$("btnCreerOuvrier").addEventListener("click", async () => {
+  const b = $("btnCreerOuvrier"), msg = $("msgEquipe"), sql = $("sqlSecours");
+  const nom = $("ouvNom").value.trim();
+  const email = $("ouvEmail").value.trim().toLowerCase();
+  const mdp = $("ouvMdp").value;
+  b.disabled = true; b.textContent = "Création…"; msg.hidden = true; sql.innerHTML = "";
+
+  // Client jetable : signUp ouvrirait une session au nom du nouveau compte et
+  // remplacerait celle du patron. Avec persistSession à false, la session du
+  // patron reste intacte.
+  const jetable = supabase.createClient(CONFIG.url, CONFIG.cle, {
+    auth: { persistSession: false, autoRefreshToken: false },
+  });
+  const { data, error } = await jetable.auth.signUp({ email, password: mdp });
+
+  if (error || !data.user) {
+    montrerSecours(nom, email, error ? error.message : "compte non créé");
+    b.disabled = false; b.textContent = "Créer le compte";
+    return;
+  }
+
+  const { error: eLien } = await sb.rpc("rattacher_utilisateur", {
+    p_user_id: data.user.id, p_nom: nom, p_role: "ouvrier", p_telephone: null,
+  });
+
+  if (eLien) {
+    montrerSecours(nom, email, eLien.message);
+    b.disabled = false; b.textContent = "Créer le compte";
+    return;
+  }
+
+  // Sans session retournée, la confirmation par e-mail est active : le compte
+  // existe mais ne pourra pas se connecter tant qu'il n'aura pas cliqué le lien.
+  msg.className = data.session ? "aide ok" : "aide warn";
+  msg.textContent = data.session
+    ? nom + " peut se connecter à l'application mobile avec " + email + "."
+    : nom + " est créé, mais la confirmation par e-mail est active sur le projet : "
+      + "il devra valider le lien reçu avant de pouvoir se connecter. "
+      + "Pour l'éviter : Authentication → Sign In / Providers → Email → décocher « Confirm email ».";
+  msg.hidden = false;
+  $("ouvNom").value = ""; $("ouvEmail").value = ""; $("ouvMdp").value = "";
+  b.textContent = "Créer le compte";
+  await charger();
+});
+
+// Repli quand la création directe échoue — typiquement quand les inscriptions
+// sont fermées sur le projet, ce qui est le réglage le plus sûr.
+function montrerSecours(nom, email, raison) {
+  const msg = $("msgEquipe");
+  msg.className = "aide bad";
+  msg.textContent = "Création directe impossible : " + raison;
+  msg.hidden = false;
+
+  const requete =
+    "-- 1) Cree le compte de connexion dans Authentication > Users > Add user\n" +
+    "--    E-mail : " + email + "\n" +
+    "--    Coche « Auto Confirm User »\n\n" +
+    "-- 2) Puis colle ceci dans le SQL Editor :\n" +
+    "insert into utilisateurs (id, entreprise_id, nom, role)\n" +
+    "select u.id, (select entreprise_id from utilisateurs where id = auth.uid()),\n" +
+    "       '" + nom.replace(/'/g, "''") + "', 'ouvrier'\n" +
+    "from auth.users u where u.email = '" + email.replace(/'/g, "''") + "'\n" +
+    "on conflict (id) do update set nom = excluded.nom, role = excluded.role\n" +
+    "returning nom, role;";
+
+  $("sqlSecours").innerHTML =
+    '<div class="sql-bloc"><div class="h"><b>À faire dans Supabase</b>' +
+    '<button type="button" class="btn-x" id="btnCopierSql">Copier</button></div>' +
+    "<pre>" + esc(requete) + "</pre></div>";
+  $("btnCopierSql").addEventListener("click", () => {
+    navigator.clipboard.writeText(requete).then(
+      () => { $("btnCopierSql").textContent = "Copié"; },
+      () => { $("btnCopierSql").textContent = "Copie impossible"; }
+    );
+  });
+}
+
+// ══ Démarrage ═════════════════════════════════════════════════════════════
+sb.auth.getSession().then(({ data }) => {
+  if (data.session) demarrer();
+  else $("ecranLogin").hidden = false;
+});
+
+})();
+</script>
+</body>
+</html>
