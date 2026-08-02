@@ -50,8 +50,9 @@
     -webkit-text-size-adjust: 100%;
   }
   button { font: inherit; color: inherit; cursor: pointer; border: 0; background: none; }
+  input, select, textarea { font: inherit; color: inherit; }
   :focus-visible { outline: 2px solid var(--pigment); outline-offset: 2px; border-radius: 4px; }
-  .num, table td.n, .tnum { font-variant-numeric: tabular-nums; }
+  .tnum, td.n { font-variant-numeric: tabular-nums; }
 
   /* ============ harness ============ */
 
@@ -59,17 +60,10 @@
 
   .top { display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-end; justify-content: space-between;
          padding-bottom: 16px; border-bottom: 1px solid var(--rule); }
-  .top-id .eyebrow {
-    font-size: .66rem; font-weight: 700; letter-spacing: .14em;
-    text-transform: uppercase; color: var(--pigment);
-  }
-  .top-id h1 {
-    font-family: var(--serif); font-size: clamp(1.5rem, 3.4vw, 2.05rem);
-    font-weight: 700; letter-spacing: -.015em; line-height: 1.15; margin-top: 4px;
-  }
-  .top-id p { color: var(--ink-soft); font-size: .9rem; margin-top: 5px; max-width: 62ch; }
-  /* Sur mobile, l'intro repousse l'application sous la ligne de flottaison :
-     on garde l'essentiel et on masque le reste. */
+  .top-id .eyebrow { font-size: .66rem; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--pigment); }
+  .top-id h1 { font-family: var(--serif); font-size: clamp(1.5rem, 3.4vw, 2.05rem); font-weight: 700;
+               letter-spacing: -.015em; line-height: 1.15; margin-top: 4px; }
+  .top-id p { color: var(--ink-soft); font-size: .9rem; margin-top: 5px; max-width: 64ch; }
   @media (max-width: 700px) {
     .wrap { padding-top: 16px; }
     .top-id p .long { display: none; }
@@ -78,190 +72,152 @@
 
   .viewtabs { display: flex; gap: 3px; padding: 3px; background: var(--surface-2);
               border: 1px solid var(--rule); border-radius: 8px; }
-  .viewtabs button {
-    padding: 7px 14px; border-radius: 6px; font-size: .84rem; font-weight: 600;
-    color: var(--ink-soft); white-space: nowrap;
-  }
+  .viewtabs button { padding: 7px 14px; border-radius: 6px; font-size: .84rem; font-weight: 600;
+                     color: var(--ink-soft); white-space: nowrap; position: relative; }
   .viewtabs button[aria-pressed="true"] { background: var(--surface); color: var(--ink); box-shadow: var(--shadow); }
+  .viewtabs .dot { position: absolute; top: 3px; right: 5px; width: 7px; height: 7px;
+                   border-radius: 50%; background: var(--bad); }
   @media (min-width: 1180px) { .viewtabs { display: none; } }
 
   .stage { display: grid; gap: 26px; margin-top: 26px; align-items: start; }
   /* Sans min-width:0, un élément de grille prend la largeur min-content de son
-     contenu — ici le tableau de présence, en nowrap — et déborde de la page
-     au lieu de laisser .tw défiler. */
+     contenu — ici le tableau de présence, en nowrap — et déborde de la page. */
   .col-app, .col-db { min-width: 0; }
-  @media (min-width: 1180px) { .stage { grid-template-columns: 392px minmax(0, 1fr); gap: 40px; } }
-
+  @media (min-width: 1180px) { .stage { grid-template-columns: 392px minmax(0, 1fr); gap: 40px; } .col-app { position: sticky; top: 22px; } }
   @media (max-width: 1179px) {
     .stage[data-view="ouvrier"] .col-db { display: none; }
     .stage[data-view="patron"]  .col-app { display: none; }
   }
-  @media (min-width: 1180px) { .col-app { position: sticky; top: 22px; } }
 
-  .col-label {
-    font-size: .64rem; font-weight: 700; letter-spacing: .13em; text-transform: uppercase;
-    color: var(--ink-faint); margin-bottom: 10px; display: flex; gap: 8px; align-items: center;
-  }
+  .col-label { font-size: .64rem; font-weight: 700; letter-spacing: .13em; text-transform: uppercase;
+               color: var(--ink-faint); margin-bottom: 10px; display: flex; gap: 8px; align-items: center; }
   .col-label::after { content:""; flex:1; height:1px; background: var(--rule); }
 
-  /* ============ phone ============ */
+  /* ============ téléphone ============ */
 
-  .phone {
-    background: var(--surface); border: 1px solid var(--rule);
-    border-radius: 26px; box-shadow: var(--shadow); overflow: hidden;
-    display: flex; flex-direction: column; height: 720px; max-height: 82vh;
-  }
-  @media (max-width: 1179px) { .phone { height: 640px; max-height: none; border-radius: 18px; } }
+  .phone { background: var(--surface); border: 1px solid var(--rule); border-radius: 26px;
+           box-shadow: var(--shadow); overflow: hidden; display: flex; flex-direction: column;
+           height: 736px; max-height: 84vh; position: relative; }
+  @media (max-width: 1179px) { .phone { height: 660px; max-height: none; border-radius: 18px; } }
 
-  .ph-status {
-    display: flex; justify-content: space-between; align-items: center;
-    padding: 9px 18px 4px; font-size: .72rem; font-weight: 650; color: var(--ink-faint);
-  }
+  .ph-status { display: flex; justify-content: space-between; align-items: center;
+               padding: 9px 18px 4px; font-size: .72rem; font-weight: 650; color: var(--ink-faint); }
   .ph-head { padding: 6px 18px 14px; border-bottom: 1px solid var(--rule-soft); }
   .ph-head b { display: block; font-size: 1.08rem; font-weight: 700; letter-spacing: -.01em; }
   .ph-head span { font-size: .78rem; color: var(--ink-faint); }
-
   .ph-body { flex: 1; overflow-y: auto; padding: 16px 18px 22px; display: flex; flex-direction: column; gap: 14px; }
 
-  .ph-nav {
-    display: grid; grid-template-columns: repeat(4, 1fr);
-    border-top: 1px solid var(--rule); background: var(--surface-2);
-  }
-  .ph-nav button {
-    padding: 9px 2px 11px; font-size: .63rem; font-weight: 650; color: var(--ink-faint);
-    display: flex; flex-direction: column; align-items: center; gap: 4px; letter-spacing: .01em;
-  }
+  .ph-nav { display: grid; grid-template-columns: repeat(4, 1fr); border-top: 1px solid var(--rule); background: var(--surface-2); }
+  .ph-nav button { padding: 9px 2px 11px; font-size: .63rem; font-weight: 650; color: var(--ink-faint);
+                   display: flex; flex-direction: column; align-items: center; gap: 4px; position: relative; }
   .ph-nav button[aria-current="page"] { color: var(--pigment); }
   .ph-nav .ic { width: 19px; height: 19px; display: block; }
   .ph-nav .ic svg { width: 100%; height: 100%; display: block; }
+  .ph-nav .badge { position: absolute; top: 6px; right: 50%; margin-right: -16px; width: 8px; height: 8px;
+                   border-radius: 50%; background: var(--bad); }
 
-  .card {
-    background: var(--surface); border: 1px solid var(--rule);
-    border-radius: 12px; padding: 14px;
-  }
-  .card.flat { background: var(--surface-2); }
+  .card { background: var(--surface); border: 1px solid var(--rule); border-radius: 12px; padding: 14px; }
+  .card.hot { border-color: var(--pigment); box-shadow: 0 0 0 3px var(--pigment-w); }
+
+  .newflag { display: inline-flex; align-items: center; gap: 5px; font-size: .63rem; font-weight: 800;
+             letter-spacing: .09em; text-transform: uppercase; color: #fff; background: var(--pigment);
+             padding: 3px 7px; border-radius: 4px; margin-bottom: 8px; }
 
   .site-name { font-size: 1.02rem; font-weight: 700; letter-spacing: -.01em; }
-  .site-addr { font-size: .86rem; color: var(--ink-soft); margin-top: 2px; }
+  .site-addr { font-size: .88rem; color: var(--ink-soft); margin-top: 3px; }
   .site-row { display: flex; gap: 10px; align-items: center; margin-top: 12px; flex-wrap: wrap; }
 
-  .chip {
-    display: inline-flex; align-items: center; gap: 5px;
-    font-size: .72rem; font-weight: 650; padding: 4px 9px; border-radius: 999px;
-    background: var(--surface-2); color: var(--ink-soft);
-  }
-  .btn-ghost {
-    font-size: .78rem; font-weight: 650; color: var(--pigment);
-    border: 1px solid var(--rule); border-radius: 8px; padding: 6px 11px; background: var(--surface);
-  }
+  .chip { display: inline-flex; align-items: center; gap: 5px; font-size: .72rem; font-weight: 650;
+          padding: 4px 9px; border-radius: 999px; background: var(--surface-2); color: var(--ink-soft); }
+  .btn-ghost { font-size: .78rem; font-weight: 650; color: var(--pigment); border: 1px solid var(--rule);
+               border-radius: 8px; padding: 6px 11px; background: var(--surface); }
   .btn-ghost:hover { background: var(--pigment-w); }
 
-  /* distance bar */
   .geo { padding: 13px 14px; }
   .geo-line { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
   .geo-line b { font-size: .92rem; font-weight: 700; }
-  .geo-line span { font-size: .72rem; font-weight: 650; color: var(--ink-faint); }
-  .geo.in  { background: var(--ok-w);   border-color: transparent; }
-  .geo.in b { color: var(--ok); }
-  .geo.out { background: var(--warn-w); border-color: transparent; }
-  .geo.out b { color: var(--warn); }
+  .geo-line span { font-size: .74rem; font-weight: 650; color: var(--ink-faint); white-space: nowrap; }
+  .geo.in { background: var(--ok-w); border-color: transparent; } .geo.in b { color: var(--ok); }
+  .geo.out { background: var(--warn-w); border-color: transparent; } .geo.out b { color: var(--warn); }
   .geo-track { position: relative; height: 6px; border-radius: 4px; background: var(--surface); margin-top: 11px; overflow: hidden; }
-  .geo-zone { position: absolute; inset: 0 auto 0 0; background: var(--ok); opacity: .3; }
-  .geo-dot  { position: absolute; top: 50%; width: 11px; height: 11px; border-radius: 50%;
-              transform: translate(-50%, -50%); border: 2px solid var(--surface); }
-  .geo.in  .geo-dot { background: var(--ok); }
-  .geo.out .geo-dot { background: var(--warn); }
+  .geo-zone { position: absolute; inset: 0 auto 0 0; background: var(--ok); opacity: .32; }
+  .geo-dot { position: absolute; top: 50%; width: 11px; height: 11px; border-radius: 50%;
+             transform: translate(-50%, -50%); border: 2px solid var(--surface); }
+  .geo.in .geo-dot { background: var(--ok); } .geo.out .geo-dot { background: var(--warn); }
   .geo-scale { display: flex; justify-content: space-between; font-size: .64rem; color: var(--ink-faint); margin-top: 6px; font-weight: 600; }
+  .geo-prec { margin-top: 9px; font-size: .74rem; color: var(--ink-soft); display: flex; justify-content: space-between; gap: 8px; }
+  .geo-prec.bad { color: var(--bad); font-weight: 650; }
 
-  /* big action */
-  .punch {
-    width: 100%; border-radius: 14px; padding: 19px 16px; color: #fff;
-    display: flex; flex-direction: column; align-items: center; gap: 3px;
-    transition: transform .12s ease, filter .12s ease;
-  }
+  .punch { width: 100%; border-radius: 14px; padding: 19px 16px; color: #fff;
+           display: flex; flex-direction: column; align-items: center; gap: 3px;
+           transition: transform .12s ease, filter .12s ease; }
   .punch:hover { filter: brightness(1.06); }
   .punch:active { transform: scale(.985); }
-  .punch b { font-size: 1.14rem; font-weight: 700; letter-spacing: .01em; }
-  .punch span { font-size: .76rem; opacity: .86; font-weight: 550; }
-  .punch.go   { background: var(--ok); }
-  .punch.go.risky { background: var(--warn); }
+  .punch b { font-size: 1.12rem; font-weight: 700; }
+  .punch span { font-size: .76rem; opacity: .87; font-weight: 550; text-align: center; }
+  .punch.go { background: var(--ok); }
   .punch.stop { background: var(--bad); }
+  .punch.pig { background: var(--pigment); }
+  .punch.off { background: var(--surface-2); color: var(--ink-faint); cursor: not-allowed; }
+  .punch.off:hover { filter: none; }
   .punch.done { background: var(--surface-2); color: var(--ink-faint); cursor: default; }
   .punch.done:hover { filter: none; }
 
-  .btn-sec {
-    width: 100%; border: 1px solid var(--rule); border-radius: 12px; padding: 13px;
-    font-weight: 650; font-size: .92rem; background: var(--surface); color: var(--ink);
-  }
+  .btn-sec { width: 100%; border: 1px solid var(--rule); border-radius: 12px; padding: 13px;
+             font-weight: 650; font-size: .9rem; background: var(--surface); color: var(--ink); }
   .btn-sec:hover { background: var(--surface-2); }
+  .btn-sec.quiet { color: var(--ink-soft); font-size: .84rem; padding: 11px; }
 
   .chrono { text-align: center; padding: 18px 14px; }
-  .chrono .big {
-    font-size: 2.5rem; font-weight: 700; letter-spacing: -.03em; line-height: 1;
-    font-variant-numeric: tabular-nums;
-  }
+  .chrono .big { font-size: 2.5rem; font-weight: 700; letter-spacing: -.03em; line-height: 1; font-variant-numeric: tabular-nums; }
   .chrono .lab { font-size: .66rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-faint); }
-  .chrono .sub { display: flex; justify-content: center; gap: 18px; margin-top: 13px; font-size: .76rem; color: var(--ink-soft); }
+  .chrono .sub { display: flex; justify-content: center; gap: 18px; margin-top: 13px; font-size: .76rem; color: var(--ink-soft); flex-wrap: wrap; }
   .chrono .sub b { font-variant-numeric: tabular-nums; }
   .chrono.paused .big { color: var(--warn); }
 
   .rows { display: flex; flex-direction: column; }
-  .row {
-    display: flex; justify-content: space-between; align-items: baseline; gap: 10px;
-    padding: 10px 0; border-top: 1px solid var(--rule-soft); font-size: .86rem;
-  }
+  .row { display: flex; justify-content: space-between; align-items: baseline; gap: 10px;
+         padding: 10px 0; border-top: 1px solid var(--rule-soft); font-size: .86rem; }
   .row:first-child { border-top: 0; padding-top: 2px; }
-  .row .l b { display: block; font-weight: 650; }
-  .row .l span { font-size: .76rem; color: var(--ink-faint); }
+  .row .l b { display: block; font-weight: 650; } .row .l span { font-size: .76rem; color: var(--ink-faint); }
   .row .r { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
-  .row .r b { display: block; font-weight: 650; }
-  .row .r span { font-size: .74rem; color: var(--ink-faint); }
+  .row .r b { display: block; font-weight: 650; } .row .r span { font-size: .74rem; color: var(--ink-faint); }
 
   .sec-title { font-size: .66rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-faint); }
-  .total-line {
-    display: flex; justify-content: space-between; align-items: baseline;
-    padding-top: 11px; margin-top: 3px; border-top: 1px solid var(--rule);
-    font-weight: 700;
-  }
+  .total-line { display: flex; justify-content: space-between; align-items: baseline; padding-top: 11px;
+                margin-top: 3px; border-top: 1px solid var(--rule); font-weight: 700; }
   .total-line b { font-size: 1.1rem; font-variant-numeric: tabular-nums; }
 
-  .note {
-    font-size: .78rem; color: var(--ink-soft); background: var(--pigment-w);
-    border-radius: 10px; padding: 11px 13px; line-height: 1.5;
-  }
+  .note { font-size: .78rem; color: var(--ink-soft); background: var(--pigment-w);
+          border-radius: 10px; padding: 11px 13px; line-height: 1.5; }
   .note b { color: var(--ink); }
+  .note.warn { background: var(--warn-w); }
+  .note.ok { background: var(--ok-w); }
 
-  /* motif sheet */
-  .sheet-bg {
-    position: absolute; inset: 0; background: rgba(15,17,21,.45);
-    display: flex; align-items: flex-end; z-index: 20;
-  }
-  .sheet {
-    background: var(--surface); width: 100%; border-radius: 16px 16px 0 0;
-    padding: 18px; display: flex; flex-direction: column; gap: 12px;
-  }
+  .empty-ph { text-align: center; padding: 34px 10px; color: var(--ink-faint); }
+  .empty-ph b { display: block; font-size: .96rem; color: var(--ink-soft); font-weight: 650; margin-bottom: 6px; }
+  .empty-ph span { font-size: .84rem; line-height: 1.5; display: block; max-width: 30ch; margin: 0 auto; }
+
+  /* feuille modale */
+  .sheet-bg { position: absolute; inset: 0; background: rgba(15,17,21,.45); display: flex; align-items: flex-end; z-index: 20; }
+  .sheet { background: var(--surface); width: 100%; border-radius: 16px 16px 0 0; padding: 18px;
+           display: flex; flex-direction: column; gap: 12px; }
   .sheet h4 { font-size: 1.02rem; font-weight: 700; }
   .sheet p { font-size: .83rem; color: var(--ink-soft); }
-  .sheet textarea {
-    font: inherit; font-size: .88rem; width: 100%; min-height: 78px; resize: vertical;
-    border: 1px solid var(--rule); border-radius: 10px; padding: 10px;
-    background: var(--surface-2); color: var(--ink);
-  }
+  .sheet textarea { font-size: .88rem; width: 100%; min-height: 78px; resize: vertical;
+                    border: 1px solid var(--rule); border-radius: 10px; padding: 10px;
+                    background: var(--surface-2); color: var(--ink); }
   .sheet-acts { display: flex; gap: 9px; }
   .sheet-acts button { flex: 1; border-radius: 10px; padding: 12px; font-weight: 650; font-size: .88rem; }
   .sheet-acts .cancel { border: 1px solid var(--rule); color: var(--ink-soft); }
   .sheet-acts .ok { background: var(--pigment); color: #fff; }
   .sheet-acts .ok:disabled { opacity: .4; cursor: not-allowed; }
-  .phone { position: relative; }
 
-  /* ============ dashboard ============ */
+  /* ============ tableau de bord ============ */
 
   .db { display: flex; flex-direction: column; gap: 18px; }
-
-  .db-head {
-    display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between; align-items: center;
-    background: var(--surface); border: 1px solid var(--rule); border-radius: 12px; padding: 14px 16px;
-  }
+  .db-head { display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between; align-items: center;
+             background: var(--surface); border: 1px solid var(--rule); border-radius: 12px; padding: 14px 16px; }
   .db-head b { font-size: 1.02rem; font-weight: 700; letter-spacing: -.01em; }
   .db-head span { display: block; font-size: .78rem; color: var(--ink-faint); }
   .db-clock { font-size: 1.5rem; font-weight: 700; letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
@@ -273,51 +229,84 @@
   .kpi.k-ok b { color: var(--ok); } .kpi.k-warn b { color: var(--warn); } .kpi.k-bad b { color: var(--bad); }
 
   .panel { background: var(--surface); border: 1px solid var(--rule); border-radius: 12px; overflow: hidden; }
-  .panel-head {
-    display: flex; justify-content: space-between; align-items: center; gap: 12px;
-    padding: 11px 15px; border-bottom: 1px solid var(--rule); background: var(--surface-2);
-  }
+  .panel.accent { border-color: var(--pigment); }
+  .panel-head { display: flex; justify-content: space-between; align-items: center; gap: 12px;
+                padding: 11px 15px; border-bottom: 1px solid var(--rule); background: var(--surface-2); }
+  .panel.accent .panel-head { background: var(--pigment-w); border-bottom-color: var(--pigment); }
   .panel-head h3 { font-size: .68rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-soft); }
+  .panel.accent .panel-head h3 { color: var(--pigment); }
+
+  /* formulaire d'envoi */
+  .form { padding: 15px; display: flex; flex-direction: column; gap: 15px; }
+  .fld { display: flex; flex-direction: column; gap: 6px; }
+  .fld > label, .fld-lab { font-size: .64rem; font-weight: 700; letter-spacing: .1em;
+                           text-transform: uppercase; color: var(--ink-faint); }
+  .fld input[type="text"], .fld input[type="time"], .fld select {
+    border: 1px solid var(--rule); border-radius: 9px; padding: 10px 11px; font-size: .9rem;
+    background: var(--surface-2); width: 100%;
+  }
+  .fld-hint { font-size: .74rem; color: var(--ink-faint); line-height: 1.45; }
+  .fld-hint.warn { color: var(--warn); }
+  .form-2 { display: grid; gap: 15px; }
+  @media (min-width: 620px) { .form-2 { grid-template-columns: 1fr 1fr; } }
+
+  .seg { display: flex; gap: 3px; padding: 3px; background: var(--surface-2); border: 1px solid var(--rule); border-radius: 9px; }
+  .seg button { flex: 1; padding: 8px 4px; border-radius: 6px; font-size: .8rem; font-weight: 650;
+                color: var(--ink-soft); line-height: 1.25; }
+  .seg button[aria-pressed="true"] { background: var(--pigment); color: #fff; }
+  .seg button em { font-style: normal; font-size: .64rem; font-weight: 600; opacity: .72; letter-spacing: .02em; }
+
+  .dest { display: grid; gap: 8px; }
+  @media (min-width: 620px) { .dest { grid-template-columns: repeat(3, 1fr); } }
+  .dest label {
+    display: flex; align-items: center; gap: 10px; border: 1px solid var(--rule);
+    border-radius: 10px; padding: 11px 12px; cursor: pointer; background: var(--surface-2);
+    font-size: .88rem; font-weight: 600;
+  }
+  .dest label:hover { background: var(--surface-3); }
+  .dest input { width: 18px; height: 18px; accent-color: var(--pigment); flex: none; cursor: pointer; }
+  .dest label:has(input:checked) { border-color: var(--pigment); background: var(--pigment-w); color: var(--pigment); }
+  .dest .who2 { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+  .dest .who2 span { font-size: .72rem; font-weight: 550; color: var(--ink-faint); }
+  .dest label:has(input:checked) .who2 span { color: var(--pigment-soft); }
+
+  .btn-send { background: var(--pigment); color: #fff; border-radius: 11px; padding: 14px;
+              font-weight: 700; font-size: .95rem; width: 100%; }
+  .btn-send:hover { filter: brightness(1.07); }
+  .btn-send:disabled { opacity: .4; cursor: not-allowed; filter: none; }
 
   .tw { overflow-x: auto; }
   table { width: 100%; border-collapse: collapse; font-size: .85rem; }
-  th {
-    text-align: left; font-size: .63rem; font-weight: 700; letter-spacing: .1em;
-    text-transform: uppercase; color: var(--ink-faint); padding: 9px 15px;
-    border-bottom: 1px solid var(--rule); white-space: nowrap;
-  }
+  th { text-align: left; font-size: .63rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase;
+       color: var(--ink-faint); padding: 9px 15px; border-bottom: 1px solid var(--rule); white-space: nowrap; }
   td { padding: 11px 15px; border-bottom: 1px solid var(--rule-soft); vertical-align: middle; white-space: nowrap; }
   tbody tr:last-child td { border-bottom: 0; }
   td.n { text-align: right; }
   tr.live td { background: var(--pigment-w); }
-  .who b { font-weight: 650; }
-  .who span { display: block; font-size: .74rem; color: var(--ink-faint); }
+  .who b { font-weight: 650; } .who span { display: block; font-size: .74rem; color: var(--ink-faint); }
 
-  .pill {
-    display: inline-flex; align-items: center; gap: 5px;
-    font-size: .7rem; font-weight: 700; padding: 3px 8px; border-radius: 5px; white-space: nowrap;
-  }
+  .pill { display: inline-flex; align-items: center; gap: 5px; font-size: .7rem; font-weight: 700;
+          padding: 3px 8px; border-radius: 5px; white-space: nowrap; }
   .pill::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; flex: none; }
   .pill.ok { color: var(--ok); background: var(--ok-w); }
   .pill.warn { color: var(--warn); background: var(--warn-w); }
   .pill.bad { color: var(--bad); background: var(--bad-w); }
   .pill.idle { color: var(--ink-faint); background: var(--surface-2); }
   .pill.pig { color: var(--pigment); background: var(--pigment-w); }
+  .pill.nodot::before { display: none; }
 
   .alerts { display: flex; flex-direction: column; }
   .alert-i { display: flex; gap: 11px; padding: 11px 15px; border-bottom: 1px solid var(--rule-soft); align-items: flex-start; }
   .alert-i:last-child { border-bottom: 0; }
-  .alert-i .txt { font-size: .85rem; }
-  .alert-i .txt span { display: block; font-size: .73rem; color: var(--ink-faint); margin-top: 1px; }
+  .alert-i .txt { font-size: .85rem; min-width: 0; }
+  .alert-i .txt span { display: block; font-size: .73rem; color: var(--ink-faint); margin-top: 1px; white-space: normal; }
   .alert-i time { margin-left: auto; font-size: .73rem; color: var(--ink-faint); font-variant-numeric: tabular-nums; white-space: nowrap; }
   .empty { padding: 22px 15px; text-align: center; font-size: .84rem; color: var(--ink-faint); }
 
   .sites { display: grid; gap: 12px; padding: 15px; }
   @media (min-width: 760px) { .sites { grid-template-columns: 1fr 1fr; } }
-  .site {
-    border: 1px solid var(--rule); border-radius: 10px; padding: 13px;
-    background: var(--surface); display: flex; flex-direction: column; gap: 9px;
-  }
+  .site { border: 1px solid var(--rule); border-radius: 10px; padding: 13px; background: var(--surface);
+          display: flex; flex-direction: column; gap: 9px; }
   .site-h { display: flex; justify-content: space-between; gap: 10px; align-items: flex-start; }
   .site-h b { font-size: .92rem; font-weight: 700; }
   .site-h span { display: block; font-size: .75rem; color: var(--ink-faint); margin-top: 1px; }
@@ -327,47 +316,33 @@
   .site-m div.over b { color: var(--bad); }
   .bar { height: 6px; border-radius: 4px; background: var(--surface-3); display: flex; overflow: hidden; }
   .bar i { display: block; height: 100%; }
-  .bar i.q { background: var(--pigment); }
-  .bar i.o { background: var(--bad); }
-  .bar i.u { background: var(--ok); }
+  .bar i.q { background: var(--pigment); } .bar i.o { background: var(--bad); } .bar i.u { background: var(--ok); }
 
-  .btn-x {
-    font-size: .76rem; font-weight: 650; border: 1px solid var(--rule); border-radius: 7px;
-    padding: 5px 11px; background: var(--surface); color: var(--ink-soft);
-  }
+  .btn-x { font-size: .76rem; font-weight: 650; border: 1px solid var(--rule); border-radius: 7px;
+           padding: 5px 11px; background: var(--surface); color: var(--ink-soft); }
   .btn-x:hover { background: var(--surface-3); color: var(--ink); }
+  .btn-x.solid { background: var(--pigment); color: #fff; border-color: var(--pigment); }
+  .btn-x.solid:hover { filter: brightness(1.08); background: var(--pigment); color: #fff; }
 
-  .csv {
-    margin: 0 15px 15px; border: 1px solid var(--rule); border-radius: 9px; overflow: hidden;
-  }
+  .csv { margin: 0 15px 15px; border: 1px solid var(--rule); border-radius: 9px; overflow: hidden; }
   .csv-h { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 9px 12px; background: var(--surface-2); }
   .csv-h b { font-size: .72rem; font-weight: 700; letter-spacing: .09em; text-transform: uppercase; color: var(--ink-soft); }
-  .csv pre {
-    font-family: var(--mono); font-size: .72rem; line-height: 1.65; padding: 12px;
-    overflow-x: auto; color: var(--ink-soft); background: var(--surface);
-  }
+  .csv pre { font-family: var(--mono); font-size: .72rem; line-height: 1.65; padding: 12px;
+             overflow-x: auto; color: var(--ink-soft); background: var(--surface); }
 
-  /* ============ demo console ============ */
+  /* ============ console de démo ============ */
 
-  .dc {
-    margin-top: 14px; border: 1px dashed var(--rule); border-radius: 12px;
-    background: var(--surface-2); padding: 14px;
-    display: flex; flex-direction: column; gap: 14px;
-  }
-  .dc-title {
-    font-size: .63rem; font-weight: 700; letter-spacing: .13em; text-transform: uppercase;
-    color: var(--ink-faint); display: flex; align-items: center; gap: 8px;
-  }
+  .dc { margin-top: 14px; border: 1px dashed var(--rule); border-radius: 12px; background: var(--surface-2);
+        padding: 14px; display: flex; flex-direction: column; gap: 14px; }
+  .dc-title { font-size: .63rem; font-weight: 700; letter-spacing: .13em; text-transform: uppercase;
+              color: var(--ink-faint); display: flex; align-items: center; gap: 8px; }
   .dc-title::after { content: ""; flex: 1; height: 1px; background: var(--rule); }
   .dc-grp { display: flex; flex-direction: column; gap: 7px; }
-  .dc-grp > label, .dc-lab {
-    font-size: .74rem; font-weight: 650; color: var(--ink-soft);
-    display: flex; justify-content: space-between; gap: 10px; align-items: baseline;
-  }
+  .dc-lab { font-size: .74rem; font-weight: 650; color: var(--ink-soft);
+            display: flex; justify-content: space-between; gap: 10px; align-items: baseline; }
   .dc-lab i { font-style: normal; font-variant-numeric: tabular-nums; color: var(--ink); font-weight: 700; }
-  .seg { display: flex; gap: 3px; padding: 3px; background: var(--surface); border: 1px solid var(--rule); border-radius: 8px; }
-  .seg button { flex: 1; padding: 6px 4px; border-radius: 6px; font-size: .76rem; font-weight: 650; color: var(--ink-soft); }
-  .seg button[aria-pressed="true"] { background: var(--pigment); color: #fff; }
+  .dc .seg button { padding: 6px 4px; font-size: .76rem; }
+  .dc .seg { background: var(--surface); }
   input[type="range"] { width: 100%; accent-color: var(--pigment); }
   .dc-btns { display: flex; gap: 8px; flex-wrap: wrap; }
   .dc-btns button { flex: 1; min-width: 96px; border: 1px solid var(--rule); background: var(--surface);
@@ -375,16 +350,15 @@
   .dc-btns button:hover { background: var(--surface-3); color: var(--ink); }
   .dc-hint { font-size: .73rem; color: var(--ink-faint); line-height: 1.5; }
 
-  footer {
-    margin-top: 34px; padding-top: 18px; border-top: 1px solid var(--rule);
-    font-size: .82rem; color: var(--ink-faint); line-height: 1.6;
-  }
+  footer { margin-top: 34px; padding-top: 18px; border-top: 1px solid var(--rule);
+           font-size: .82rem; color: var(--ink-faint); line-height: 1.6; }
   footer h4 { font-size: .63rem; font-weight: 700; letter-spacing: .13em; text-transform: uppercase; margin-bottom: 8px; color: var(--ink-soft); }
   footer ul { list-style: none; display: grid; gap: 5px; max-width: 78ch; }
   footer li { padding-left: 15px; position: relative; }
   footer li::before { content: "–"; position: absolute; left: 0; }
   footer .cols { display: grid; gap: 22px; }
   @media (min-width: 760px) { footer .cols { grid-template-columns: 1fr 1fr; } }
+  footer strong { color: var(--ink-soft); }
 
   @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
 </style>
@@ -394,21 +368,22 @@
   <header class="top">
     <div class="top-id">
       <p class="eyebrow">2PG Rénovation · prototype</p>
-      <h1>Pointage sur chantier</h1>
+      <h1>Envoi d'adresse et confirmation sur place</h1>
       <p>
-        Prototype cliquable : l'application de l'ouvrier et le tableau de bord du patron,
-        <strong>synchronisés en direct</strong><span class="long"> — chaque pointage apparaît
-        immédiatement côté patron</span>. La console de démo fait avancer l'heure et simule la
-        position GPS.
+        Le patron envoie une adresse aux ouvriers de son choix. Chacun la reçoit sur son
+        téléphone et <strong>ne peut confirmer sa présence qu'une fois arrivé sur
+        place</strong><span class="long"> — le bouton reste inactif au-delà du seuil, réglable
+        à chaque envoi (50 m par défaut)</span>. La console de démo fait avancer l'heure et
+        simule la position GPS ainsi que sa précision.
       </p>
     </div>
     <div class="viewtabs" role="group" aria-label="Choisir la vue">
-      <button type="button" data-view-btn="ouvrier" aria-pressed="true">Vue ouvrier</button>
-      <button type="button" data-view-btn="patron" aria-pressed="false">Vue patron</button>
+      <button type="button" data-view-btn="ouvrier" aria-pressed="false">Vue ouvrier<span class="dot" id="tabDot" hidden></span></button>
+      <button type="button" data-view-btn="patron" aria-pressed="true">Vue patron</button>
     </div>
   </header>
 
-  <div class="stage" data-view="ouvrier" id="stage">
+  <div class="stage" data-view="patron" id="stage">
 
     <div class="col-app">
       <p class="col-label">Application ouvrier — Karim</p>
@@ -427,9 +402,18 @@
         </div>
 
         <div class="dc-grp">
-          <p class="dc-lab"><span>Distance simulée au chantier</span><i id="dcDist">23 m</i></p>
-          <input type="range" id="dcRange" min="0" max="2400" step="1" value="23" aria-label="Distance au chantier en mètres">
-          <p class="dc-hint">Rayon de tolérance du chantier : <strong>100 m</strong>. Au-delà, le pointage reste possible mais exige un motif écrit et déclenche une alerte.</p>
+          <p class="dc-lab"><span>Distance de Karim au chantier</span><i id="dcDist">840 m</i></p>
+          <input type="range" id="dcRange" min="0" max="2400" step="1" value="840" aria-label="Distance au chantier en mètres">
+        </div>
+
+        <div class="dc-grp">
+          <p class="dc-lab"><span>Précision du GPS</span><i id="dcPrec">± 7 m</i></p>
+          <input type="range" id="dcPrec2" min="3" max="60" step="1" value="7" aria-label="Précision du GPS en mètres">
+          <p class="dc-hint">
+            Poussez la précision au-delà du seuil de confirmation pour voir ce qui se passe
+            quand le GPS n&apos;est pas assez fiable — cage d&apos;escalier, sous-sol, façades
+            d&apos;immeuble.
+          </p>
         </div>
 
         <div class="dc-btns">
@@ -449,31 +433,32 @@
   <footer>
     <div class="cols">
       <div>
-        <h4>Ce qui fonctionne vraiment dans ce prototype</h4>
+        <h4>Le parcours à tester</h4>
         <ul>
-          <li>Le cycle complet arrivée → pause → reprise → départ, avec chrono en direct</li>
-          <li>La vérification de distance et le blocage doux hors zone (motif obligatoire)</li>
-          <li>La remontée en direct vers le tableau de bord patron</li>
-          <li>Les alertes automatiques : retard, hors zone, départ anticipé, oubli de pointage</li>
-          <li>Le calcul devisé vs réalisé par chantier</li>
-          <li>L&apos;export CSV, réellement généré et téléchargeable</li>
+          <li>Côté patron : choisir l&apos;adresse, le seuil, cocher les ouvriers, envoyer</li>
+          <li>Côté ouvrier : l&apos;adresse arrive, le bouton de confirmation reste <strong>inactif</strong> tant qu&apos;on est au-delà du seuil</li>
+          <li>Rapprocher Karim avec le curseur : sous le seuil (50 m par défaut), le bouton s&apos;active</li>
+          <li>La confirmation démarre la journée — le patron voit l&apos;heure et la distance exactes</li>
+          <li>Basculer le seuil sur 20 m pour voir à quel point il devient difficile à atteindre</li>
+          <li>Monter la précision GPS au-delà du seuil : la confirmation se bloque, et Karim peut demander une validation au bureau</li>
+          <li>Puis pause, reprise, départ, alertes, devisé vs réalisé et export CSV</li>
         </ul>
       </div>
       <div>
         <h4>Ce qui est simulé, et le sera pour de vrai</h4>
         <ul>
-          <li>La position GPS — remplacée ici par le curseur de la console</li>
+          <li>La position GPS et sa précision — remplacées ici par les curseurs</li>
           <li>L&apos;horodatage — viendra du serveur, jamais du téléphone</li>
-          <li>Les autres ouvriers, Sofiane et Momo, joués par un scénario figé</li>
-          <li>La connexion, la carte des chantiers, les notifications push</li>
-          <li>Le mode hors ligne et la détection de GPS falsifié</li>
+          <li>La notification push d&apos;arrivée d&apos;une adresse</li>
+          <li>Le géocodage de l&apos;adresse saisie et la carte</li>
+          <li>Sofiane et Momo, joués par un scénario : Sofiane confirme à 09:47, Momo jamais</li>
+          <li>La connexion, le mode hors ligne, la détection de GPS falsifié</li>
         </ul>
       </div>
     </div>
-    <p style="margin-top:22px; max-width:78ch;">
+    <p style="margin-top:22px; max-width:80ch;">
       Aucune donnée n&apos;est enregistrée : tout vit dans l&apos;onglet et disparaît au rechargement.
-      Dis-moi ce qu&apos;il faut changer — libellés, ordre des écrans, informations affichées,
-      couleurs — et je reprends.
+      Dis-moi ce qu&apos;il faut changer — le seuil, les libellés, qui peut valider quoi — et je reprends.
     </p>
   </footer>
 </div>
@@ -482,21 +467,26 @@
 (function () {
   "use strict";
 
-  // ---------- données de démo ----------
+  var JOURNEE = { fin: 17 * 60 };
 
-  var RAYON = 100;
-  var JOURNEE = { debut: 8 * 60, fin: 17 * 60 };   // minutes depuis minuit
-
-  var CHANTIERS = [
-    { id: "c1", nom: "Mme Durand", detail: "Salle de bains + peinture", adresse: "12 rue des Lilas, 31700 Blagnac",
-      devise: 40, faitAvant: 55.5, rayon: 100 },
-    { id: "c2", nom: "M. Bertrand", detail: "Placo et faux plafond", adresse: "8 allée des Chênes, 31320 Castanet-Tolosan",
-      devise: 24, faitAvant: 13.5, rayon: 120 },
-    { id: "c3", nom: "SCI Pech", detail: "Peinture cage d&apos;escalier", adresse: "3 av. des Pyrénées, 31140 Aucamville",
-      devise: 60, faitAvant: 12, rayon: 150 }
+  var ADRESSES = [
+    { id: "c1", nom: "Mme Durand", detail: "Salle de bains + peinture",
+      adresse: "12 rue des Lilas", ville: "31700 Blagnac", devise: 40, faitAvant: 55.5 },
+    { id: "c2", nom: "M. Bertrand", detail: "Placo et faux plafond",
+      adresse: "8 allée des Chênes", ville: "31320 Castanet-Tolosan", devise: 24, faitAvant: 13.5 },
+    { id: "c3", nom: "SCI Pech", detail: "Peinture cage d&apos;escalier",
+      adresse: "3 av. des Pyrénées", ville: "31140 Aucamville", devise: 60, faitAvant: 12 }
   ];
 
-  // Semaine déjà pointée par Karim (pour l'écran « Mes heures »)
+  var OUVRIERS = [
+    { id: "karim",   nom: "Karim Benali",    role: "Peintre" },
+    { id: "sofiane", nom: "Sofiane Mansour", role: "Plaquiste" },
+    { id: "momo",    nom: "Momo Traoré",     role: "Apprenti" }
+  ];
+
+  // Scénario figé pour les collègues : Sofiane confirme à 09:47 à 31 m, Momo jamais.
+  var SCENARIO = { sofiane: { confirmeA: 9 * 60 + 47, dist: 31 }, momo: { confirmeA: null } };
+
   var SEMAINE = [
     { jour: "Lundi",    chantier: "Mme Durand",  a: "08:02", d: "17:05", min: 498 },
     { jour: "Mardi",    chantier: "Mme Durand",  a: "07:56", d: "16:48", min: 487 },
@@ -504,71 +494,55 @@
     { jour: "Jeudi",    chantier: "Mme Durand",  a: "08:00", d: "12:30", min: 270 }
   ];
 
-  var PLANNING = [
-    { j: "Demain",      c: "Mme Durand",  v: "Blagnac",           h: "08:00 – 17:00" },
-    { j: "Lundi 10",    c: "SCI Pech",    v: "Aucamville",        h: "08:00 – 17:00" },
-    { j: "Mardi 11",    c: "SCI Pech",    v: "Aucamville",        h: "08:00 – 17:00" },
-    { j: "Mercredi 12", c: "M. Bertrand", v: "Castanet-Tolosan",  h: "08:00 – 12:00" }
-  ];
-
-  // Collègues : scénario figé, pour montrer les trois états côté patron
-  var COLLEGUES = [
-    { nom: "Sofiane Mansour", chantier: "M. Bertrand", ville: "Castanet-Tolosan",
-      prevu: 8 * 60, arrivee: 9 * 60 + 47, depart: null, statut: "retard" },
-    { nom: "Momo Traoré", chantier: "SCI Pech", ville: "Aucamville",
-      prevu: 8 * 60, arrivee: null, depart: null, statut: "absent" }
-  ];
-
   // ---------- état ----------
 
-  var S;
+  var S, ticks = 0;
+  var LE_JOUR = new Date();
+
   function etatInitial() {
     return {
       clock: minutesEnMs(7 * 60 + 58),
       speed: 60,
-      distance: 23,
+      distance: 840,          // Karim est encore sur la route
+      precision: 7,
       ecran: "today",
-      vue: "ouvrier",
-      sheet: false,
+      vue: "patron",          // on démarre côté patron : c'est lui qui envoie
+      sheet: null,            // null | "probleme" | "motifDepart"
       motif: "",
       csv: false,
+      // 50 m par défaut : assez serré pour prouver la présence à l'adresse, assez
+      // large pour absorber la dérive du GPS contre une façade. 20 m reste
+      // disponible pour qui veut le seuil strict.
+      form: { adresse: "c1", heure: "08:00", rayon: 50, dest: { karim: true, sofiane: true, momo: true } },
+      mission: null,
+      statuts: {},            // par ouvrier : { etat, vueLe, confirmeLe, dist, manuel, motif }
       jour: {
-        statut: "avant",         // avant | travail | pause | fini
+        statut: "sans_mission",   // sans_mission | recue | travail | pause | fini
         arrivee: null, depart: null,
         pauseTotale: 0, pauseDebut: null,
-        // arrivée et départ sont vérifiés séparément : on peut arriver dans la
-        // zone et pointer son départ depuis la rue, ou l'inverse
-        horsZoneArr: false, motifArr: null, distArr: null,
+        distConfirm: null, manuel: false,
         horsZoneDep: false, motifDep: null, distDep: null
       },
-      alertes: [],
-      vus: {}                    // alertes déjà émises, pour ne pas les répéter
+      alertes: [], vus: {}
     };
   }
 
-  var LE_JOUR = new Date();
   function minutesEnMs(min) {
     var d = new Date(LE_JOUR.getFullYear(), LE_JOUR.getMonth(), LE_JOUR.getDate(), 0, 0, 0, 0);
     return d.getTime() + min * 60000;
   }
-  function msEnMinutes(ms) {
-    var d = new Date(ms);
-    return d.getHours() * 60 + d.getMinutes();
-  }
-  function hhmm(ms) {
-    if (ms === null || ms === undefined) return "—";
-    var d = new Date(ms);
-    return pad(d.getHours()) + ":" + pad(d.getMinutes());
-  }
+  function msEnMinutes(ms) { var d = new Date(ms); return d.getHours() * 60 + d.getMinutes(); }
   function pad(n) { return (n < 10 ? "0" : "") + n; }
+  function hhmm(ms) { if (ms === null || ms === undefined) return "—"; var d = new Date(ms); return pad(d.getHours()) + ":" + pad(d.getMinutes()); }
+  function hhmmMin(min) { return pad(Math.floor(min / 60)) + ":" + pad(min % 60); }
+  function heureEnMin(s) { var p = String(s).split(":"); return Number(p[0]) * 60 + Number(p[1] || 0); }
 
   function dureeCourte(min) {
     min = Math.max(0, Math.round(min));
     var h = Math.floor(min / 60), m = min % 60;
-    if (h === 0) return m + " min";
-    return h + " h " + pad(m);
+    return h === 0 ? m + " min" : h + " h " + pad(m);
   }
-  function heuresDec(min) { return (min / 60); }
+  function heuresDec(min) { return min / 60; }
   function fmtH(h) { return (Math.round(h * 10) / 10).toString().replace(".", ",") + " h"; }
 
   // « dimanche 2 août », pas « Dimanche 2 Août » : en français seule
@@ -577,41 +551,56 @@
     var s = new Date(ms).toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" });
     return s.charAt(0).toUpperCase() + s.slice(1);
   }
-
   function esc(s) {
     return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
   }
+  function adresseParId(id) {
+    for (var i = 0; i < ADRESSES.length; i++) if (ADRESSES[i].id === id) return ADRESSES[i];
+    return null;
+  }
 
-  // ---------- calculs ----------
+  // ---------- règles ----------
 
-  var CHANTIER_DU_JOUR = CHANTIERS[0];
+  // On ne peut confirmer sa présence que dans le rayon du chantier ET si le GPS
+  // est assez précis pour l'affirmer : un GPS annoncé à ± 60 m ne prouve pas
+  // qu'on est à 50 m. Mieux vaut refuser que d'enregistrer une présence fausse.
+  function seuil() { return S.mission ? S.mission.rayon : 50; }
+  function assezPres() { return S.distance <= seuil(); }
+  function gpsFiable() { return S.precision <= seuil(); }
+  function peutConfirmer() { return assezPres() && gpsFiable(); }
 
   function minutesTravaillees() {
     var j = S.jour;
     if (!j.arrivee) return 0;
     var fin = j.depart !== null ? j.depart : S.clock;
-    var brut = (fin - j.arrivee) / 60000;
     var pause = j.pauseTotale;
     if (j.statut === "pause" && j.pauseDebut !== null) pause += (S.clock - j.pauseDebut) / 60000;
-    return Math.max(0, brut - pause);
+    return Math.max(0, (fin - j.arrivee) / 60000 - pause);
   }
   function pauseMinutes() {
     var j = S.jour, p = j.pauseTotale;
     if (j.statut === "pause" && j.pauseDebut !== null) p += (S.clock - j.pauseDebut) / 60000;
     return p;
   }
-  function dansZone() { return S.distance <= CHANTIER_DU_JOUR.rayon; }
 
   function heuresReelles(chantierId) {
-    var c = null, i;
-    for (i = 0; i < CHANTIERS.length; i++) if (CHANTIERS[i].id === chantierId) c = CHANTIERS[i];
-    var h = c.faitAvant;
-    if (chantierId === CHANTIER_DU_JOUR.id) h += heuresDec(minutesTravaillees());
-    if (chantierId === "c2" && COLLEGUES[0].arrivee !== null) {
-      var fin = COLLEGUES[0].depart !== null ? COLLEGUES[0].depart : Math.max(COLLEGUES[0].arrivee, msEnMinutes(S.clock));
-      h += heuresDec(Math.max(0, fin - COLLEGUES[0].arrivee) - 45);
+    var c = adresseParId(chantierId), h = c.faitAvant;
+    if (!S.mission || S.mission.chantierId !== chantierId) return h;
+    if (S.jour.arrivee) h += heuresDec(minutesTravaillees());
+    var st = S.statuts.sofiane;
+    if (st && st.etat === "confirme") {
+      var m = msEnMinutes(S.clock);
+      h += heuresDec(Math.max(0, m - msEnMinutes(st.confirmeLe) - (m > 13 * 60 ? 45 : 0)));
     }
     return h;
+  }
+
+  function destinataires() {
+    return S.mission ? S.mission.dest : [];
+  }
+  function ouvrierParId(id) {
+    for (var i = 0; i < OUVRIERS.length; i++) if (OUVRIERS[i].id === id) return OUVRIERS[i];
+    return null;
   }
 
   // ---------- alertes ----------
@@ -623,51 +612,101 @@
   }
 
   function verifierAlertes() {
-    var m = msEnMinutes(S.clock);
-    var j = S.jour;
+    if (!S.mission) return;
+    var m = msEnMinutes(S.clock), prevu = S.mission.heureMin, d = destinataires(), i;
 
-    if (j.statut === "avant" && m > JOURNEE.debut + 30) {
-      pousserAlerte("retard-karim", "warn", "Karim n&apos;a pas pointé son arrivée",
-        "Attendu à 08:00 sur le chantier Mme Durand — Blagnac");
+    for (i = 0; i < d.length; i++) {
+      var id = d[i], st = S.statuts[id], o = ouvrierParId(id);
+      if (st.etat !== "confirme" && m > prevu + 30) {
+        pousserAlerte("retard-" + id, id === "momo" ? "bad" : "warn",
+          o.nom + " n&apos;a pas confirmé sa présence",
+          "Attendu à " + hhmmMin(prevu) + " — " + S.mission.libelle + ", " + S.mission.ville);
+      }
     }
-    if (j.statut !== "avant" && j.statut !== "fini" && m > JOURNEE.fin + 30) {
-      pousserAlerte("oubli-karim", "warn", "Journée de Karim restée ouverte",
-        "Aucun pointage de départ après 17:30. Clôture automatique à arbitrer");
-    }
-    if (COLLEGUES[0].arrivee !== null && m >= COLLEGUES[0].arrivee) {
-      pousserAlerte("retard-sofiane", "warn", "Sofiane est arrivé avec 1 h 47 de retard",
-        "Chantier M. Bertrand — Castanet-Tolosan, attendu à 08:00");
-    }
-    if (m > JOURNEE.debut + 30) {
-      pousserAlerte("absent-momo", "bad", "Momo n&apos;est pas arrivé sur le chantier",
-        "Chantier SCI Pech — Aucamville, attendu à 08:00");
+    if (S.jour.statut === "travail" || S.jour.statut === "pause") {
+      if (m > JOURNEE.fin + 30) {
+        pousserAlerte("oubli-karim", "warn", "Journée de Karim restée ouverte",
+          "Aucun pointage de départ après 17:30. Clôture automatique à arbitrer");
+      }
     }
   }
 
-  // ---------- actions ----------
+  // ---------- actions patron ----------
 
-  function pointer(type) {
-    var hors = !dansZone();
-    if (hors && (type === "arrivee" || type === "depart") && !S.sheet) {
-      S.sheet = true; S.motif = ""; S.pending = type; render(); return;
+  function envoyer() {
+    var f = S.form, a = adresseParId(f.adresse);
+    var dest = [];
+    for (var k in f.dest) if (f.dest[k]) dest.push(k);
+    if (!dest.length) return;
+
+    S.mission = {
+      chantierId: a.id, libelle: a.nom, detail: a.detail,
+      adresse: a.adresse, ville: a.ville,
+      heure: f.heure, heureMin: heureEnMin(f.heure),
+      rayon: f.rayon, envoyeeLe: S.clock, dest: dest
+    };
+    S.statuts = {};
+    for (var i = 0; i < dest.length; i++) {
+      S.statuts[dest[i]] = { etat: "envoye", vueLe: null, confirmeLe: null, dist: null, manuel: false, motif: null };
     }
-    appliquer(type, hors, S.motif);
+    if (S.statuts.karim) S.jour.statut = "recue";
+    S.alertes = []; S.vus = {};
+    render();
+  }
+
+  function nouvelEnvoi() {
+    S.mission = null; S.statuts = {};
+    S.jour = etatInitial().jour;
+    S.alertes = []; S.vus = {};
+    render();
+  }
+
+  // Le bureau tranche quand le GPS ne permet pas de confirmer.
+  function validerManuellement(id) {
+    var st = S.statuts[id];
+    if (!st) return;
+    st.etat = "confirme"; st.confirmeLe = S.clock; st.manuel = true; st.dist = null;
+    if (id === "karim") {
+      S.jour.statut = "travail"; S.jour.arrivee = S.clock;
+      S.jour.manuel = true; S.jour.distConfirm = null;
+    }
+    render();
+  }
+
+  // ---------- actions ouvrier ----------
+
+  function confirmerPresence() {
+    if (!peutConfirmer()) return;
+    S.jour.statut = "travail";
+    S.jour.arrivee = S.clock;
+    S.jour.distConfirm = S.distance;
+    S.jour.manuel = false;
+    var st = S.statuts.karim;
+    st.etat = "confirme"; st.confirmeLe = S.clock; st.dist = S.distance; st.manuel = false;
+    var retard = msEnMinutes(S.clock) - S.mission.heureMin;
+    if (retard > 15) {
+      pousserAlerte("retardconf-karim", "warn", "Karim a confirmé avec " + dureeCourte(retard) + " de retard",
+        "Attendu à " + S.mission.heure + " — confirmé à " + hhmm(S.clock) + ", à " + Math.round(S.distance) + " m");
+    }
+    render();
+  }
+
+  function signalerProbleme(motif) {
+    var st = S.statuts.karim;
+    st.etat = "probleme"; st.motif = motif;
+    pousserAlerte("pb-karim-" + hhmm(S.clock), "bad",
+      "Karim ne peut pas confirmer sa présence",
+      "À " + Math.round(S.distance) + " m, précision ± " + Math.round(S.precision) + " m, seuil " +
+      seuil() + " m. Motif : " + motif + ". Vous pouvez valider manuellement ci-dessous.");
+    S.sheet = null; S.motif = "";
+    render();
   }
 
   function appliquer(type, hors, motif) {
     var j = S.jour;
-    if (type === "arrivee") {
-      j.statut = "travail"; j.arrivee = S.clock;
-      j.horsZoneArr = hors; j.motifArr = hors ? motif : null; j.distArr = S.distance;
-      if (hors) {
-        pousserAlerte("horszone-arr", "bad", "Pointage hors zone — Karim",
-          "Arrivée déclarée à " + Math.round(S.distance) + " m du chantier (rayon " + CHANTIER_DU_JOUR.rayon + " m). Motif : " + (motif || "—"));
-      }
-    } else if (type === "pause") {
-      j.statut = "pause"; j.pauseDebut = S.clock;
-    } else if (type === "reprise") {
-      j.pauseTotale += (S.clock - j.pauseDebut) / 60000;
-      j.pauseDebut = null; j.statut = "travail";
+    if (type === "pause") { j.statut = "pause"; j.pauseDebut = S.clock; }
+    else if (type === "reprise") {
+      j.pauseTotale += (S.clock - j.pauseDebut) / 60000; j.pauseDebut = null; j.statut = "travail";
     } else if (type === "depart") {
       if (j.statut === "pause" && j.pauseDebut !== null) {
         j.pauseTotale += (S.clock - j.pauseDebut) / 60000; j.pauseDebut = null;
@@ -676,7 +715,7 @@
       j.horsZoneDep = hors; j.motifDep = hors ? motif : null; j.distDep = S.distance;
       var m = msEnMinutes(S.clock);
       if (hors) {
-        pousserAlerte("horszone-dep", "bad", "Pointage hors zone — Karim",
+        pousserAlerte("horszone-dep", "bad", "Départ pointé hors zone — Karim",
           "Départ déclaré à " + Math.round(S.distance) + " m du chantier. Motif : " + (motif || "—"));
       }
       if (m < JOURNEE.fin - 60) {
@@ -684,11 +723,22 @@
           "Parti à " + hhmm(S.clock) + " pour une fin prévue à 17:00");
       }
     }
-    S.sheet = false; S.motif = ""; S.pending = null;
+    S.sheet = null; S.motif = "";
     render();
   }
 
-  // ---------- rendu : téléphone ----------
+  // Le départ garde une tolérance plus large que la confirmation d'arrivée :
+  // on peut pointer depuis le trottoir ou la camionnette.
+  function rayonDepart() { return Math.max(100, seuil()); }
+
+  function pointerDepart() {
+    if (S.distance > rayonDepart() && S.sheet !== "motifDepart") {
+      S.sheet = "motifDepart"; S.motif = ""; render(); return;
+    }
+    appliquer("depart", S.distance > rayonDepart(), S.motif);
+  }
+
+  // ---------- rendu téléphone ----------
 
   var ICONS = {
     today: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>',
@@ -697,301 +747,450 @@
     me:    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.5"/><path d="M4.5 20a7.5 7.5 0 0 1 15 0"/></svg>'
   };
 
+  function carteAdresse(neuf) {
+    var m = S.mission;
+    return '<div class="card' + (neuf ? " hot" : "") + '">' +
+      (neuf ? '<span class="newflag">Nouvelle adresse</span>' : '') +
+      '<p class="site-name">' + m.libelle + '</p>' +
+      '<p class="site-addr">' + m.detail + '</p>' +
+      '<p class="site-addr"><strong>' + m.adresse + '</strong>, ' + m.ville + '</p>' +
+      '<div class="site-row">' +
+        '<span class="chip">Rendez-vous ' + m.heure + '</span>' +
+        '<button type="button" class="btn-ghost" data-act="itineraire">Itinéraire</button>' +
+      '</div></div>';
+  }
+
+  function carteGeo() {
+    var pres = assezPres(), r = seuil();
+    var ech = Math.max(r * 6, 300);
+    var pct = Math.min(100, (S.distance / ech) * 100);
+    var zonePct = Math.min(100, (r / ech) * 100);
+    var fiable = gpsFiable();
+
+    return '<div class="card geo ' + (pres ? "in" : "out") + '">' +
+      '<div class="geo-line">' +
+        '<b>' + (pres ? "Vous êtes sur l&apos;adresse" : "Approchez-vous de l&apos;adresse") + '</b>' +
+        '<span data-live="dist">' + Math.round(S.distance) + ' m</span>' +
+      '</div>' +
+      '<div class="geo-track">' +
+        '<div class="geo-zone" style="width:' + zonePct + '%"></div>' +
+        '<div class="geo-dot" style="left:' + pct + '%"></div>' +
+      '</div>' +
+      '<div class="geo-scale"><span>0 m</span><span>seuil ' + r + ' m</span><span>' + Math.round(ech) + ' m +</span></div>' +
+      '<div class="geo-prec' + (fiable ? "" : " bad") + '">' +
+        '<span>Précision GPS ± ' + Math.round(S.precision) + ' m</span>' +
+        '<span>' + (fiable ? "suffisante" : "insuffisante pour " + r + " m") + '</span>' +
+      '</div></div>';
+  }
+
   function ecranAujourdhui() {
-    var j = S.jour, c = CHANTIER_DU_JOUR, h = "";
-    var dz = dansZone();
-    var pct = Math.min(100, (S.distance / 600) * 100);
-    var zonePct = Math.min(100, (c.rayon / 600) * 100);
+    var j = S.jour, h = "";
 
-    h += '<div class="card">' +
-           '<p class="site-name">' + c.nom + '</p>' +
-           '<p class="site-addr">' + c.detail + ' · ' + c.adresse + '</p>' +
-           '<div class="site-row">' +
-             '<span class="chip">08:00 – 17:00</span>' +
-             '<button type="button" class="btn-ghost" data-act="itineraire">Itinéraire</button>' +
-           '</div>' +
-         '</div>';
-
-    if (j.statut !== "fini") {
-      h += '<div class="card geo ' + (dz ? "in" : "out") + '">' +
-             '<div class="geo-line">' +
-               '<b>' + (dz ? "Vous êtes sur le chantier" : "Vous êtes hors de la zone") + '</b>' +
-               '<span>' + Math.round(S.distance) + ' m</span>' +
-             '</div>' +
-             '<div class="geo-track">' +
-               '<div class="geo-zone" style="width:' + zonePct + '%"></div>' +
-               '<div class="geo-dot" style="left:' + pct + '%"></div>' +
-             '</div>' +
-             '<div class="geo-scale"><span>0 m</span><span>zone ' + c.rayon + ' m</span><span>600 m +</span></div>' +
-           '</div>';
+    if (j.statut === "sans_mission") {
+      return '<div class="empty-ph"><b>Aucune adresse reçue</b>' +
+        '<span>Le bureau ne vous a rien envoyé pour aujourd&apos;hui. ' +
+        'Dès qu&apos;une adresse arrive, elle s&apos;affiche ici.</span></div>' +
+        '<div class="note"><b>Dans la démo :</b> passez côté patron, cochez Karim et envoyez ' +
+        'une adresse — elle apparaîtra immédiatement sur cet écran.</div>';
     }
 
-    if (j.statut === "avant") {
-      h += '<button type="button" class="punch go' + (dz ? "" : " risky") + '" data-act="arrivee">' +
-             '<b>Pointer mon arrivée</b>' +
-             '<span>' + (dz ? "Prêt · " + hhmm(S.clock) : "Hors zone · un motif sera demandé") + '</span>' +
-           '</button>';
-    } else {
-      var paused = j.statut === "pause";
-      h += '<div class="card chrono' + (paused ? " paused" : "") + '">' +
-             '<p class="lab">' + (paused ? "En pause" : (j.statut === "fini" ? "Journée terminée" : "Temps de travail")) + '</p>' +
-             '<p class="big" data-live="chrono">' + dureeCourte(minutesTravaillees()) + '</p>' +
-             '<div class="sub">' +
-               '<span>Arrivée <b>' + hhmm(j.arrivee) + '</b></span>' +
-               '<span>Pause <b data-live="pause">' + Math.round(pauseMinutes()) + ' min</b></span>' +
-               (j.depart ? '<span>Départ <b>' + hhmm(j.depart) + '</b></span>' : '') +
-             '</div>' +
-           '</div>';
+    if (j.statut === "recue") {
+      var pres = assezPres(), fiable = gpsFiable(), ok = peutConfirmer(), r = seuil();
+      var st = S.statuts.karim;
 
-      if (j.statut === "travail") {
-        h += '<button type="button" class="btn-sec" data-act="pause">Prendre ma pause</button>';
-        h += '<button type="button" class="punch stop" data-act="depart"><b>Pointer mon départ</b><span>' + hhmm(S.clock) + '</span></button>';
-      } else if (j.statut === "pause") {
-        h += '<button type="button" class="punch go" data-act="reprise"><b>Reprendre le travail</b><span>' + hhmm(S.clock) + '</span></button>';
-        h += '<button type="button" class="btn-sec" data-act="depart">Pointer mon départ</button>';
+      h += carteAdresse(true);
+      h += carteGeo();
+
+      if (ok) {
+        h += '<button type="button" class="punch go" data-act="confirmer-presence">' +
+             '<b>Je confirme être sur place</b>' +
+             '<span>À ' + Math.round(S.distance) + ' m · ' + hhmm(S.clock) + '</span></button>';
+      } else if (!fiable) {
+        h += '<div class="punch off"><b>Confirmation impossible</b>' +
+             '<span>Le GPS annonce ± ' + Math.round(S.precision) + ' m : il ne peut pas prouver ' +
+             'que vous êtes à moins de ' + r + ' m</span></div>';
       } else {
-        h += '<div class="punch done"><b>Journée pointée</b><span>Transmise au bureau</span></div>';
+        h += '<div class="punch off"><b>Encore ' + Math.round(S.distance - r) + ' m</b>' +
+             '<span>La confirmation s&apos;activera à moins de ' + r + ' m de l&apos;adresse</span></div>';
       }
+
+      if (!ok) {
+        if (st && st.etat === "probleme") {
+          h += '<div class="note warn"><b>Demande envoyée au bureau.</b> ' +
+               'Motif : « ' + esc(st.motif) + ' ». Le patron peut valider votre présence à la main — ' +
+               'vos heures partiront de sa validation.</div>';
+        } else {
+          h += '<button type="button" class="btn-sec quiet" data-act="probleme">Je n&apos;arrive pas à confirmer</button>';
+        }
+      }
+      return h;
     }
 
-    if (j.horsZoneArr || j.horsZoneDep) {
-      var qui = [];
-      if (j.horsZoneArr) qui.push('arrivée à ' + Math.round(j.distArr) + ' m — « ' + esc(j.motifArr || "") + ' »');
-      if (j.horsZoneDep) qui.push('départ à ' + Math.round(j.distDep) + ' m — « ' + esc(j.motifDep || "") + ' »');
-      h += '<div class="note"><b>Pointage hors zone signalé.</b><br>' + qui.join('<br>') +
-           '<br>Le bureau arbitrera — vos heures sont bien enregistrées.</div>';
+    // journée démarrée
+    h += carteAdresse(false);
+    if (j.statut !== "fini") h += carteGeo();
+
+    var paused = j.statut === "pause";
+    h += '<div class="card chrono' + (paused ? " paused" : "") + '">' +
+      '<p class="lab">' + (paused ? "En pause" : (j.statut === "fini" ? "Journée terminée" : "Temps de travail")) + '</p>' +
+      '<p class="big" data-live="chrono">' + dureeCourte(minutesTravaillees()) + '</p>' +
+      '<div class="sub">' +
+        '<span>Sur place <b>' + hhmm(j.arrivee) + '</b></span>' +
+        '<span>Pause <b data-live="pause">' + Math.round(pauseMinutes()) + ' min</b></span>' +
+        (j.depart ? '<span>Départ <b>' + hhmm(j.depart) + '</b></span>' : '') +
+      '</div></div>';
+
+    h += '<div class="note ok"><b>Présence confirmée à ' + hhmm(j.arrivee) + '.</b> ' +
+      (j.manuel ? "Validée par le bureau — le GPS ne permettait pas de confirmer."
+                : "Vous étiez à " + Math.round(j.distConfirm) + " m de l&apos;adresse.") + '</div>';
+
+    if (j.statut === "travail") {
+      h += '<button type="button" class="btn-sec" data-act="pause">Prendre ma pause</button>';
+      h += '<button type="button" class="punch stop" data-act="depart"><b>Pointer mon départ</b><span>' + hhmm(S.clock) + '</span></button>';
+    } else if (j.statut === "pause") {
+      h += '<button type="button" class="punch go" data-act="reprise"><b>Reprendre le travail</b><span>' + hhmm(S.clock) + '</span></button>';
+      h += '<button type="button" class="btn-sec" data-act="depart">Pointer mon départ</button>';
+    } else {
+      h += '<div class="punch done"><b>Journée pointée</b><span>Transmise au bureau</span></div>';
+      if (j.horsZoneDep) {
+        h += '<div class="note warn"><b>Départ pointé hors zone</b> — à ' + Math.round(j.distDep) +
+             ' m. Motif : « ' + esc(j.motifDep || "") + ' ».</div>';
+      }
     }
     return h;
   }
 
   function ecranHeures() {
-    var h = '<p class="sec-title">Cette semaine</p><div class="card"><div class="rows">';
-    var total = 0, i;
+    var h = '<p class="sec-title">Cette semaine</p><div class="card"><div class="rows">', total = 0, i;
     for (i = 0; i < SEMAINE.length; i++) {
       var d = SEMAINE[i]; total += d.min;
       h += '<div class="row"><div class="l"><b>' + d.jour + '</b><span>' + d.chantier + '</span></div>' +
            '<div class="r"><b>' + dureeCourte(d.min) + '</b><span>' + d.a + ' – ' + d.d + '</span></div></div>';
     }
     var aj = minutesTravaillees();
-    if (S.jour.arrivee) { total += aj; }
-    h += '<div class="row"><div class="l"><b>Aujourd&apos;hui</b><span>' + CHANTIER_DU_JOUR.nom + '</span></div>' +
-         '<div class="r"><b data-live="jour">' + (S.jour.arrivee ? dureeCourte(aj) : "—") + '</b><span>' +
-         (S.jour.arrivee ? hhmm(S.jour.arrivee) + " – " + (S.jour.depart ? hhmm(S.jour.depart) : "en cours") : "pas encore pointé") +
+    if (S.jour.arrivee) total += aj;
+    h += '<div class="row"><div class="l"><b>Aujourd&apos;hui</b><span>' +
+         (S.mission ? S.mission.libelle : "aucune adresse") + '</span></div>' +
+         '<div class="r"><b>' + (S.jour.arrivee ? dureeCourte(aj) : "—") + '</b><span>' +
+         (S.jour.arrivee ? hhmm(S.jour.arrivee) + " – " + (S.jour.depart ? hhmm(S.jour.depart) : "en cours") : "pas encore confirmé") +
          '</span></div></div>';
-    h += '</div><div class="total-line"><span>Total semaine</span><b data-live="semaine">' + dureeCourte(total) + '</b></div></div>';
+    h += '</div><div class="total-line"><span>Total semaine</span><b>' + dureeCourte(total) + '</b></div></div>';
     h += '<div class="note"><b>Ces heures sont les vôtres.</b> Cet écran vous donne accès à tout moment au détail de vos pointages, sans avoir à en faire la demande.</div>';
     return h;
   }
 
   function ecranChantiers() {
-    var h = '<p class="sec-title">À venir</p><div class="card"><div class="rows">', i;
-    for (i = 0; i < PLANNING.length; i++) {
-      var p = PLANNING[i];
-      h += '<div class="row"><div class="l"><b>' + p.c + '</b><span>' + p.j + ' · ' + p.v + '</span></div>' +
-           '<div class="r"><b>' + p.h + '</b></div></div>';
+    if (!S.mission) {
+      return '<div class="empty-ph"><b>Rien de prévu</b><span>Aucune adresse ne vous a été envoyée.</span></div>';
     }
-    h += '</div></div>';
-    return h;
+    var m = S.mission;
+    return '<p class="sec-title">Adresse reçue aujourd&apos;hui</p>' + carteAdresse(false) +
+      '<div class="card"><div class="rows">' +
+      '<div class="row"><div class="l"><b>Envoyée par le bureau</b></div><div class="r"><b>' + hhmm(m.envoyeeLe) + '</b></div></div>' +
+      '<div class="row"><div class="l"><b>Seuil de confirmation</b><span>distance maximale pour confirmer</span></div><div class="r"><b>' + m.rayon + ' m</b></div></div>' +
+      '<div class="row"><div class="l"><b>Également envoyée à</b></div><div class="r"><b>' + (m.dest.length - 1) + ' collègue' + (m.dest.length > 2 ? "s" : "") + '</b></div></div>' +
+      '</div></div>';
   }
 
   function ecranProfil() {
     return '<div class="card"><div class="rows">' +
-      '<div class="row"><div class="l"><b>Karim Benali</b><span>Ouvrier · 2PG Rénovation</span></div></div>' +
+      '<div class="row"><div class="l"><b>Karim Benali</b><span>Peintre · 2PG Rénovation</span></div></div>' +
       '<div class="row"><div class="l"><b>Appareil</b><span>Validé le 12 mai 2026</span></div><div class="r"><b>Pixel 7a</b></div></div>' +
       '<div class="row"><div class="l"><b>Contrat</b><span>35 h hebdomadaires</span></div></div>' +
       '</div></div>' +
-      '<div class="note"><b>Vos données.</b> Votre position n&apos;est relevée qu&apos;au moment où vous appuyez sur Arrivée ou Départ. ' +
-      'Entre deux pointages, rien n&apos;est enregistré — ni vos trajets, ni vos pauses, ni vos soirées. ' +
-      'Les coordonnées sont effacées au bout de 2 mois ; seules vos heures sont conservées pour la paie.</div>' +
+      '<div class="note"><b>Vos données.</b> Votre position n&apos;est relevée qu&apos;au moment où vous confirmez ' +
+      'votre présence ou pointez votre départ. Entre les deux, rien n&apos;est enregistré — ni vos trajets, ' +
+      'ni vos pauses, ni vos soirées. Les coordonnées sont effacées au bout de 2 mois ; ' +
+      'seules vos heures sont conservées pour la paie.</div>' +
       '<button type="button" class="btn-sec">Se déconnecter</button>';
   }
 
   function renderPhone() {
     var ecrans = { today: ecranAujourdhui, hours: ecranHeures, sites: ecranChantiers, me: ecranProfil };
-    var titres = { today: "Aujourd&apos;hui", hours: "Mes heures", sites: "Mes chantiers", me: "Profil" };
-    var dateStr = dateLongue(S.clock);
+    var titres = { today: "Aujourd&apos;hui", hours: "Mes heures", sites: "Mon adresse", me: "Profil" };
+    var neuf = S.jour.statut === "recue";
 
     var h = '';
     h += '<div class="ph-status"><span data-live="phclock">' + hhmm(S.clock) + '</span><span>4G · 78 %</span></div>';
-    h += '<div class="ph-head"><b>' + titres[S.ecran] + '</b><span>' + dateStr + '</span></div>';
+    h += '<div class="ph-head"><b>' + titres[S.ecran] + '</b><span>' + dateLongue(S.clock) + '</span></div>';
     h += '<div class="ph-body">' + ecrans[S.ecran]() + '</div>';
 
     h += '<nav class="ph-nav">';
-    var tabs = [["today", "Aujourd&apos;hui"], ["hours", "Mes heures"], ["sites", "Chantiers"], ["me", "Profil"]];
+    var tabs = [["today", "Aujourd&apos;hui"], ["hours", "Mes heures"], ["sites", "Mon adresse"], ["me", "Profil"]];
     for (var i = 0; i < tabs.length; i++) {
       var k = tabs[i][0];
       h += '<button type="button" data-tab="' + k + '"' + (S.ecran === k ? ' aria-current="page"' : '') + '>' +
-             '<span class="ic">' + ICONS[k] + '</span>' + tabs[i][1] + '</button>';
+        '<span class="ic">' + ICONS[k] + '</span>' + tabs[i][1] +
+        (neuf && (k === "today" || k === "sites") && S.ecran !== k ? '<span class="badge"></span>' : '') +
+        '</button>';
     }
     h += '</nav>';
 
-    if (S.sheet) {
-      h += '<div class="sheet-bg"><div class="sheet">' +
-             '<h4>Vous êtes à ' + Math.round(S.distance) + ' m du chantier</h4>' +
-             '<p>Le pointage reste possible. Indiquez simplement pourquoi — le bureau en sera informé.</p>' +
-             '<textarea id="motifInput" placeholder="Ex. : pas de GPS dans le sous-sol, je pointe depuis la rue">' + esc(S.motif) + '</textarea>' +
-             '<div class="sheet-acts">' +
-               '<button type="button" class="cancel" data-act="annuler">Annuler</button>' +
-               '<button type="button" class="ok" data-act="confirmer"' + (S.motif.trim().length < 3 ? " disabled" : "") + '>Confirmer</button>' +
-             '</div>' +
-           '</div></div>';
+    if (S.sheet === "probleme") {
+      h += feuille("Vous n&apos;arrivez pas à confirmer ?",
+        "À " + Math.round(S.distance) + " m, précision ± " + Math.round(S.precision) + " m. " +
+        "Expliquez la situation : le bureau pourra valider votre présence à la main.",
+        "Ex. : je suis devant la porte mais le GPS ne descend pas sous 40 m");
+    } else if (S.sheet === "motifDepart") {
+      h += feuille("Vous êtes à " + Math.round(S.distance) + " m du chantier",
+        "Le pointage de départ reste possible. Indiquez simplement pourquoi.",
+        "Ex. : j&apos;ai déjà chargé la camionnette");
     }
 
     document.getElementById("phone").innerHTML = h;
   }
 
-  // ---------- rendu : tableau de bord ----------
+  function feuille(titre, texte, ph) {
+    return '<div class="sheet-bg"><div class="sheet">' +
+      '<h4>' + titre + '</h4><p>' + texte + '</p>' +
+      '<textarea id="motifInput" placeholder="' + ph + '">' + esc(S.motif) + '</textarea>' +
+      '<div class="sheet-acts">' +
+        '<button type="button" class="cancel" data-act="annuler">Annuler</button>' +
+        '<button type="button" class="ok" data-act="valider-sheet"' + (S.motif.trim().length < 3 ? " disabled" : "") + '>Envoyer</button>' +
+      '</div></div></div>';
+  }
 
-  function ligneKarim() {
-    var j = S.jour;
-    var statut, arrivee = j.arrivee ? hhmm(j.arrivee) : "—", ecart = "—", surPlace = "—";
-    if (j.statut === "avant") {
-      statut = msEnMinutes(S.clock) > JOURNEE.debut + 15
-        ? '<span class="pill warn">En retard</span>' : '<span class="pill idle">Attendu</span>';
-    } else {
-      var e = Math.round(msEnMinutes(j.arrivee) - JOURNEE.debut);
-      ecart = (e >= 0 ? "+" : "−") + dureeCourte(Math.abs(e));
-      surPlace = dureeCourte(minutesTravaillees());
-      if (j.statut === "fini") statut = '<span class="pill idle">Parti ' + hhmm(j.depart) + '</span>';
-      else if (j.statut === "pause") statut = '<span class="pill pig">En pause</span>';
-      else if (j.horsZoneArr || j.horsZoneDep) statut = '<span class="pill bad">Hors zone</span>';
-      else if (e > 15) statut = '<span class="pill warn">Retard</span>';
-      else statut = '<span class="pill ok">Sur place</span>';
+  // ---------- rendu tableau de bord ----------
+
+  function formulaire() {
+    var f = S.form, a = adresseParId(f.adresse);
+    var n = 0, k;
+    for (k in f.dest) if (f.dest[k]) n++;
+
+    var h = '<div class="panel accent"><div class="panel-head"><h3>Envoyer une adresse</h3>' +
+      '<span class="pill pig nodot">Étape 1</span></div><div class="form">';
+
+    h += '<div class="fld"><label for="fAdr">Chantier</label>' +
+      '<select id="fAdr">';
+    for (var i = 0; i < ADRESSES.length; i++) {
+      var ad = ADRESSES[i];
+      h += '<option value="' + ad.id + '"' + (ad.id === f.adresse ? " selected" : "") + '>' +
+        ad.nom + ' — ' + ad.adresse + ', ' + ad.ville + '</option>';
     }
-    return { statut: statut, arrivee: arrivee, ecart: ecart, surPlace: surPlace };
+    h += '</select><p class="fld-hint">' + a.detail + '</p></div>';
+
+    h += '<div class="form-2">' +
+      '<div class="fld"><label for="fHeure">Heure de rendez-vous</label>' +
+        '<input type="time" id="fHeure" value="' + f.heure + '"></div>' +
+      '<div class="fld"><span class="fld-lab">Seuil de confirmation</span>' +
+        '<div class="seg" role="group" aria-label="Seuil de confirmation">' +
+          '<button type="button" data-rayon="20" aria-pressed="' + (f.rayon === 20) + '">20 m<br><em>strict</em></button>' +
+          '<button type="button" data-rayon="50" aria-pressed="' + (f.rayon === 50) + '">50 m<br><em>conseillé</em></button>' +
+          '<button type="button" data-rayon="100" aria-pressed="' + (f.rayon === 100) + '">100 m<br><em>ville dense</em></button>' +
+        '</div>' +
+        '<p class="fld-hint' + (f.rayon <= 20 ? " warn" : "") + '">' +
+        (f.rayon <= 20
+          ? "Trop serré en pratique : le GPS d&apos;un téléphone tombe à ± 30–50 m contre une façade ou en cage d&apos;escalier. L&apos;ouvrier sera régulièrement sur place sans pouvoir confirmer."
+          : f.rayon === 50
+            ? "Assez serré pour prouver la présence à l&apos;adresse, assez large pour absorber la dérive du GPS. C&apos;est le réglage à garder par défaut."
+            : "Pour les immeubles du centre de Toulouse, où le signal se réfléchit sur les façades. En contrepartie, le bâtiment voisin entre dans la zone.") +
+        '</p></div></div>';
+
+    h += '<div class="fld"><span class="fld-lab">Envoyer à</span><div class="dest">';
+    for (var o = 0; o < OUVRIERS.length; o++) {
+      var w = OUVRIERS[o];
+      h += '<label><input type="checkbox" data-dest="' + w.id + '"' + (f.dest[w.id] ? " checked" : "") + '>' +
+        '<span class="who2">' + w.nom.split(" ")[0] + '<span>' + w.role + '</span></span></label>';
+    }
+    h += '</div></div>';
+
+    h += '<button type="button" class="btn-send" data-act="envoyer"' + (n ? "" : " disabled") + '>' +
+      (n ? "Envoyer l&apos;adresse à " + n + " ouvrier" + (n > 1 ? "s" : "") : "Sélectionnez au moins un ouvrier") +
+      '</button>';
+
+    h += '</div></div>';
+    return h;
+  }
+
+  function suiviEnvoi() {
+    var m = S.mission, d = m.dest;
+    var h = '<div class="panel accent"><div class="panel-head"><h3>Adresse envoyée</h3>' +
+      '<button type="button" class="btn-x" data-act="nouvel-envoi">Envoyer une autre adresse</button></div>';
+
+    h += '<div class="form" style="gap:11px">' +
+      '<div><b style="font-size:.98rem">' + m.libelle + '</b>' +
+      '<p style="font-size:.85rem;color:var(--ink-soft);margin-top:2px">' + m.adresse + ', ' + m.ville + '</p></div>' +
+      '<div style="display:flex;gap:8px;flex-wrap:wrap">' +
+        '<span class="chip">Envoyée à ' + hhmm(m.envoyeeLe) + '</span>' +
+        '<span class="chip">Rendez-vous ' + m.heure + '</span>' +
+        '<span class="chip">Confirmation sous ' + m.rayon + ' m</span>' +
+      '</div></div>';
+
+    h += '<div class="tw"><table><thead><tr><th>Ouvrier</th><th class="n">Confirmé à</th>' +
+      '<th class="n">Distance</th><th>État</th><th></th></tr></thead><tbody>';
+
+    for (var i = 0; i < d.length; i++) {
+      var id = d[i], st = S.statuts[id], o = ouvrierParId(id);
+      var etat, quand = "—", dist = "—", action = "";
+      var mn = msEnMinutes(S.clock);
+
+      if (st.etat === "confirme") {
+        etat = '<span class="pill ok">Sur place</span>';
+        quand = hhmm(st.confirmeLe);
+        dist = st.manuel ? "validé bureau" : Math.round(st.dist) + " m";
+      } else if (st.etat === "probleme") {
+        etat = '<span class="pill bad">Ne peut pas confirmer</span>';
+        action = '<button type="button" class="btn-x solid" data-valider="' + id + '">Valider</button>';
+      } else if (mn > m.heureMin + 30) {
+        etat = '<span class="pill ' + (id === "momo" ? "bad" : "warn") + '">' +
+          (id === "momo" ? "Absent" : "En retard") + '</span>';
+        action = '<button type="button" class="btn-x" data-valider="' + id + '">Valider</button>';
+      } else if (st.vueLe) {
+        etat = '<span class="pill pig">Vue ' + hhmm(st.vueLe) + '</span>';
+      } else {
+        etat = '<span class="pill idle">Envoyée</span>';
+      }
+
+      h += '<tr' + (id === "karim" ? ' class="live"' : '') + '>' +
+        '<td class="who"><b>' + o.nom + '</b><span>' + (id === "karim" ? "vous suivez cet ouvrier" : o.role) + '</span></td>' +
+        '<td class="n">' + quand + '</td><td class="n">' + dist + '</td>' +
+        '<td>' + etat + '</td><td class="n">' + action + '</td></tr>';
+    }
+    h += '</tbody></table></div></div>';
+    return h;
   }
 
   function renderDb() {
-    var m = msEnMinutes(S.clock), h = "";
-    var k = ligneKarim();
-    var dateStr = dateLongue(S.clock);
+    var h = "", m = msEnMinutes(S.clock);
 
-    var presents = 0, retards = 0, absents = 0;
-    if (S.jour.statut === "travail" || S.jour.statut === "pause") presents++;
-    if (S.jour.statut === "avant" && m > JOURNEE.debut + 15) retards++;
-    if (COLLEGUES[0].arrivee !== null && m >= COLLEGUES[0].arrivee) { presents++; retards++; }
-    else if (m > JOURNEE.debut + 15) retards++;
-    if (m > JOURNEE.debut + 15) absents++;
+    h += '<div class="db-head"><div><b>2PG Rénovation</b><span>' + dateLongue(S.clock) + '</span></div>' +
+      '<div class="db-clock" data-live="dbclock">' + hhmm(S.clock) + '</div></div>';
 
-    var heuresJour = heuresDec(minutesTravaillees());
-    if (COLLEGUES[0].arrivee !== null && m >= COLLEGUES[0].arrivee) {
-      heuresJour += heuresDec(Math.max(0, m - COLLEGUES[0].arrivee) - (m > 13 * 60 ? 45 : 0));
+    if (!S.mission) {
+      h += formulaire();
+      h += '<div class="panel"><div class="panel-head"><h3>Présence du jour</h3></div>' +
+        '<p class="empty">Aucune adresse envoyée aujourd&apos;hui.<br>Le suivi apparaîtra ici dès le premier envoi.</p></div>';
+      document.getElementById("db").innerHTML = h + panneauChantiers();
+      return;
     }
 
-    h += '<div class="db-head"><div><b>2PG Rénovation</b><span>' + dateStr + '</span></div>' +
-         '<div class="db-clock" data-live="dbclock">' + hhmm(S.clock) + '</div></div>';
+    // compteurs
+    var d = destinataires(), confirmes = 0, attente = 0, bloques = 0, i;
+    for (i = 0; i < d.length; i++) {
+      var st = S.statuts[d[i]];
+      if (st.etat === "confirme") confirmes++;
+      else if (st.etat === "probleme") bloques++;
+      else attente++;
+    }
+    var heuresJour = 0;
+    if (S.jour.arrivee) heuresJour += heuresDec(minutesTravaillees());
+    var sof = S.statuts.sofiane;
+    if (sof && sof.etat === "confirme") {
+      heuresJour += heuresDec(Math.max(0, m - msEnMinutes(sof.confirmeLe) - (m > 13 * 60 ? 45 : 0)));
+    }
 
     h += '<div class="kpis">' +
-      '<div class="kpi k-ok"><span>Sur chantier</span><b>' + presents + '</b></div>' +
-      '<div class="kpi k-warn"><span>Retards</span><b>' + retards + '</b></div>' +
-      '<div class="kpi k-bad"><span>Absents</span><b>' + absents + '</b></div>' +
-      '<div class="kpi"><span>Heures du jour</span><b data-live="dbheures">' + fmtH(heuresJour) + '</b></div>' +
+      '<div class="kpi k-ok"><span>Confirmés sur place</span><b>' + confirmes + ' / ' + d.length + '</b></div>' +
+      '<div class="kpi k-warn"><span>En attente</span><b>' + attente + '</b></div>' +
+      '<div class="kpi k-bad"><span>Bloqués</span><b>' + bloques + '</b></div>' +
+      '<div class="kpi"><span>Heures du jour</span><b>' + fmtH(heuresJour) + '</b></div>' +
       '</div>';
+
+    h += suiviEnvoi();
 
     // alertes
     h += '<div class="panel"><div class="panel-head"><h3>Alertes</h3>' +
-         '<span class="pill ' + (S.alertes.length ? "warn" : "idle") + '">' + S.alertes.length + '</span></div>';
-    if (!S.alertes.length) {
-      h += '<p class="empty">Rien à signaler.</p>';
-    } else {
+      '<span class="pill ' + (S.alertes.length ? "warn" : "idle") + '">' + S.alertes.length + '</span></div>';
+    if (!S.alertes.length) h += '<p class="empty">Rien à signaler.</p>';
+    else {
       h += '<div class="alerts">';
-      for (var i = 0; i < S.alertes.length; i++) {
+      for (i = 0; i < S.alertes.length; i++) {
         var a = S.alertes[i];
         h += '<div class="alert-i"><span class="pill ' + a.type + '"></span>' +
-               '<div class="txt">' + a.titre + '<span>' + a.detail + '</span></div>' +
-               '<time>' + hhmm(a.t) + '</time></div>';
+          '<div class="txt">' + a.titre + '<span>' + a.detail + '</span></div>' +
+          '<time>' + hhmm(a.t) + '</time></div>';
       }
       h += '</div>';
     }
     h += '</div>';
 
-    // présence
-    h += '<div class="panel"><div class="panel-head"><h3>Présence du jour</h3>' +
-         '<button type="button" class="btn-x" data-act="csv">' + (S.csv ? "Masquer l&apos;export" : "Exporter") + '</button></div>' +
-         '<div class="tw"><table><thead><tr>' +
-         '<th>Ouvrier</th><th>Chantier</th><th class="n">Prévu</th><th class="n">Arrivé</th>' +
-         '<th class="n">Écart</th><th class="n">Sur place</th><th>Statut</th></tr></thead><tbody>';
+    // journée de Karim
+    h += '<div class="panel"><div class="panel-head"><h3>Journée de travail</h3>' +
+      '<button type="button" class="btn-x" data-act="csv">' + (S.csv ? "Masquer l&apos;export" : "Exporter") + '</button></div>' +
+      '<div class="tw"><table><thead><tr><th>Ouvrier</th><th class="n">Sur place</th><th class="n">Pause</th>' +
+      '<th class="n">Départ</th><th class="n">Durée</th><th>État</th></tr></thead><tbody>';
 
-    h += '<tr class="live"><td class="who"><b>Karim Benali</b><span>vous suivez cet ouvrier</span></td>' +
-         '<td>' + CHANTIER_DU_JOUR.nom + '<br><span style="color:var(--ink-faint);font-size:.75rem">Blagnac</span></td>' +
-         '<td class="n">08:00</td><td class="n" data-live="dbarr">' + k.arrivee + '</td>' +
-         '<td class="n">' + k.ecart + '</td><td class="n" data-live="dbsur">' + k.surPlace + '</td>' +
-         '<td>' + k.statut + '</td></tr>';
+    var j = S.jour, etatK;
+    if (j.statut === "fini") etatK = '<span class="pill idle">Journée close</span>';
+    else if (j.statut === "pause") etatK = '<span class="pill pig">En pause</span>';
+    else if (j.statut === "travail") etatK = '<span class="pill ok">Au travail</span>';
+    else etatK = '<span class="pill idle">Pas commencé</span>';
 
-    for (var c = 0; c < COLLEGUES.length; c++) {
-      var g = COLLEGUES[c];
-      var arr = "—", ec = "—", sp = "—", st = '<span class="pill idle">Attendu</span>';
-      if (g.arrivee !== null && m >= g.arrivee) {
-        arr = pad(Math.floor(g.arrivee / 60)) + ":" + pad(g.arrivee % 60);
-        var de = g.arrivee - g.prevu;
-        ec = "+" + dureeCourte(de);
-        sp = dureeCourte(Math.max(0, m - g.arrivee) - (m > 13 * 60 ? 45 : 0));
-        st = '<span class="pill warn">Retard</span>';
-      } else if (m > JOURNEE.debut + 30) {
-        st = g.statut === "absent" ? '<span class="pill bad">Absent</span>' : '<span class="pill warn">En retard</span>';
-      }
-      h += '<tr><td class="who"><b>' + g.nom + '</b></td>' +
-           '<td>' + g.chantier + '<br><span style="color:var(--ink-faint);font-size:.75rem">' + g.ville + '</span></td>' +
-           '<td class="n">08:00</td><td class="n">' + arr + '</td><td class="n">' + ec + '</td>' +
-           '<td class="n">' + sp + '</td><td>' + st + '</td></tr>';
+    h += '<tr class="live"><td class="who"><b>Karim Benali</b><span>' + S.mission.libelle + '</span></td>' +
+      '<td class="n">' + (j.arrivee ? hhmm(j.arrivee) : "—") + '</td>' +
+      '<td class="n">' + (j.arrivee ? Math.round(pauseMinutes()) + " min" : "—") + '</td>' +
+      '<td class="n">' + (j.depart ? hhmm(j.depart) : "—") + '</td>' +
+      '<td class="n" data-live="dbdur">' + (j.arrivee ? dureeCourte(minutesTravaillees()) : "—") + '</td>' +
+      '<td>' + etatK + '</td></tr>';
+
+    if (sof && sof.etat === "confirme") {
+      var dur = Math.max(0, m - msEnMinutes(sof.confirmeLe) - (m > 13 * 60 ? 45 : 0));
+      h += '<tr><td class="who"><b>Sofiane Mansour</b><span>' + S.mission.libelle + '</span></td>' +
+        '<td class="n">' + hhmm(sof.confirmeLe) + '</td><td class="n">' + (m > 13 * 60 ? "45 min" : "—") + '</td>' +
+        '<td class="n">—</td><td class="n">' + dureeCourte(dur) + '</td>' +
+        '<td><span class="pill ok">Au travail</span></td></tr>';
     }
     h += '</tbody></table></div>';
 
     if (S.csv) {
-      var txt = genererCsv();
       h += '<div class="csv"><div class="csv-h"><b>pointages-' + new Date(S.clock).toISOString().slice(0, 10) + '.csv</b>' +
-           '<button type="button" class="btn-x" data-act="dl">Télécharger</button></div>' +
-           '<pre>' + esc(txt) + '</pre></div>';
+        '<button type="button" class="btn-x" data-act="dl">Télécharger</button></div>' +
+        '<pre>' + esc(genererCsv()) + '</pre></div>';
     }
     h += '</div>';
 
-    // chantiers / marge
-    h += '<div class="panel"><div class="panel-head"><h3>Chantiers · devisé vs réalisé</h3></div><div class="sites">';
-    for (var s = 0; s < CHANTIERS.length; s++) {
-      var ch = CHANTIERS[s];
-      var reel = heuresReelles(ch.id);
-      var ecartPct = Math.round(((reel - ch.devise) / ch.devise) * 100);
-      var over = reel > ch.devise;
-      var wQ, wO;
-      if (over) { wQ = (ch.devise / reel) * 100; wO = 100 - wQ; }
-      else { wQ = (reel / ch.devise) * 100; wO = 0; }
-      h += '<div class="site">' +
-             '<div class="site-h"><div><b>' + ch.nom + '</b><span>' + ch.detail + '</span></div>' +
-             '<span class="pill ' + (over ? "bad" : "ok") + '">' + (ecartPct >= 0 ? "+" : "−") + Math.abs(ecartPct) + ' %</span></div>' +
-             '<div class="site-m">' +
-               '<div><span>Devisé</span><b>' + fmtH(ch.devise) + '</b></div>' +
-               '<div class="' + (over ? "over" : "") + '"><span>Réalisé</span><b>' + fmtH(reel) + '</b></div>' +
-               '<div class="' + (over ? "over" : "") + '"><span>' + (over ? "Dépassement" : "Reste") + '</span>' +
-               '<b>' + fmtH(Math.abs(ch.devise - reel)) + '</b></div>' +
-             '</div>' +
-             '<div class="bar"><i class="' + (over ? "q" : "u") + '" style="width:' + wQ + '%"></i>' +
-             (over ? '<i class="o" style="width:' + wO + '%"></i>' : '') + '</div>' +
-           '</div>';
-    }
-    h += '</div></div>';
+    document.getElementById("db").innerHTML = h + panneauChantiers();
+  }
 
-    document.getElementById("db").innerHTML = h;
+  function panneauChantiers() {
+    var h = '<div class="panel"><div class="panel-head"><h3>Chantiers · devisé vs réalisé</h3></div><div class="sites">';
+    for (var s = 0; s < ADRESSES.length; s++) {
+      var ch = ADRESSES[s], reel = heuresReelles(ch.id);
+      var ecartPct = Math.round(((reel - ch.devise) / ch.devise) * 100);
+      var over = reel > ch.devise, wQ, wO;
+      if (over) { wQ = (ch.devise / reel) * 100; wO = 100 - wQ; } else { wQ = (reel / ch.devise) * 100; wO = 0; }
+      h += '<div class="site">' +
+        '<div class="site-h"><div><b>' + ch.nom + '</b><span>' + ch.detail + '</span></div>' +
+        '<span class="pill ' + (over ? "bad" : "ok") + '">' + (ecartPct >= 0 ? "+" : "−") + Math.abs(ecartPct) + ' %</span></div>' +
+        '<div class="site-m">' +
+          '<div><span>Devisé</span><b>' + fmtH(ch.devise) + '</b></div>' +
+          '<div class="' + (over ? "over" : "") + '"><span>Réalisé</span><b>' + fmtH(reel) + '</b></div>' +
+          '<div class="' + (over ? "over" : "") + '"><span>' + (over ? "Dépassement" : "Reste") + '</span>' +
+          '<b>' + fmtH(Math.abs(ch.devise - reel)) + '</b></div>' +
+        '</div>' +
+        '<div class="bar"><i class="' + (over ? "q" : "u") + '" style="width:' + wQ + '%"></i>' +
+        (over ? '<i class="o" style="width:' + wO + '%"></i>' : '') + '</div></div>';
+    }
+    return h + '</div></div>';
   }
 
   function genererCsv() {
-    // Arrivée et départ sont vérifiés séparément — une seule colonne « dans_zone »
-    // pour la journée masquerait un départ pointé depuis la rue.
-    var l = ["salarie;date;chantier;arrivee;arrivee_zone;arrivee_dist_m;depart;depart_zone;depart_dist_m;pause_min;duree_h"];
-    var dt = new Date(S.clock).toISOString().slice(0, 10);
-    var j = S.jour;
-    l.push([
-      "Karim Benali", dt, CHANTIER_DU_JOUR.nom,
-      j.arrivee ? hhmm(j.arrivee) : "",
-      j.arrivee ? (j.horsZoneArr ? "hors" : "oui") : "",
-      j.distArr !== null ? Math.round(j.distArr) : "",
-      j.depart ? hhmm(j.depart) : "",
-      j.depart ? (j.horsZoneDep ? "hors" : "oui") : "",
-      j.distDep !== null ? Math.round(j.distDep) : "",
-      j.arrivee ? Math.round(pauseMinutes()) : "",
-      j.arrivee ? (Math.round(heuresDec(minutesTravaillees()) * 100) / 100).toString().replace(".", ",") : ""
-    ].join(";"));
-    l.push("Sofiane Mansour;" + dt + ";M. Bertrand;09:47;oui;31;;;;45;");
-    l.push("Momo Traore;" + dt + ";SCI Pech;;;;;;;;");
+    var l = ["salarie;date;chantier;adresse;confirme_a;distance_m;source;depart;depart_dist_m;pause_min;duree_h"];
+    if (!S.mission) return l.join("\n");
+    var dt = new Date(S.clock).toISOString().slice(0, 10), m = S.mission, i;
+
+    for (i = 0; i < m.dest.length; i++) {
+      var id = m.dest[i], st = S.statuts[id], o = ouvrierParId(id);
+      var nom = o.nom.normalize("NFD").replace(/[̀-ͯ]/g, "");
+      if (id === "karim") {
+        var j = S.jour;
+        l.push([nom, dt, m.libelle, m.adresse + " " + m.ville,
+          j.arrivee ? hhmm(j.arrivee) : "",
+          j.distConfirm !== null ? Math.round(j.distConfirm) : "",
+          j.arrivee ? (j.manuel ? "validation bureau" : "gps") : "",
+          j.depart ? hhmm(j.depart) : "",
+          j.distDep !== null ? Math.round(j.distDep) : "",
+          j.arrivee ? Math.round(pauseMinutes()) : "",
+          j.arrivee ? (Math.round(heuresDec(minutesTravaillees()) * 100) / 100).toString().replace(".", ",") : ""
+        ].join(";"));
+      } else {
+        l.push([nom, dt, m.libelle, m.adresse + " " + m.ville,
+          st.etat === "confirme" ? hhmm(st.confirmeLe) : "",
+          st.etat === "confirme" && st.dist !== null ? Math.round(st.dist) : "",
+          st.etat === "confirme" ? (st.manuel ? "validation bureau" : "gps") : "non confirme",
+          "", "", "", ""].join(";"));
+      }
+    }
     return l.join("\n");
   }
 
@@ -999,6 +1198,8 @@
 
   function render() {
     document.getElementById("stage").setAttribute("data-view", S.vue);
+    var dot = document.getElementById("tabDot");
+    dot.hidden = !(S.jour.statut === "recue" && S.vue !== "ouvrier");
     renderPhone();
     renderDb();
     majConsole();
@@ -1009,21 +1210,37 @@
   function majConsole() {
     document.getElementById("dcClock").textContent = hhmm(S.clock);
     document.getElementById("dcDist").textContent = Math.round(S.distance) + " m";
-    var b = document.querySelectorAll("[data-speed]");
-    for (var i = 0; i < b.length; i++) {
-      b[i].setAttribute("aria-pressed", String(Number(b[i].getAttribute("data-speed")) === S.speed));
-    }
+    document.getElementById("dcPrec").textContent = "± " + Math.round(S.precision) + " m";
+    var b = document.querySelectorAll("[data-speed]"), i;
+    for (i = 0; i < b.length; i++) b[i].setAttribute("aria-pressed", String(Number(b[i].getAttribute("data-speed")) === S.speed));
     var v = document.querySelectorAll("[data-view-btn]");
-    for (var k = 0; k < v.length; k++) {
-      v[k].setAttribute("aria-pressed", String(v[k].getAttribute("data-view-btn") === S.vue));
-    }
+    for (i = 0; i < v.length; i++) v[i].setAttribute("aria-pressed", String(v[i].getAttribute("data-view-btn") === S.vue));
   }
 
   function tick() {
     if (S.speed > 0) S.clock += 1000 * S.speed;
+    var m = msEnMinutes(S.clock), redraw = false;
+
+    if (S.mission) {
+      // « Vue » : le téléphone accuse réception peu après l'envoi.
+      var d = destinataires();
+      for (var i = 0; i < d.length; i++) {
+        var st = S.statuts[d[i]];
+        if (st.etat === "envoye" && !st.vueLe && S.clock > S.mission.envoyeeLe + 120000) {
+          st.vueLe = S.clock; redraw = true;
+        }
+      }
+      // Sofiane suit son scénario ; Momo ne confirme jamais.
+      var sof = S.statuts.sofiane;
+      if (sof && sof.etat !== "confirme" && sof.etat !== "probleme" && m >= SCENARIO.sofiane.confirmeA) {
+        sof.etat = "confirme"; sof.confirmeLe = minutesEnMs(SCENARIO.sofiane.confirmeA);
+        sof.dist = SCENARIO.sofiane.dist; redraw = true;
+      }
+    }
+
     var avant = S.alertes.length;
     verifierAlertes();
-    if (S.alertes.length !== avant) { render(); return; }
+    if (redraw || S.alertes.length !== avant) { render(); return; }
 
     setTxt('[data-live="phclock"]', hhmm(S.clock));
     setTxt('[data-live="dbclock"]', hhmm(S.clock));
@@ -1032,38 +1249,43 @@
     if (S.jour.statut === "travail" || S.jour.statut === "pause") {
       setTxt('[data-live="chrono"]', dureeCourte(minutesTravaillees()));
       setTxt('[data-live="pause"]', Math.round(pauseMinutes()) + " min");
-      setTxt('[data-live="dbsur"]', dureeCourte(minutesTravaillees()));
+      setTxt('[data-live="dbdur"]', dureeCourte(minutesTravaillees()));
     }
     // En accéléré les heures réalisées bougent vite : on rafraîchit les marges,
     // mais toutes les 5 s seulement — reconstruire le tableau chaque seconde
     // ferait sauter les clics du patron.
     ticks++;
-    if (S.speed >= 60 && ticks % 5 === 0 &&
-        (S.jour.statut === "travail" || S.jour.statut === "pause")) renderDb();
+    if (S.speed >= 60 && ticks % 5 === 0 && (S.jour.statut === "travail" || S.jour.statut === "pause")) renderDb();
   }
-  var ticks = 0;
 
-  function setTxt(sel, v) {
-    var e = document.querySelector(sel);
-    if (e) e.textContent = v;
-  }
+  function setTxt(sel, v) { var e = document.querySelector(sel); if (e) e.textContent = v; }
 
   // ---------- évènements ----------
 
   document.addEventListener("click", function (ev) {
-    var t = ev.target.closest("[data-act], [data-tab], [data-speed], [data-view-btn]");
+    var t = ev.target.closest("[data-act], [data-tab], [data-speed], [data-view-btn], [data-rayon], [data-valider]");
     if (!t) return;
 
     if (t.hasAttribute("data-tab")) { S.ecran = t.getAttribute("data-tab"); render(); return; }
     if (t.hasAttribute("data-view-btn")) { S.vue = t.getAttribute("data-view-btn"); render(); return; }
     if (t.hasAttribute("data-speed")) { S.speed = Number(t.getAttribute("data-speed")); majConsole(); return; }
+    if (t.hasAttribute("data-rayon")) { S.form.rayon = Number(t.getAttribute("data-rayon")); renderDb(); return; }
+    if (t.hasAttribute("data-valider")) { validerManuellement(t.getAttribute("data-valider")); return; }
 
     var a = t.getAttribute("data-act");
-    if (a === "arrivee" || a === "depart") { pointer(a); }
+    if (a === "envoyer") { envoyer(); }
+    else if (a === "nouvel-envoi") { nouvelEnvoi(); }
+    else if (a === "confirmer-presence") { confirmerPresence(); }
+    else if (a === "probleme") { S.sheet = "probleme"; S.motif = ""; render(); }
     else if (a === "pause") { appliquer("pause", false, null); }
     else if (a === "reprise") { appliquer("reprise", false, null); }
-    else if (a === "annuler") { S.sheet = false; S.motif = ""; S.pending = null; render(); }
-    else if (a === "confirmer") { if (S.motif.trim().length >= 3) appliquer(S.pending, true, S.motif.trim()); }
+    else if (a === "depart") { pointerDepart(); }
+    else if (a === "annuler") { S.sheet = null; S.motif = ""; render(); }
+    else if (a === "valider-sheet") {
+      if (S.motif.trim().length < 3) return;
+      if (S.sheet === "probleme") signalerProbleme(S.motif.trim());
+      else appliquer("depart", true, S.motif.trim());
+    }
     else if (a === "csv") { S.csv = !S.csv; renderDb(); }
     else if (a === "dl") { telecharger(); }
     else if (a === "itineraire") {
@@ -1073,23 +1295,37 @@
   });
 
   document.addEventListener("input", function (ev) {
-    if (ev.target.id === "motifInput") {
-      S.motif = ev.target.value;
-      var ok = document.querySelector('.sheet-acts .ok');
+    var el = ev.target;
+    if (el.id === "motifInput") {
+      S.motif = el.value;
+      var ok = document.querySelector(".sheet-acts .ok");
       if (ok) ok.disabled = S.motif.trim().length < 3;
+      return;
     }
-    if (ev.target.id === "dcRange") {
-      S.distance = Number(ev.target.value);
+    if (el.id === "dcRange") {
+      S.distance = Number(el.value);
       document.getElementById("dcDist").textContent = Math.round(S.distance) + " m";
       if (S.ecran === "today" && !S.sheet) renderPhone();
+      return;
+    }
+    if (el.id === "dcPrec2") {
+      S.precision = Number(el.value);
+      document.getElementById("dcPrec").textContent = "± " + Math.round(S.precision) + " m";
+      if (S.ecran === "today" && !S.sheet) renderPhone();
+      return;
+    }
+    if (el.id === "fAdr") { S.form.adresse = el.value; renderDb(); return; }
+    if (el.id === "fHeure") { S.form.heure = el.value || "08:00"; return; }
+    if (el.hasAttribute && el.hasAttribute("data-dest")) {
+      S.form.dest[el.getAttribute("data-dest")] = el.checked;
+      renderDb();
     }
   });
 
   function telecharger() {
     try {
       var blob = new Blob(["﻿" + genererCsv()], { type: "text/csv;charset=utf-8" });
-      var url = URL.createObjectURL(blob);
-      var a = document.createElement("a");
+      var url = URL.createObjectURL(blob), a = document.createElement("a");
       a.href = url;
       a.download = "pointages-" + new Date(S.clock).toISOString().slice(0, 10) + ".csv";
       document.body.appendChild(a); a.click(); a.remove();
@@ -1103,10 +1339,9 @@
   document.getElementById("dcReset").addEventListener("click", function () {
     S = etatInitial();
     document.getElementById("dcRange").value = S.distance;
+    document.getElementById("dcPrec2").value = S.precision;
     render();
   });
-
-  // ---------- démarrage ----------
 
   S = etatInitial();
   render();
