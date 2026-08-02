@@ -1,6 +1,10 @@
 # Base de données
 
-Cinq migrations, à exécuter **dans l'ordre** depuis le SQL Editor de Supabase.
+**Pour installer, suivez [`INSTALLATION.md`](INSTALLATION.md)** — collez `setup.sql` d'un
+bloc, puis `verification.sql`.
+
+Ce qui suit décrit le contenu. Les migrations sont la source de vérité ; `setup.sql` en est la
+concaténation, régénérée par `./build-setup.sh`. Ne modifiez jamais `setup.sql` à la main.
 
 | Fichier | Contenu |
 |---|---|
@@ -9,6 +13,7 @@ Cinq migrations, à exécuter **dans l'ordre** depuis le SQL Editor de Supabase.
 | `0003_rpc.sql` | Fonctions métier : confirmation, pointage, validation bureau, alertes, purge |
 | `0004_bootstrap.sql` | Création de la première entreprise et rattachement des ouvriers |
 | `0005_lecture.sql` | Vues et fonctions de lecture pour les deux applications |
+| `0006_outils.sql` | `cron_planifie()`, utilisée par `verification.sql` |
 
 ## Pourquoi des fonctions plutôt que des écritures directes
 

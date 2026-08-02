@@ -26,7 +26,11 @@ travaillées conservées 5 ans pour la paie. Sur la même ligne.
 
 | Dossier | Contenu |
 |---|---|
-| `supabase/migrations/` | Schéma, RLS, fonctions métier. Cinq fichiers à exécuter dans l'ordre |
+| `supabase/INSTALLATION.md` | **Le guide pas à pas.** Commencez par là |
+| `supabase/setup.sql` | Tout le schéma en un seul fichier, à coller d'un bloc |
+| `supabase/verification.sql` | Contrôle l'installation et dit quoi corriger |
+| `supabase/test-projet.mjs` | Test d'intégration contre le vrai projet, une fois créé |
+| `supabase/migrations/` | La source de vérité : six fichiers dont `setup.sql` est la concaténation |
 | `apps/mobile/` | Application ouvrier — Expo / React Native, iOS et Android |
 | `apps/web/` | Tableau de bord patron — Next.js |
 | `prototype/index.html` | Maquette cliquable d'origine, sans serveur. Utile pour montrer le produit |
@@ -35,33 +39,22 @@ travaillées conservées 5 ans pour la paie. Sur la même ligne.
 
 ## Installation
 
+> **Le guide pas à pas est dans [`supabase/INSTALLATION.md`](supabase/INSTALLATION.md)** —
+> capture par capture, environ 20 minutes. Ce qui suit en est le résumé.
+
 ### 1. Base de données
 
 Créez un projet sur [supabase.com](https://supabase.com) — **choisissez une région
 européenne** (Frankfurt ou Paris), c'est ce qui garde les données dans l'UE.
 
-Dans le SQL Editor, exécutez les cinq migrations **dans l'ordre** :
+Dans le SQL Editor, collez **[`supabase/setup.sql`](supabase/setup.sql)** en une fois. Puis
+collez [`supabase/verification.sql`](supabase/verification.sql) : il affiche un rapport en
+10 lignes, dont les 7 premières doivent être `OK`.
 
-```
-supabase/migrations/0001_schema.sql
-supabase/migrations/0002_rls.sql
-supabase/migrations/0003_rpc.sql
-supabase/migrations/0004_bootstrap.sql
-supabase/migrations/0005_lecture.sql
-```
-
-Puis, si `pg_cron` est activé sur le projet (Database → Extensions) :
-
-```sql
-select cron.schedule('purge-localisation', '0 3 * * *',  $$select purger_localisation()$$);
-select cron.schedule('verifier-alertes',   '*/5 * * * *', $$select verifier_alertes()$$);
-```
-
-Sans `pg_cron`, les alertes de retard et de dépassement ne se déclenchent pas toutes seules ;
-tout le reste fonctionne.
-
-Enfin, activez le temps réel sur les tables `pointages`, `mission_destinataires` et `alertes`
-(Database → Replication), sinon le tableau de bord ne se met à jour qu'à chaque minute.
+Restent trois réglages qui ne peuvent pas être faits en SQL : activer `pg_cron`
+(Database → Extensions), planifier les deux tâches, et activer le temps réel sur `pointages`,
+`mission_destinataires` et `alertes` (Database → Replication). Le fichier `INSTALLATION.md`
+détaille les trois.
 
 ### 2. Tableau de bord
 
