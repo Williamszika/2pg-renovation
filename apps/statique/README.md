@@ -1,7 +1,20 @@
 # Tableau de bord — page autonome
 
-Un seul fichier HTML, à déposer dans le Storage de Supabase. Aucun serveur, aucun
-hébergeur tiers, rien à installer.
+Un seul fichier HTML, sans serveur ni build. À déposer chez n'importe quel hébergeur de
+fichiers statiques.
+
+> ## ⚠️ Pas dans le Storage de Supabase
+>
+> Supabase **force le type `text/plain` sur tous les fichiers HTML** qu'il sert, pour empêcher
+> qu'on héberge des pages trompeuses sur son domaine. Le fichier se télécharge et se lit
+> correctement, mais le navigateur affiche le code source au lieu d'exécuter la page. Ce n'est
+> pas un réglage : c'est codé en dur dans leur service, et ça ne se contourne pas sans un plan
+> Pro avec domaine personnalisé.
+>
+> Vérifié sur le projet réel : `HTTP 200`, 257 249 octets, `content-type: text/plain`.
+>
+> Voir [supabase/storage#186](https://github.com/supabase/storage/issues/186) et
+> [discussion #39110](https://github.com/orgs/supabase/discussions/39110).
 
 ## Construire
 
@@ -15,14 +28,18 @@ plutôt que chargée depuis un CDN : la page ne dépend de rien d'autre que de v
 
 `src/tableau-de-bord.html` est la source. Ne modifiez jamais `dist/` à la main.
 
-## Déposer sur Supabase
+## Mettre en ligne
 
-1. **Storage** → **New bucket** → nom `app`, cocher **Public bucket** → Save
-2. Ouvrir le bucket → **Upload file** → `dist/tableau-de-bord.html`
-3. L'adresse est alors :
-   `https://<projet>.supabase.co/storage/v1/object/public/app/tableau-de-bord.html`
+Renommez le fichier `index.html`, placez-le seul dans un dossier, puis :
 
-Pour mettre à jour : reconstruire, puis réuploader le fichier en écrasant l'ancien.
+| Hébergeur | Comment | Compte requis |
+|---|---|---|
+| **Netlify Drop** | Glisser le dossier sur [app.netlify.com/drop](https://app.netlify.com/drop) | non pour essayer |
+| **Cloudflare Pages** | Create a project → Direct Upload | oui, gratuit |
+| **Vercel** | Import depuis GitHub, Root Directory `apps/statique/dist` | oui, gratuit |
+| **GitHub Pages** | Uniquement si le dépôt est public, ou avec un compte Pro | oui |
+
+Tous sont gratuits à cette échelle et servent bien le HTML en `text/html`.
 
 ## Ce que cette version fait, et ne fait pas
 
