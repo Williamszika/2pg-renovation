@@ -350,15 +350,8 @@
   .dc-btns button:hover { background: var(--surface-3); color: var(--ink); }
   .dc-hint { font-size: .73rem; color: var(--ink-faint); line-height: 1.5; }
 
-  footer { margin-top: 34px; padding-top: 18px; border-top: 1px solid var(--rule);
-           font-size: .82rem; color: var(--ink-faint); line-height: 1.6; }
-  footer h4 { font-size: .63rem; font-weight: 700; letter-spacing: .13em; text-transform: uppercase; margin-bottom: 8px; color: var(--ink-soft); }
-  footer ul { list-style: none; display: grid; gap: 5px; max-width: 78ch; }
-  footer li { padding-left: 15px; position: relative; }
-  footer li::before { content: "–"; position: absolute; left: 0; }
-  footer .cols { display: grid; gap: 22px; }
-  @media (min-width: 760px) { footer .cols { grid-template-columns: 1fr 1fr; } }
-  footer strong { color: var(--ink-soft); }
+  footer { margin-top: 30px; padding-top: 16px; border-top: 1px solid var(--rule);
+           font-size: .78rem; color: var(--ink-faint); }
 
   @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
 </style>
@@ -369,13 +362,6 @@
     <div class="top-id">
       <p class="eyebrow">2PG Rénovation · prototype</p>
       <h1>Envoi d'adresse et confirmation sur place</h1>
-      <p>
-        Le patron envoie une adresse aux ouvriers de son choix. Chacun la reçoit sur son
-        téléphone et <strong>ne peut confirmer sa présence qu'une fois arrivé sur
-        place</strong><span class="long"> — le bouton reste inactif au-delà du seuil, réglable
-        à chaque envoi (50 m par défaut)</span>. La console de démo fait avancer l'heure et
-        simule la position GPS ainsi que sa précision.
-      </p>
     </div>
     <div class="viewtabs" role="group" aria-label="Choisir la vue">
       <button type="button" data-view-btn="ouvrier" aria-pressed="false">Vue ouvrier<span class="dot" id="tabDot" hidden></span></button>
@@ -409,11 +395,6 @@
         <div class="dc-grp">
           <p class="dc-lab"><span>Précision du GPS</span><i id="dcPrec">± 7 m</i></p>
           <input type="range" id="dcPrec2" min="3" max="60" step="1" value="7" aria-label="Précision du GPS en mètres">
-          <p class="dc-hint">
-            Poussez la précision au-delà du seuil de confirmation pour voir ce qui se passe
-            quand le GPS n&apos;est pas assez fiable — cage d&apos;escalier, sous-sol, façades
-            d&apos;immeuble.
-          </p>
         </div>
 
         <div class="dc-btns">
@@ -431,35 +412,7 @@
   </div>
 
   <footer>
-    <div class="cols">
-      <div>
-        <h4>Le parcours à tester</h4>
-        <ul>
-          <li>Côté patron : choisir l&apos;adresse, le seuil, cocher les ouvriers, envoyer</li>
-          <li>Côté ouvrier : l&apos;adresse arrive, le bouton de confirmation reste <strong>inactif</strong> tant qu&apos;on est au-delà du seuil</li>
-          <li>Rapprocher Karim avec le curseur : sous le seuil (50 m par défaut), le bouton s&apos;active</li>
-          <li>La confirmation démarre la journée — le patron voit l&apos;heure et la distance exactes</li>
-          <li>Basculer le seuil sur 20 m pour voir à quel point il devient difficile à atteindre</li>
-          <li>Monter la précision GPS au-delà du seuil : la confirmation se bloque, et Karim peut demander une validation au bureau</li>
-          <li>Puis pause, reprise, départ, alertes, devisé vs réalisé et export CSV</li>
-        </ul>
-      </div>
-      <div>
-        <h4>Ce qui est simulé, et le sera pour de vrai</h4>
-        <ul>
-          <li>La position GPS et sa précision — remplacées ici par les curseurs</li>
-          <li>L&apos;horodatage — viendra du serveur, jamais du téléphone</li>
-          <li>La notification push d&apos;arrivée d&apos;une adresse</li>
-          <li>Le géocodage de l&apos;adresse saisie et la carte</li>
-          <li>Sofiane et Momo, joués par un scénario : Sofiane confirme à 09:47, Momo jamais</li>
-          <li>La connexion, le mode hors ligne, la détection de GPS falsifié</li>
-        </ul>
-      </div>
-    </div>
-    <p style="margin-top:22px; max-width:80ch;">
-      Aucune donnée n&apos;est enregistrée : tout vit dans l&apos;onglet et disparaît au rechargement.
-      Dis-moi ce qu&apos;il faut changer — le seuil, les libellés, qui peut valider quoi — et je reprends.
-    </p>
+    <p>Position GPS, horodatage et notifications simulés. Données fictives, rien n&apos;est enregistré.</p>
   </footer>
 </div>
 
@@ -696,8 +649,8 @@
     st.etat = "probleme"; st.motif = motif;
     pousserAlerte("pb-karim-" + hhmm(S.clock), "bad",
       "Karim ne peut pas confirmer sa présence",
-      "À " + Math.round(S.distance) + " m, précision ± " + Math.round(S.precision) + " m, seuil " +
-      seuil() + " m. Motif : " + motif + ". Vous pouvez valider manuellement ci-dessous.");
+      Math.round(S.distance) + " m · précision ± " + Math.round(S.precision) + " m · seuil " +
+      seuil() + " m — « " + motif + " »");
     S.sheet = null; S.motif = "";
     render();
   }
@@ -779,7 +732,7 @@
       '<div class="geo-scale"><span>0 m</span><span>seuil ' + r + ' m</span><span>' + Math.round(ech) + ' m +</span></div>' +
       '<div class="geo-prec' + (fiable ? "" : " bad") + '">' +
         '<span>Précision GPS ± ' + Math.round(S.precision) + ' m</span>' +
-        '<span>' + (fiable ? "suffisante" : "insuffisante pour " + r + " m") + '</span>' +
+        '<span>' + (fiable ? "suffisante" : "insuffisante") + '</span>' +
       '</div></div>';
   }
 
@@ -788,10 +741,7 @@
 
     if (j.statut === "sans_mission") {
       return '<div class="empty-ph"><b>Aucune adresse reçue</b>' +
-        '<span>Le bureau ne vous a rien envoyé pour aujourd&apos;hui. ' +
-        'Dès qu&apos;une adresse arrive, elle s&apos;affiche ici.</span></div>' +
-        '<div class="note"><b>Dans la démo :</b> passez côté patron, cochez Karim et envoyez ' +
-        'une adresse — elle apparaîtra immédiatement sur cet écran.</div>';
+        '<span>Le bureau ne vous a rien envoyé pour aujourd&apos;hui.</span></div>';
     }
 
     if (j.statut === "recue") {
@@ -806,19 +756,16 @@
              '<b>Je confirme être sur place</b>' +
              '<span>À ' + Math.round(S.distance) + ' m · ' + hhmm(S.clock) + '</span></button>';
       } else if (!fiable) {
-        h += '<div class="punch off"><b>Confirmation impossible</b>' +
-             '<span>Le GPS annonce ± ' + Math.round(S.precision) + ' m : il ne peut pas prouver ' +
-             'que vous êtes à moins de ' + r + ' m</span></div>';
+        h += '<div class="punch off"><b>GPS trop imprécis</b>' +
+             '<span>± ' + Math.round(S.precision) + ' m pour un seuil de ' + r + ' m</span></div>';
       } else {
         h += '<div class="punch off"><b>Encore ' + Math.round(S.distance - r) + ' m</b>' +
-             '<span>La confirmation s&apos;activera à moins de ' + r + ' m de l&apos;adresse</span></div>';
+             '<span>Confirmation à moins de ' + r + ' m</span></div>';
       }
 
       if (!ok) {
         if (st && st.etat === "probleme") {
-          h += '<div class="note warn"><b>Demande envoyée au bureau.</b> ' +
-               'Motif : « ' + esc(st.motif) + ' ». Le patron peut valider votre présence à la main — ' +
-               'vos heures partiront de sa validation.</div>';
+          h += '<div class="note warn"><b>Demande envoyée au bureau</b><br>« ' + esc(st.motif) + ' »</div>';
         } else {
           h += '<button type="button" class="btn-sec quiet" data-act="probleme">Je n&apos;arrive pas à confirmer</button>';
         }
@@ -840,9 +787,8 @@
         (j.depart ? '<span>Départ <b>' + hhmm(j.depart) + '</b></span>' : '') +
       '</div></div>';
 
-    h += '<div class="note ok"><b>Présence confirmée à ' + hhmm(j.arrivee) + '.</b> ' +
-      (j.manuel ? "Validée par le bureau — le GPS ne permettait pas de confirmer."
-                : "Vous étiez à " + Math.round(j.distConfirm) + " m de l&apos;adresse.") + '</div>';
+    h += '<div class="note ok"><b>Présence confirmée à ' + hhmm(j.arrivee) + '</b> · ' +
+      (j.manuel ? "validée par le bureau" : "à " + Math.round(j.distConfirm) + " m de l&apos;adresse") + '</div>';
 
     if (j.statut === "travail") {
       h += '<button type="button" class="btn-sec" data-act="pause">Prendre ma pause</button>';
@@ -853,8 +799,8 @@
     } else {
       h += '<div class="punch done"><b>Journée pointée</b><span>Transmise au bureau</span></div>';
       if (j.horsZoneDep) {
-        h += '<div class="note warn"><b>Départ pointé hors zone</b> — à ' + Math.round(j.distDep) +
-             ' m. Motif : « ' + esc(j.motifDep || "") + ' ».</div>';
+        h += '<div class="note warn"><b>Départ hors zone</b> · ' + Math.round(j.distDep) +
+             ' m<br>« ' + esc(j.motifDep || "") + ' »</div>';
       }
     }
     return h;
@@ -875,7 +821,6 @@
          (S.jour.arrivee ? hhmm(S.jour.arrivee) + " – " + (S.jour.depart ? hhmm(S.jour.depart) : "en cours") : "pas encore confirmé") +
          '</span></div></div>';
     h += '</div><div class="total-line"><span>Total semaine</span><b>' + dureeCourte(total) + '</b></div></div>';
-    h += '<div class="note"><b>Ces heures sont les vôtres.</b> Cet écran vous donne accès à tout moment au détail de vos pointages, sans avoir à en faire la demande.</div>';
     return h;
   }
 
@@ -887,7 +832,7 @@
     return '<p class="sec-title">Adresse reçue aujourd&apos;hui</p>' + carteAdresse(false) +
       '<div class="card"><div class="rows">' +
       '<div class="row"><div class="l"><b>Envoyée par le bureau</b></div><div class="r"><b>' + hhmm(m.envoyeeLe) + '</b></div></div>' +
-      '<div class="row"><div class="l"><b>Seuil de confirmation</b><span>distance maximale pour confirmer</span></div><div class="r"><b>' + m.rayon + ' m</b></div></div>' +
+      '<div class="row"><div class="l"><b>Seuil de confirmation</b></div><div class="r"><b>' + m.rayon + ' m</b></div></div>' +
       '<div class="row"><div class="l"><b>Également envoyée à</b></div><div class="r"><b>' + (m.dest.length - 1) + ' collègue' + (m.dest.length > 2 ? "s" : "") + '</b></div></div>' +
       '</div></div>';
   }
@@ -898,10 +843,8 @@
       '<div class="row"><div class="l"><b>Appareil</b><span>Validé le 12 mai 2026</span></div><div class="r"><b>Pixel 7a</b></div></div>' +
       '<div class="row"><div class="l"><b>Contrat</b><span>35 h hebdomadaires</span></div></div>' +
       '</div></div>' +
-      '<div class="note"><b>Vos données.</b> Votre position n&apos;est relevée qu&apos;au moment où vous confirmez ' +
-      'votre présence ou pointez votre départ. Entre les deux, rien n&apos;est enregistré — ni vos trajets, ' +
-      'ni vos pauses, ni vos soirées. Les coordonnées sont effacées au bout de 2 mois ; ' +
-      'seules vos heures sont conservées pour la paie.</div>' +
+      '<div class="note"><b>Vos données</b><br>Position relevée uniquement au moment de la confirmation ' +
+      'et du départ. Coordonnées effacées à 2 mois, heures conservées 5 ans.</div>' +
       '<button type="button" class="btn-sec">Se déconnecter</button>';
   }
 
@@ -927,13 +870,12 @@
     h += '</nav>';
 
     if (S.sheet === "probleme") {
-      h += feuille("Vous n&apos;arrivez pas à confirmer ?",
-        "À " + Math.round(S.distance) + " m, précision ± " + Math.round(S.precision) + " m. " +
-        "Expliquez la situation : le bureau pourra valider votre présence à la main.",
-        "Ex. : je suis devant la porte mais le GPS ne descend pas sous 40 m");
+      h += feuille("Signaler au bureau",
+        Math.round(S.distance) + " m · précision ± " + Math.round(S.precision) + " m",
+        "Ex. : je suis devant la porte mais le GPS ne descend pas");
     } else if (S.sheet === "motifDepart") {
-      h += feuille("Vous êtes à " + Math.round(S.distance) + " m du chantier",
-        "Le pointage de départ reste possible. Indiquez simplement pourquoi.",
+      h += feuille("Départ à " + Math.round(S.distance) + " m du chantier",
+        "Indiquez le motif.",
         "Ex. : j&apos;ai déjà chargé la camionnette");
     }
 
@@ -978,13 +920,8 @@
           '<button type="button" data-rayon="50" aria-pressed="' + (f.rayon === 50) + '">50 m<br><em>conseillé</em></button>' +
           '<button type="button" data-rayon="100" aria-pressed="' + (f.rayon === 100) + '">100 m<br><em>ville dense</em></button>' +
         '</div>' +
-        '<p class="fld-hint' + (f.rayon <= 20 ? " warn" : "") + '">' +
-        (f.rayon <= 20
-          ? "Trop serré en pratique : le GPS d&apos;un téléphone tombe à ± 30–50 m contre une façade ou en cage d&apos;escalier. L&apos;ouvrier sera régulièrement sur place sans pouvoir confirmer."
-          : f.rayon === 50
-            ? "Assez serré pour prouver la présence à l&apos;adresse, assez large pour absorber la dérive du GPS. C&apos;est le réglage à garder par défaut."
-            : "Pour les immeubles du centre de Toulouse, où le signal se réfléchit sur les façades. En contrepartie, le bâtiment voisin entre dans la zone.") +
-        '</p></div></div>';
+        (f.rayon <= 20 ? '<p class="fld-hint warn">Souvent hors de portée du GPS.</p>' : '') +
+        '</div></div>';
 
     h += '<div class="fld"><span class="fld-lab">Envoyer à</span><div class="dest">';
     for (var o = 0; o < OUVRIERS.length; o++) {
