@@ -13,7 +13,7 @@ fi
 
 rm -rf dist/site && mkdir -p dist/site
 python3 src/icones.py
-cp src/manifest.webmanifest src/sw.js dist/site/
+cp src/manifest.webmanifest src/sw.js src/_headers dist/site/
 
 python3 - "$BUNDLE" <<'PY'
 import sys, pathlib

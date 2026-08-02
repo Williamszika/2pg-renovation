@@ -19,6 +19,7 @@ Produit `dist/site/` :
 | `manifest.webmanifest` | Nom, icônes, affichage plein écran — ce qui la rend installable |
 | `sw.js` | Service worker : démarrage instantané et fonctionnement hors ligne |
 | `icone-*.png` | Icônes, générées sans dépendance par `src/icones.py` |
+| `_headers` | Corrige le type MIME du manifeste et empêche la mise en cache du service worker (lu par Netlify et Cloudflare Pages) |
 
 `src/` est la source. Ne modifiez jamais `dist/` à la main.
 

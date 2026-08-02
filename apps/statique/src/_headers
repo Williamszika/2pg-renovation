@@ -1,0 +1,13 @@
+# Netlify sert le manifeste en application/octet-stream faute de connaitre
+# l'extension .webmanifest. Chrome s'en accommode, Safari est plus strict :
+# on le declare explicitement pour que l'installation fonctionne sur iPhone.
+/manifest.webmanifest
+  Content-Type: application/manifest+json; charset=utf-8
+
+# Le service worker ne doit jamais etre servi depuis un cache : c'est lui qui
+# porte la version de l'application, et un cache le figerait.
+/sw.js
+  Cache-Control: no-cache
+
+/index.html
+  Cache-Control: no-cache
