@@ -1,62 +1,77 @@
-# Tableau de bord — page autonome
+# Application installable — ouvrier et patron
 
-Un seul fichier HTML, sans serveur ni build. À déposer chez n'importe quel hébergeur de
-fichiers statiques.
-
-> ## ⚠️ Pas dans le Storage de Supabase
->
-> Supabase **force le type `text/plain` sur tous les fichiers HTML** qu'il sert, pour empêcher
-> qu'on héberge des pages trompeuses sur son domaine. Le fichier se télécharge et se lit
-> correctement, mais le navigateur affiche le code source au lieu d'exécuter la page. Ce n'est
-> pas un réglage : c'est codé en dur dans leur service, et ça ne se contourne pas sans un plan
-> Pro avec domaine personnalisé.
->
-> Vérifié sur le projet réel : `HTTP 200`, 257 249 octets, `content-type: text/plain`.
->
-> Voir [supabase/storage#186](https://github.com/supabase/storage/issues/186) et
-> [discussion #39110](https://github.com/orgs/supabase/discussions/39110).
+Une seule application web, installable sur iOS et Android depuis le navigateur. Le rôle du
+compte décide de ce qui s'affiche : l'ouvrier voit son adresse du jour, l'encadrement voit le
+suivi. Une icône, une installation.
 
 ## Construire
 
 ```bash
-cd apps/web && npm install     # une seule fois, pour récupérer la bibliothèque
+cd ../web && npm install     # une seule fois, pour la bibliothèque Supabase
 cd ../statique && ./build.sh
 ```
 
-Produit `dist/tableau-de-bord.html` (~250 Ko). La bibliothèque Supabase y est **intégrée**
-plutôt que chargée depuis un CDN : la page ne dépend de rien d'autre que de votre projet.
+Produit `dist/site/` :
 
-`src/tableau-de-bord.html` est la source. Ne modifiez jamais `dist/` à la main.
+| Fichier | Rôle |
+|---|---|
+| `index.html` | L'application entière, bibliothèque Supabase intégrée (~270 Ko) |
+| `manifest.webmanifest` | Nom, icônes, affichage plein écran — ce qui la rend installable |
+| `sw.js` | Service worker : démarrage instantané et fonctionnement hors ligne |
+| `icone-*.png` | Icônes, générées sans dépendance par `src/icones.py` |
+
+`src/` est la source. Ne modifiez jamais `dist/` à la main.
 
 ## Mettre en ligne
 
-Renommez le fichier `index.html`, placez-le seul dans un dossier, puis :
+Le dossier `dist/site/` se dépose tel quel :
 
-| Hébergeur | Comment | Compte requis |
+| Hébergeur | Comment | Compte |
 |---|---|---|
-| **Netlify Drop** | Glisser le dossier sur [app.netlify.com/drop](https://app.netlify.com/drop) | non pour essayer |
-| **Cloudflare Pages** | Create a project → Direct Upload | oui, gratuit |
-| **Vercel** | Import depuis GitHub, Root Directory `apps/statique/dist` | oui, gratuit |
-| **GitHub Pages** | Uniquement si le dépôt est public, ou avec un compte Pro | oui |
+| **Netlify Drop** | Glisser le dossier sur [app.netlify.com/drop](https://app.netlify.com/drop) | facultatif pour essayer |
+| **Cloudflare Pages** | Create a project → Direct Upload | gratuit |
+| **Vercel** | Import GitHub, Root Directory `apps/statique/dist/site` | gratuit |
 
-Tous sont gratuits à cette échelle et servent bien le HTML en `text/html`.
+> ## ⚠️ Pas dans le Storage de Supabase
+>
+> Supabase **force le type `text/plain` sur tous les fichiers HTML** qu'il sert, pour empêcher
+> l'hébergement de pages trompeuses sur son domaine. Le navigateur affiche alors le code source
+> au lieu d'exécuter la page. Ce n'est pas un réglage : c'est codé en dur, et ça ne se
+> contourne pas sans plan Pro avec domaine personnalisé.
+>
+> Mesuré sur le projet réel : `HTTP 200`, 257 249 octets, `content-type: text/plain`.
+> Voir [supabase/storage#186](https://github.com/supabase/storage/issues/186).
+>
+> L'hébergement doit aussi être en **HTTPS** : sans lui, ni service worker, ni installation,
+> ni géolocalisation. Tous les hébergeurs ci-dessus le fournissent d'office.
 
-## Ce que cette version fait, et ne fait pas
+## Installer sur un téléphone
 
-Identique au tableau de bord Next.js pour l'essentiel : recherche d'adresse en direct via la
-Base Adresse Nationale, envoi multi-destinataires, temps de service, seuil de confirmation,
-suivi en temps réel, validation manuelle, alertes, marge par chantier, export CSV.
+**Android** — ouvrir l'adresse dans Chrome, puis la bannière « Installer l'application », ou
+menu ⋮ → *Ajouter à l'écran d'accueil*.
 
-**La création d'un compte ouvrier fonctionne différemment.** La version Next.js utilise la clé
-secrète côté serveur ; ici il n'y a pas de serveur, et cette clé n'a rien à faire dans une page
-publique. La page passe donc par l'inscription classique, ce qui suppose que les inscriptions
-soient ouvertes sur le projet. Si elles sont fermées — le réglage le plus sûr — la page affiche
-la requête SQL exacte à coller dans l'éditeur Supabase, avec un bouton Copier.
+**iPhone** — ouvrir l'adresse **dans Safari** (Chrome iOS ne sait pas installer), bouton
+Partager, puis *Sur l'écran d'accueil*.
+
+## Ce que cette version ne fait pas
+
+**Pas de signal d'approche en arrière-plan.** iOS n'autorise pas la surveillance de zone pour
+une application web. Le message « Vous approchez du chantier » s'affiche donc uniquement quand
+l'ouvrier a l'application ouverte. L'application native Expo (`apps/mobile/`) le fait, elle.
+
+**Pas de détection de GPS falsifié.** Le navigateur ne fournit pas l'information que le système
+donne à une application native. Le reste de l'anti-fraude tient : distance calculée côté
+serveur, horodatage serveur, pointages immuables, un compte par appareil.
+
+Si ces deux points deviennent gênants, le code natif est écrit et prêt dans `apps/mobile/`.
 
 ## Sécurité
 
 L'URL et la clé publique sont écrites en clair dans la page : c'est leur raison d'être, elles
-ne donnent accès qu'à ce que les règles de sécurité de la base autorisent. Un visiteur non
-authentifié lit zéro ligne sur toutes les tables — vérifié depuis l'extérieur.
+ne donnent accès qu'à ce que les règles de la base autorisent. Un visiteur non authentifié lit
+zéro ligne sur toutes les tables — vérifié depuis l'extérieur. La clé secrète n'est pas dans
+ce fichier et ne doit jamais y être.
 
-La clé secrète n'est pas dans ce fichier et ne doit jamais y être.
+Le service worker ne met en cache **que la coquille** — page, manifeste, icônes. Jamais les
+réponses de Supabase : servir un pointage périmé depuis un cache ferait croire à un ouvrier
+que sa journée est enregistrée alors qu'elle ne l'est pas.

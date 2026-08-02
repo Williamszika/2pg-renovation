@@ -2,8 +2,16 @@
 <html lang="fr">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>2PG — Suivi de chantier</title>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#2e3fa3">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="2PG">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" href="icone-192.png" type="image/png">
 <style>
 :root {
   --fond:#f6f5f2; --surface:#fff; --surface-2:#efede8; --surface-3:#e7e4dd;
@@ -164,6 +172,94 @@ td.n{text-align:right}
 .sql-bloc .h b{font-size:.74rem;font-weight:700;color:var(--alerte)}
 .sql-bloc pre{font-family:var(--mono);font-size:.7rem;line-height:1.6;padding:12px;overflow-x:auto;background:var(--surface);color:var(--encre-douce);white-space:pre-wrap;word-break:break-word}
 
+/* ══ Écran ouvrier ══════════════════════════════════════════════════════ */
+.ouv{max-width:520px;margin:0 auto;min-height:100vh;display:flex;flex-direction:column;
+     padding:calc(14px + env(safe-area-inset-top)) 18px calc(14px + env(safe-area-inset-bottom))}
+.ouv-tete{padding-bottom:14px}
+.ouv-tete b{display:block;font-size:1.3rem;font-weight:700;letter-spacing:-.01em}
+.ouv-tete span{font-size:.82rem;color:var(--encre-pale)}
+.ouv-corps{flex:1;display:flex;flex-direction:column;gap:14px}
+.ouv-pied{text-align:center;font-size:.7rem;color:var(--encre-pale);padding-top:14px;margin-top:14px;border-top:1px solid var(--trait-pale)}
+.ouv-pied button{font-size:.7rem;color:var(--encre-pale);text-decoration:underline;margin-left:8px}
+
+.notif{display:flex;gap:11px;align-items:flex-start;padding:13px 14px;border-radius:12px;background:var(--pigment);color:#fff}
+.notif b{display:block;font-size:.92rem;font-weight:700}
+.notif span{display:block;font-size:.8rem;opacity:.9;margin-top:1px}
+.notif .cloche{font-size:1.1rem;line-height:1.2}
+
+.adr-btn{width:100%;display:flex;gap:12px;align-items:center;text-align:left;border:1px solid var(--trait);
+         border-radius:14px;padding:16px;background:var(--surface)}
+.adr-btn:hover{border-color:var(--pigment);background:var(--pigment-pale)}
+.adr-btn .txt{flex:1;min-width:0}
+.adr-btn .nom{display:block;font-size:.8rem;font-weight:650;color:var(--encre-pale)}
+.adr-btn .rue{display:block;font-size:1.24rem;font-weight:700;line-height:1.3;margin-top:3px;letter-spacing:-.01em}
+.adr-btn .ville{display:block;font-size:1.05rem;line-height:1.3}
+.adr-btn .go{flex:none;display:flex;flex-direction:column;align-items:center;gap:2px;color:var(--pigment)}
+.adr-btn .go svg{width:28px;height:28px;display:block}
+.adr-btn .go em{font-style:normal;font-size:.62rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase}
+
+.rdv{font-size:.85rem;color:var(--encre-douce);text-align:center}
+.rdv b{color:var(--encre);font-weight:700}
+
+.geo{border-radius:12px;padding:14px;display:flex;flex-direction:column;gap:7px}
+.geo.in{background:var(--ok-pale)} .geo.out{background:var(--alerte-pale)}
+.geo .l{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.geo .l b{font-size:.95rem;font-weight:700;flex:1}
+.geo.in .l b{color:var(--ok)} .geo.out .l b{color:var(--alerte)}
+.geo .l span{font-size:.8rem;font-weight:650;color:var(--encre-douce);white-space:nowrap}
+.geo .prec{font-size:.78rem;font-weight:650;color:var(--arret)}
+
+.gros{width:100%;border-radius:14px;padding:20px 16px;color:#fff;display:flex;flex-direction:column;align-items:center;gap:3px}
+.gros b{font-size:1.18rem;font-weight:700}
+.gros span{font-size:.8rem;opacity:.88;text-align:center}
+.gros.go{background:var(--ok)} .gros.stop{background:var(--arret)}
+.gros.off{background:var(--surface-2);color:var(--encre-pale);cursor:not-allowed}
+.gros:not(.off):hover{filter:brightness(1.06)}
+.gros:not(.off):active{transform:scale(.99)}
+
+.sec{width:100%;border:1px solid var(--trait);border-radius:12px;padding:13px;font-weight:650;font-size:.9rem;background:var(--surface);text-align:center}
+.sec:hover{background:var(--surface-2)}
+.sec.discret{color:var(--encre-douce);font-size:.85rem;padding:11px}
+
+.chrono{background:var(--surface);border:1px solid var(--trait);border-radius:16px;padding:22px 14px;text-align:center}
+.chrono .lab{font-size:.66rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--encre-pale)}
+.chrono .val{font-size:2.7rem;font-weight:700;letter-spacing:-.04em;line-height:1;margin-top:5px;font-variant-numeric:tabular-nums}
+.chrono.pause .val{color:var(--alerte)}
+.chrono .sub{display:flex;justify-content:center;gap:18px;margin-top:13px;font-size:.8rem;color:var(--encre-douce);flex-wrap:wrap}
+.chrono .sub b{font-variant-numeric:tabular-nums}
+
+.note{font-size:.82rem;color:var(--encre-douce);background:var(--pigment-pale);border-radius:10px;padding:12px 13px;line-height:1.5}
+.note b{color:var(--encre)}
+.note.warn{background:var(--alerte-pale)} .note.ok{background:var(--ok-pale)}
+
+.fin{text-align:center;padding:46px 16px;display:flex;flex-direction:column;align-items:center;gap:4px}
+.fin .rond{width:56px;height:56px;border-radius:50%;background:var(--ok-pale);color:var(--ok);display:flex;
+           align-items:center;justify-content:center;font-size:1.6rem;font-weight:700;margin-bottom:10px}
+.fin b{font-size:1.15rem;font-weight:700}
+.fin .d{font-size:2.1rem;font-weight:700;letter-spacing:-.03em;font-variant-numeric:tabular-nums;margin-top:4px}
+.fin .h{font-size:.86rem;color:var(--encre-pale);font-variant-numeric:tabular-nums}
+
+.vide-ouv{text-align:center;padding:60px 14px;display:flex;flex-direction:column;gap:7px}
+.vide-ouv b{font-size:1.05rem;font-weight:700;color:var(--encre-douce)}
+.vide-ouv span{font-size:.88rem;color:var(--encre-pale)}
+
+.feuille{position:fixed;inset:0;background:rgba(15,17,21,.45);display:flex;align-items:flex-end;z-index:50}
+.feuille .boite{background:var(--surface);width:100%;max-width:520px;margin:0 auto;border-radius:18px 18px 0 0;
+                padding:20px 18px calc(20px + env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:12px}
+.feuille h3{font-size:1.05rem;font-weight:700}
+.feuille p{font-size:.85rem;color:var(--encre-douce)}
+.feuille textarea{min-height:84px;border:1px solid var(--trait);border-radius:10px;padding:11px;font-size:.95rem;
+                  background:var(--surface-2);resize:vertical;width:100%}
+.feuille .actes{display:flex;gap:10px}
+.feuille .actes button{flex:1;border-radius:10px;padding:14px;font-weight:650;font-size:.92rem}
+.feuille .annule{border:1px solid var(--trait);color:var(--encre-douce)}
+.feuille .ok{background:var(--pigment);color:#fff}
+.feuille .ok:disabled{opacity:.4;cursor:not-allowed}
+
+.bandeau{border-radius:12px;padding:12px 13px;font-size:.84rem;font-weight:600}
+.bandeau.warn{background:var(--alerte-pale);color:var(--alerte)}
+.bandeau.bad{background:var(--arret-pale);color:var(--arret)}
+
 @media (prefers-reduced-motion: reduce){*{animation:none !important;transition:none !important}}
 </style>
 </head>
@@ -185,6 +281,19 @@ td.n{text-align:right}
     <p class="aide bad" id="erreurLogin" hidden></p>
     <button type="submit" class="envoyer" id="btnLogin">Se connecter</button>
   </form>
+</main>
+
+<!-- ══ Écran ouvrier ═══════════════════════════════════════════════════════ -->
+<main class="ouv" id="ecranOuvrier" hidden>
+  <div class="ouv-tete">
+    <b id="ouvBonjour">Bonjour</b>
+    <span id="ouvDate">—</span>
+  </div>
+  <div class="ouv-corps" id="ouvCorps"></div>
+  <p class="ouv-pied">
+    Position relevée uniquement à l'arrivée et au départ.
+    <button type="button" id="ouvDeconnexion">Se déconnecter</button>
+  </p>
 </main>
 
 <!-- ══ Tableau de bord ═════════════════════════════════════════════════════ -->
@@ -448,16 +557,17 @@ async function demarrer() {
     await sb.auth.signOut();
     return;
   }
+  S.moi = moi;
+
+  // Une seule application pour tout le monde : l'ouvrier voit son adresse du
+  // jour, l'encadrement voit le suivi. Le rôle décide, pas deux installations.
   if (moi.role === "ouvrier") {
-    $("erreurLogin").textContent =
-      "Ce tableau de bord est réservé à l'encadrement. Le pointage se fait depuis l'application mobile.";
-    $("erreurLogin").hidden = false;
-    $("btnLogin").disabled = false; $("btnLogin").textContent = "Se connecter";
-    await sb.auth.signOut();
+    $("ecranLogin").hidden = true;
+    $("ecranOuvrier").hidden = false;
+    await demarrerOuvrier();
     return;
   }
 
-  S.moi = moi;
   const { data: ent } = await sb.from("entreprises").select("nom").eq("id", moi.entreprise_id).maybeSingle();
   S.entreprise = (ent && ent.nom) || "2PG Rénovation";
 
@@ -977,7 +1087,343 @@ function montrerSecours(nom, email, raison) {
   });
 }
 
+// ══════════════════════════════════════════════════════════════════════════
+// ÉCRAN OUVRIER
+// ══════════════════════════════════════════════════════════════════════════
+
+const O = {
+  data: null,          // réponse de ma_mission_du_jour()
+  dist: null,          // distance en direct, calculée sur le téléphone
+  precision: null,
+  approche: false,     // signal de proximité déjà déclenché ?
+  permis: null,        // la position est-elle autorisée ?
+  suivi: null,         // identifiant du watchPosition
+  feuille: null,       // "probleme" | "depart"
+  motif: "",
+  occupe: false,
+};
+
+const IC_NAV = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" ' +
+  'stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l18-8-8 18-2-8-8-2z"/></svg>';
+
+$("ouvDeconnexion").addEventListener("click", async () => {
+  await sb.auth.signOut();
+  location.reload();
+});
+
+/**
+ * Distance en mètres (haversine). Sert uniquement à l'affichage : la distance
+ * qui fait foi est recalculée par PostGIS au moment du pointage, côté serveur.
+ */
+function distanceM(aLat, aLon, bLat, bLon) {
+  const R = 6371000, rad = (d) => (d * Math.PI) / 180;
+  const dLat = rad(bLat - aLat), dLon = rad(bLon - aLon);
+  const s = Math.sin(dLat / 2) ** 2 +
+            Math.cos(rad(aLat)) * Math.cos(rad(bLat)) * Math.sin(dLon / 2) ** 2;
+  return Math.round(2 * R * Math.asin(Math.sqrt(s)));
+}
+function rayonApproche(r) { return Math.max(300, r * 5); }
+
+async function demarrerOuvrier() {
+  $("ouvBonjour").textContent = "Bonjour " + S.moi.nom.split(" ")[0];
+  $("ouvDate").textContent = dateLongue();
+  await chargerOuvrier();
+  suivrePosition();
+  // Le chrono avance sans requête réseau : il se recalcule depuis l'heure
+  // d'arrivée, qui vient du serveur.
+  setInterval(dessinerOuvrier, 1000);
+  setInterval(chargerOuvrier, 60000);
+  document.addEventListener("visibilitychange", () => {
+    if (!document.hidden) chargerOuvrier();
+  });
+}
+
+async function chargerOuvrier() {
+  const { data, error } = await sb.rpc("ma_mission_du_jour");
+  if (error) { dessinerOuvrier(messageLisible(error.message)); return; }
+  O.data = data || null;
+  if (O.data && O.data.etat === "envoye") {
+    await sb.rpc("marquer_vue", { p_mission_id: O.data.mission.id });
+  }
+  dessinerOuvrier();
+}
+
+function suivrePosition() {
+  if (!navigator.geolocation) { O.permis = false; dessinerOuvrier(); return; }
+  if (O.suivi !== null) navigator.geolocation.clearWatch(O.suivi);
+  O.suivi = navigator.geolocation.watchPosition(
+    (p) => {
+      O.permis = true;
+      O.precision = p.coords.accuracy;
+      if (O.data) {
+        O.dist = distanceM(p.coords.latitude, p.coords.longitude,
+                           O.data.mission.lat, O.data.mission.lon);
+        if (!O.approche && O.dist <= rayonApproche(O.data.mission.rayon_m)) O.approche = true;
+      }
+      dessinerOuvrier();
+    },
+    (e) => { O.permis = e.code !== e.PERMISSION_DENIED ? null : false; dessinerOuvrier(); },
+    { enableHighAccuracy: true, maximumAge: 5000, timeout: 20000 }
+  );
+}
+
+function positionMaintenant() {
+  return new Promise((resolve, reject) => {
+    if (!navigator.geolocation) return reject(new Error("Position indisponible"));
+    navigator.geolocation.getCurrentPosition(
+      (p) => resolve({ lat: p.coords.latitude, lon: p.coords.longitude, precision: p.coords.accuracy }),
+      (e) => reject(new Error(e.code === e.PERMISSION_DENIED
+        ? "Vous avez refusé l'accès à votre position."
+        : "Position introuvable. Sortez à l'air libre et réessayez.")),
+      { enableHighAccuracy: true, maximumAge: 0, timeout: 20000 }
+    );
+  });
+}
+
+function dessinerOuvrier(erreur) {
+  const c = $("ouvCorps");
+  if (erreur) { c.innerHTML = '<div class="bandeau bad">' + esc(erreur) + "</div>"; return; }
+
+  let h = "";
+  if (O.permis === false) {
+    h += '<div class="bandeau bad">L\'accès à votre position est refusé. ' +
+         "Sans lui, impossible de confirmer votre arrivée. Autorisez-le dans les réglages du téléphone.</div>";
+  }
+
+  if (!O.data) {
+    c.innerHTML = h + '<div class="vide-ouv"><b>Rien pour aujourd\'hui</b>' +
+      "<span>Le bureau ne vous a envoyé aucune adresse.</span></div>";
+    return;
+  }
+
+  const m = O.data.mission, j = O.data.journee || null;
+  const rayon = m.rayon_m;
+  const pres = O.dist != null && O.dist <= rayon;
+  const fiable = O.precision == null || O.precision <= rayon;
+  const peut = pres && fiable;
+
+  const carteAdresse =
+    '<button type="button" class="adr-btn" id="btnItineraire">' +
+      '<span class="txt"><span class="nom">' + esc(m.libelle) + "</span>" +
+      '<span class="rue">' + esc(m.adresse) + "</span>" +
+      (m.code_postal || m.ville
+        ? '<span class="ville">' + esc([m.code_postal, m.ville].filter(Boolean).join(" ")) + "</span>"
+        : "") + "</span>" +
+      '<span class="go">' + IC_NAV + "<em>Itinéraire</em></span></button>";
+
+  if (O.data.etat !== "confirme") {
+    if (O.approche && !peut) {
+      h += '<div class="notif"><span class="cloche">🔔</span><span>' +
+           "<b>Vous approchez du chantier</b>" +
+           "<span>" + metres(O.dist) + " — " + esc(m.libelle) + "</span></span></div>";
+    }
+    h += carteAdresse;
+    h += '<p class="rdv">Rendez-vous <b>' + heureCourte(m.heure_rdv) + "</b>  ·  " +
+         duree(m.duree_service_min) + " de service</p>";
+    h += '<div class="geo ' + (pres ? "in" : "out") + '"><div class="l">' +
+         "<b>" + (pres ? "Vous êtes sur l'adresse" : "Approchez-vous de l'adresse") + "</b>" +
+         "<span>" + (O.dist == null ? "recherche…" : metres(O.dist)) + "</span></div>" +
+         (fiable ? "" : '<p class="prec">Précision GPS ± ' + Math.round(O.precision) + " m — insuffisante</p>") +
+         "</div>";
+
+    if (peut) {
+      h += '<button type="button" class="gros go" id="btnArrive"><b>Je suis arrivé</b>' +
+           "<span>À " + metres(O.dist) + "  ·  " + heure(new Date()) + "</span></button>";
+    } else {
+      h += '<div class="gros off"><b>' +
+           (!fiable ? "GPS trop imprécis"
+             : O.dist == null ? "Recherche du signal…"
+             : "Encore " + metres(O.dist - rayon)) + "</b><span>" +
+           (!fiable ? "± " + Math.round(O.precision) + " m pour un seuil de " + rayon + " m"
+             : "Le bouton s'active à moins de " + rayon + " m") + "</span></div>";
+    }
+
+    if (O.data.etat === "probleme") {
+      h += '<div class="note warn"><b>Demande envoyée au bureau</b><br>« ' + esc(O.data.motif) + " »</div>";
+    } else if (!peut) {
+      h += '<button type="button" class="sec discret" id="btnProbleme">Je n\'arrive pas à confirmer</button>';
+    }
+  } else if (j && !j.en_cours) {
+    h += '<div class="fin"><span class="rond">✓</span><b>Journée terminée</b>' +
+         '<span class="d">' + duree(j.duree_min) + " sur le chantier</span>" +
+         '<span class="h">' + heure(j.arrivee) + " – " + heure(j.depart) + "</span></div>";
+  } else {
+    const enPause = j && j.en_pause;
+    const faites = j && j.arrivee
+      ? Math.max(0, (Date.now() - new Date(j.arrivee).getTime()) / 60000 - Number(j.pause_min || 0))
+      : 0;
+    const finPrevue = j && j.arrivee
+      ? new Date(new Date(j.arrivee).getTime() +
+                 (m.duree_service_min + Number(j.pause_min || 0)) * 60000)
+      : null;
+
+    h += carteAdresse;
+    h += '<div class="chrono' + (enPause ? " pause" : "") + '">' +
+         '<p class="lab">' + (enPause ? "En pause" : "Sur le chantier depuis") + "</p>" +
+         '<p class="val">' + duree(faites) + "</p>" +
+         '<div class="sub"><span>Arrivé <b>' + heure(j && j.arrivee) + "</b></span>" +
+         (finPrevue ? "<span>Fin prévue <b>" + heure(finPrevue) + "</b></span>" : "") +
+         "</div></div>";
+
+    if (enPause) {
+      h += '<button type="button" class="gros go" data-pointer="pause_fin"><b>Reprendre</b>' +
+           "<span>" + heure(new Date()) + "</span></button>";
+    } else {
+      h += '<button type="button" class="gros stop" data-pointer="depart"><b>J\'ai terminé</b>' +
+           "<span>" + heure(new Date()) + "</span></button>" +
+           '<button type="button" class="sec discret" data-pointer="pause_debut">Prendre ma pause</button>';
+    }
+  }
+
+  if (O.feuille) {
+    const estPb = O.feuille === "probleme";
+    h += '<div class="feuille"><div class="boite">' +
+      "<h3>" + (estPb ? "Signaler au bureau" : "Départ à " + metres(O.dist) + " du chantier") + "</h3>" +
+      "<p>" + (estPb
+        ? metres(O.dist) + "  ·  précision ± " + (O.precision ? Math.round(O.precision) : "?") + " m"
+        : "Indiquez le motif.") + "</p>" +
+      '<textarea id="champMotif" placeholder="' +
+      (estPb ? "Ex. : je suis devant la porte mais le GPS ne descend pas"
+             : "Ex. : j&apos;ai déjà chargé la camionnette") + '">' + esc(O.motif) + "</textarea>" +
+      '<div class="actes"><button type="button" class="annule" id="btnAnnuleFeuille">Annuler</button>' +
+      '<button type="button" class="ok" id="btnValideFeuille"' +
+      (O.motif.trim().length < 3 ? " disabled" : "") + ">Envoyer</button></div></div></div>";
+  }
+
+  c.innerHTML = h;
+  brancherOuvrier();
+}
+
+function brancherOuvrier() {
+  const it = $("btnItineraire");
+  if (it) it.addEventListener("click", ouvrirItineraire);
+
+  const arr = $("btnArrive");
+  if (arr) arr.addEventListener("click", confirmerArrivee);
+
+  const pb = $("btnProbleme");
+  if (pb) pb.addEventListener("click", () => { O.feuille = "probleme"; O.motif = ""; dessinerOuvrier(); });
+
+  document.querySelectorAll("[data-pointer]").forEach((b) =>
+    b.addEventListener("click", () => pointer(b.dataset.pointer))
+  );
+
+  const champ = $("champMotif");
+  if (champ) {
+    // Le chrono redessine chaque seconde : sans ça, le curseur reviendrait au
+    // début du texte à chaque frappe.
+    champ.focus();
+    champ.setSelectionRange(champ.value.length, champ.value.length);
+    champ.addEventListener("input", () => {
+      O.motif = champ.value;
+      const ok = $("btnValideFeuille");
+      if (ok) ok.disabled = O.motif.trim().length < 3;
+    });
+  }
+  const annule = $("btnAnnuleFeuille");
+  if (annule) annule.addEventListener("click", () => { O.feuille = null; O.motif = ""; dessinerOuvrier(); });
+  const valide = $("btnValideFeuille");
+  if (valide) valide.addEventListener("click", validerFeuille);
+}
+
+function ouvrirItineraire() {
+  const m = O.data.mission;
+  const label = encodeURIComponent([m.adresse, m.code_postal, m.ville].filter(Boolean).join(" "));
+  const ios = /iPad|iPhone|iPod/.test(navigator.userAgent);
+  // On passe les coordonnées ET le libellé : l'application de navigation
+  // affiche le nom de la rue plutôt qu'un point sans contexte.
+  const url = ios
+    ? "maps://?daddr=" + m.lat + "," + m.lon + "&q=" + label
+    : "geo:" + m.lat + "," + m.lon + "?q=" + m.lat + "," + m.lon + "(" + label + ")";
+  const repli = "https://www.google.com/maps/dir/?api=1&destination=" + m.lat + "," + m.lon;
+  try { location.href = url; setTimeout(() => { window.open(repli, "_blank"); }, 1200); }
+  catch { window.open(repli, "_blank"); }
+}
+
+async function confirmerArrivee() {
+  if (O.occupe) return;
+  O.occupe = true;
+  try {
+    const p = await positionMaintenant();
+    const { data, error } = await sb.rpc("confirmer_arrivee", {
+      p_mission_id: O.data.mission.id,
+      p_lat: p.lat, p_lon: p.lon, p_precision: p.precision,
+    });
+    if (error) throw new Error(messageLisible(error.message));
+    if (!data.ok) {
+      alert(data.motif === "gps_insuffisant"
+        ? "GPS trop imprécis : ± " + data.precision_m + " m. Il ne peut pas prouver que vous êtes à moins de "
+          + data.rayon_m + " m."
+        : "Vous êtes à " + metres(data.distance_m) + " du chantier. Approchez-vous.");
+      return;
+    }
+    O.approche = false;
+    await chargerOuvrier();
+  } catch (e) {
+    alert(e.message);
+  } finally { O.occupe = false; }
+}
+
+async function pointer(type, motif) {
+  if (O.occupe) return;
+  O.occupe = true;
+  try {
+    let p = null;
+    // Pas de GPS (sous-sol) : on pointe quand même, le serveur enregistre
+    // simplement une position inconnue.
+    try { p = await positionMaintenant(); } catch { /* position indisponible */ }
+
+    const { data, error } = await sb.rpc("pointer", {
+      p_mission_id: O.data.mission.id,
+      p_type: type,
+      p_lat: p ? p.lat : null, p_lon: p ? p.lon : null,
+      p_precision: p ? p.precision : null,
+      p_motif: motif || null,
+    });
+    if (error) throw new Error(messageLisible(error.message));
+    if (data && data.ok === false && data.motif === "motif_requis") {
+      O.feuille = "depart"; O.motif = ""; dessinerOuvrier();
+      return;
+    }
+    await chargerOuvrier();
+  } catch (e) {
+    alert(e.message);
+  } finally { O.occupe = false; }
+}
+
+async function validerFeuille() {
+  const motif = O.motif.trim();
+  if (motif.length < 3) return;
+  const quoi = O.feuille;
+  O.feuille = null; O.motif = "";
+
+  if (quoi === "depart") { await pointer("depart", motif); return; }
+
+  O.occupe = true;
+  try {
+    let p = null;
+    try { p = await positionMaintenant(); } catch { /* position indisponible */ }
+    const { error } = await sb.rpc("signaler_probleme", {
+      p_mission_id: O.data.mission.id, p_motif: motif,
+      p_lat: p ? p.lat : null, p_lon: p ? p.lon : null, p_precision: p ? p.precision : null,
+    });
+    if (error) throw new Error(messageLisible(error.message));
+    await chargerOuvrier();
+  } catch (e) {
+    alert(e.message);
+  } finally { O.occupe = false; }
+}
+
 // ══ Démarrage ═════════════════════════════════════════════════════════════
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("sw.js").catch(() => {
+      // Sans service worker l'application fonctionne, elle ne s'installe
+      // simplement pas et ne démarre pas hors ligne.
+    });
+  });
+}
+
 sb.auth.getSession().then(({ data }) => {
   if (data.session) demarrer();
   else $("ecranLogin").hidden = false;

@@ -5,7 +5,8 @@ dist/
 # Exception : cette page est le livrable lui-meme, elle doit etre telechargeable
 # directement depuis le depot.
 !apps/statique/dist/
-!apps/statique/dist/*.html
+!apps/statique/dist/site/
+!apps/statique/dist/site/*
 out/
 *.log
 .env
