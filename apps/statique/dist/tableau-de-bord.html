@@ -146,6 +146,7 @@ tbody tr:last-child td{border-bottom:0}
 td.n{text-align:right}
 .qui-cell b{font-weight:650}
 .qui-cell span{display:block;font-size:.74rem;color:var(--encre-pale);white-space:normal}
+.retard{display:block;font-size:.72rem;font-weight:650;color:var(--alerte);white-space:nowrap}
 
 .pastille{display:inline-flex;align-items:center;gap:5px;font-size:.7rem;font-weight:700;padding:3px 8px;border-radius:5px;white-space:nowrap}
 .pastille::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor;flex:none}
@@ -190,6 +191,7 @@ td.n{text-align:right}
 .login-box{width:100%;max-width:380px;display:flex;flex-direction:column;gap:12px}
 .login-box .marque{font-size:.7rem;font-weight:800;letter-spacing:.25em;color:var(--pigment);text-align:center}
 .login-box h1{font-family:var(--serif);font-size:1.7rem;font-weight:700;text-align:center;margin-bottom:12px;letter-spacing:-.02em}
+.login-box .version{font-family:var(--mono);font-size:.68rem;color:var(--encre-pale);text-align:center;margin-top:4px}
 
 .csv{margin:0 16px 16px;border:1px solid var(--trait);border-radius:9px;overflow:hidden}
 .csv .h{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:9px 12px;background:var(--surface-2)}
@@ -309,6 +311,7 @@ td.n{text-align:right}
     </div>
     <p class="aide bad" id="erreurLogin" hidden></p>
     <button type="submit" class="envoyer" id="btnLogin">Se connecter</button>
+    <p class="version" id="versionApp"></p>
   </form>
 </main>
 
@@ -485,6 +488,11 @@ const CONFIG = {
   cle: "sb_publishable__jvFyZBXCQaJoorIxLGJIQ_F0Us5-9N",
 };
 
+// Date de fabrication, inscrite par build.sh. Affichée sous le bouton de
+// connexion : sans elle, « j'ai redéployé mais je vois l'ancienne version »
+// n'est vérifiable qu'en comparant la taille des fichiers.
+const VERSION = "2026-08-02.1040";
+
 const sb = supabase.createClient(CONFIG.url, CONFIG.cle);
 const $ = (id) => document.getElementById(id);
 
@@ -630,6 +638,12 @@ async function demarrer() {
   // Les durées en cours avancent sans qu'aucun évènement ne soit émis :
   // le rafraîchissement périodique reste nécessaire même avec le temps réel.
   setInterval(charger, 60000);
+  // Le retard d'un ouvrier qui n'est pas encore arrivé se calcule à l'affichage :
+  // sans redessin, il resterait figé entre deux rechargements.
+  setInterval(() => {
+    const surLeTableau = !$("ecranBord").hidden && $("panneauDiag").hidden;
+    if (surLeTableau) dessinerMissions();
+  }, 30000);
 }
 
 // ══ Chargement ════════════════════════════════════════════════════════════
@@ -748,18 +762,62 @@ function dessinerAlertes() {
   );
 }
 
+/**
+ * Minutes écoulées depuis minuit, pour une heure « 08:00 » comme pour une date.
+ *
+ * On reconnaît une heure seule à sa forme, pas à son type : un horodatage ISO
+ * est lui aussi une chaîne, et « 2026-08-02T10:21:00Z ».split(":")[0] vaut
+ * « 2026-08-02T10 », dont Number() ne tire que NaN.
+ */
+function minutesDuJour(v) {
+  if (typeof v === "string" && /^\d{1,2}:\d{2}/.test(v)) {
+    const p = v.split(":");
+    return Number(p[0]) * 60 + Number(p[1]);
+  }
+  const d = new Date(v);
+  return d.getHours() * 60 + d.getMinutes();
+}
+
+/** Retard à l'arrivée, en minutes. Négatif si en avance. */
+function retardArrivee(d, heureRdv) {
+  const t = d.arrivee || d.confirme_le;
+  if (!t) return null;
+  return minutesDuJour(t) - minutesDuJour(heureRdv || "08:00");
+}
+
+/**
+ * L'état se déduit des faits, personne ne le décide.
+ *
+ *   arrivé              → vert, avec le retard chiffré s'il y en a un
+ *   pas encore arrivé   → gris avant l'heure, orange après, rouge à +30 min
+ *   GPS insuffisant     → le seul cas où un humain doit trancher
+ */
 function etatDestinataire(d, heureRdv) {
   if (d.etat === "confirme") {
-    return d.depart
-      ? '<span class="pastille idle">Journée close</span>'
+    if (d.depart) return '<span class="pastille idle">Journée close</span>';
+    const r = retardArrivee(d, heureRdv);
+    return r != null && r > 5
+      ? '<span class="pastille ok">Sur le chantier</span>' +
+        '<span class="pastille warn" style="margin-left:6px">Arrivé en retard</span>'
       : '<span class="pastille ok">Sur le chantier</span>';
   }
-  if (d.etat === "probleme") return '<span class="pastille bad">Ne peut pas confirmer</span>';
-  const p = (heureRdv || "08:00").split(":");
-  const rdv = new Date(); rdv.setHours(Number(p[0]), Number(p[1]), 0, 0);
-  if (Date.now() > rdv.getTime() + 30 * 60000) return '<span class="pastille bad">Absent</span>';
+  if (d.etat === "probleme") return '<span class="pastille bad">GPS insuffisant</span>';
+
+  const ecoule = minutesDuJour(new Date()) - minutesDuJour(heureRdv || "08:00");
+  if (ecoule > 30) return '<span class="pastille bad">Absent</span>';
+  if (ecoule > 5) return '<span class="pastille warn">En retard · ' + duree(ecoule) + "</span>";
   if (d.vue_le) return '<span class="pastille pig">Vue ' + heure(d.vue_le) + "</span>";
-  return '<span class="pastille idle">Envoyée</span>';
+  return '<span class="pastille idle">Attendu ' + heureCourte(heureRdv) + "</span>";
+}
+
+/** Heure d'arrivée, et le retard juste en dessous s'il y en a un. */
+function celluleArrivee(d, heureRdv) {
+  const t = d.arrivee || d.confirme_le;
+  if (!t) return "—";
+  const r = retardArrivee(d, heureRdv);
+  return heure(t) + (r != null && r > 5
+    ? '<span class="retard">+ ' + duree(r) + " de retard</span>"
+    : "");
 }
 
 function barreAvancement(fait, prevu) {
@@ -784,8 +842,8 @@ function dessinerMissions() {
       const fait = d.duree_min != null ? Number(d.duree_min) : null;
       return "<tr>" +
         '<td class="qui-cell"><b>' + esc(d.nom) + "</b>" + (d.motif ? "<span>« " + esc(d.motif) + " »</span>" : "") + "</td>" +
-        '<td class="n">' + heure(d.arrivee || d.confirme_le) + "</td>" +
-        '<td class="n">' + (d.confirme_source === "bureau" ? "validé bureau" : metres(d.confirme_dist_m)) + "</td>" +
+        '<td class="n">' + celluleArrivee(d, m.heure_rdv) + "</td>" +
+        '<td class="n">' + (d.confirme_source === "bureau" ? "débloqué" : metres(d.confirme_dist_m)) + "</td>" +
         '<td class="n">' + (d.pause_min ? Math.round(Number(d.pause_min)) + " min" : "—") + "</td>" +
         '<td class="n">' + heure(d.depart) + "</td>" +
         '<td class="n">' + duree(fait) + "</td>" +
@@ -794,9 +852,11 @@ function dessinerMissions() {
           '<span style="color:' + (fait > m.duree_service_min ? "var(--arret)" : "inherit") + '">' +
           ecart(fait - m.duree_service_min) + "</span>") + "</td>" +
         "<td>" + etatDestinataire(d, m.heure_rdv) + "</td>" +
-        '<td class="n">' + (d.etat !== "confirme"
-          ? '<button type="button" class="btn-x ' + (d.etat === "probleme" ? "solide" : "") +
-            '" data-valider="' + d.destinataire_id + '">Valider</button>' : "") + "</td>" +
+        // Un seul cas demande une décision humaine : le GPS ne permet pas de
+        // confirmer et l'ouvrier l'a signalé. Tout le reste se règle seul.
+        '<td class="n">' + (d.etat === "probleme"
+          ? '<button type="button" class="btn-x solide" data-valider="' + d.destinataire_id +
+            '" title="Le GPS ne permet pas de confirmer sa présence">Débloquer</button>' : "") + "</td>" +
         "</tr>";
     }).join("");
 
@@ -1269,6 +1329,7 @@ async function remplirDiagnostic() {
     "API Adresse     " + ban,
     "",
     "── Application ─────────────────────────",
+    "version         " + VERSION,
     "service worker  " + sw,
     "installée       " + (installee ? "oui (plein écran)" : "non (onglet navigateur)"),
     "en ligne        " + (navigator.onLine ? "oui" : "NON"),
@@ -1315,6 +1376,8 @@ const O = {
   feuille: null,       // "probleme" | "depart"
   motif: "",
   occupe: false,
+  autoEnCours: false,  // une confirmation automatique est déjà partie
+  confirmeAuto: false, // elle a réussi — on le dit à l'ouvrier
 };
 
 const IC_NAV = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" ' +
@@ -1373,12 +1436,46 @@ function suivrePosition() {
         O.dist = distanceM(p.coords.latitude, p.coords.longitude,
                            O.data.mission.lat, O.data.mission.lon);
         if (!O.approche && O.dist <= rayonApproche(O.data.mission.rayon_m)) O.approche = true;
+        confirmerSiArrive(p);
       }
       dessinerOuvrier();
     },
     (e) => { O.permis = e.code !== e.PERMISSION_DENIED ? null : false; dessinerOuvrier(); },
     { enableHighAccuracy: true, maximumAge: 5000, timeout: 20000 }
   );
+}
+
+/**
+ * Confirmation automatique dès l'entrée dans le périmètre.
+ *
+ * L'ouvrier n'a rien à faire : franchir la limite du chantier suffit. Le bouton
+ * reste affiché comme secours, pour le cas où il ouvre l'application alors
+ * qu'il est déjà sur place et que la position n'a pas encore bougé.
+ *
+ * Le serveur revérifie tout de son côté — position, rayon, précision. Une
+ * position falsifiée dans le navigateur ne passerait pas davantage ici qu'avec
+ * un appui sur le bouton.
+ */
+function confirmerSiArrive(p) {
+  if (O.autoEnCours || O.occupe) return;
+  if (!O.data || O.data.etat === "confirme") return;
+  const r = O.data.mission.rayon_m;
+  if (O.dist == null || O.dist > r) return;
+  if (p.coords.accuracy != null && p.coords.accuracy > r) return;
+
+  O.autoEnCours = true;
+  sb.rpc("confirmer_arrivee", {
+    p_mission_id: O.data.mission.id,
+    p_lat: p.coords.latitude, p_lon: p.coords.longitude, p_precision: p.coords.accuracy,
+  }).then(({ data, error }) => {
+    if (!error && data && data.ok) {
+      O.confirmeAuto = true;
+      O.approche = false;
+      return chargerOuvrier();
+    }
+    // Refus du serveur ou réseau absent : on laisse l'ouvrier appuyer
+    // lui-même, et on réessaiera au prochain relevé de position.
+  }).finally(() => { O.autoEnCours = false; });
 }
 
 function positionMaintenant() {
@@ -1442,7 +1539,7 @@ function dessinerOuvrier(erreur) {
 
     if (peut) {
       h += '<button type="button" class="gros go" id="btnArrive"><b>Je suis arrivé</b>' +
-           "<span>À " + metres(O.dist) + "  ·  " + heure(new Date()) + "</span></button>";
+           "<span>Confirmation en cours…  ·  à " + metres(O.dist) + "</span></button>";
     } else {
       h += '<div class="gros off"><b>' +
            (!fiable ? "GPS trop imprécis"
@@ -1472,6 +1569,11 @@ function dessinerOuvrier(erreur) {
       : null;
 
     h += carteAdresse;
+    if (O.confirmeAuto) {
+      h += '<div class="note ok"><b>Présence confirmée automatiquement</b><br>' +
+           "Vous êtes entré dans le périmètre du chantier à " + heure(j && j.arrivee) +
+           ". Le bureau en a été informé.</div>";
+    }
     h += '<div class="chrono' + (enPause ? " pause" : "") + '">' +
          '<p class="lab">' + (enPause ? "En pause" : "Sur le chantier depuis") + "</p>" +
          '<p class="val">' + duree(faites) + "</p>" +
@@ -1645,6 +1747,8 @@ if ("serviceWorker" in navigator) {
     });
   });
 }
+
+$("versionApp").textContent = "version " + VERSION;
 
 sb.auth.getSession().then(({ data }) => {
   if (data.session) demarrer();

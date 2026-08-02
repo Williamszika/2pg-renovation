@@ -59,6 +59,10 @@ export default function MissionScreen({ nom }: { nom: string }) {
   const [motif, setMotif] = useState('');
 
   const suivi = useRef<{ remove: () => void } | null>(null);
+  // Une confirmation automatique déjà partie : sans ce garde, chaque relevé de
+  // position en relancerait une.
+  const autoEnCours = useRef(false);
+  const [confirmeAuto, setConfirmeAuto] = useState(false);
 
   // ---- données -------------------------------------------------------------
 
@@ -115,8 +119,10 @@ export default function MissionScreen({ nom }: { nom: string }) {
         { accuracy: Location.Accuracy.High, distanceInterval: 5, timeInterval: 4000 },
         (p) => {
           if (!vivant) return;
-          setDist(distanceM(p.coords.latitude, p.coords.longitude, lat, lon));
+          const d = distanceM(p.coords.latitude, p.coords.longitude, lat, lon);
+          setDist(d);
           setPrecision(p.coords.accuracy ?? null);
+          confirmerSiArrive(p, d);
         }
       );
       suivi.current = sub;
@@ -140,6 +146,45 @@ export default function MissionScreen({ nom }: { nom: string }) {
   }, [data?.mission.id, data?.etat, permis]);
 
   // ---- actions -------------------------------------------------------------
+
+  /**
+   * Confirmation automatique dès l'entrée dans le périmètre.
+   *
+   * L'ouvrier n'a rien à faire : franchir la limite du chantier suffit, et le
+   * bureau le voit immédiatement. Le bouton reste affiché comme secours, pour
+   * le cas où il ouvre l'application alors qu'il est déjà sur place et que la
+   * position n'a pas encore bougé.
+   *
+   * Le serveur revérifie tout — position, rayon, précision. Une position
+   * falsifiée ne passerait pas davantage ici qu'avec un appui sur le bouton.
+   */
+  async function confirmerSiArrive(p: Location.LocationObject, d: number) {
+    if (autoEnCours.current || action) return;
+    if (!data || data.etat === 'confirme') return;
+    const r = data.mission.rayon_m;
+    if (d > r) return;
+    if (p.coords.accuracy != null && p.coords.accuracy > r) return;
+
+    autoEnCours.current = true;
+    try {
+      const { data: res, error } = await supabase.rpc('confirmer_arrivee', {
+        p_mission_id: data.mission.id,
+        p_lat: p.coords.latitude,
+        p_lon: p.coords.longitude,
+        p_precision: p.coords.accuracy,
+        p_mock: (p as { mocked?: boolean }).mocked === true,
+        p_root: false,
+      });
+      if (!error && (res as { ok?: boolean })?.ok) {
+        setConfirmeAuto(true);
+        await charger();
+      }
+      // Refus du serveur ou réseau absent : on laisse l'ouvrier appuyer
+      // lui-même, et on réessaiera au prochain relevé de position.
+    } finally {
+      autoEnCours.current = false;
+    }
+  }
 
   async function confirmer() {
     if (!data) return;
@@ -398,7 +443,7 @@ export default function MissionScreen({ nom }: { nom: string }) {
                     ) : (
                       <>
                         <Text style={s.grosT}>Je suis arrivé</Text>
-                        <Text style={s.grosS}>À {metres(dist)} · {heure(new Date())}</Text>
+                        <Text style={s.grosS}>Confirmation en cours… · à {metres(dist)}</Text>
                       </>
                     )}
                   </Pressable>
@@ -446,6 +491,14 @@ export default function MissionScreen({ nom }: { nom: string }) {
               </View>
             ) : (
               <>
+                {confirmeAuto && (
+                  <View style={[s.note, { backgroundColor: c.okPale }]}>
+                    <Text style={[s.noteT, { color: c.encre }]}>Présence confirmée automatiquement</Text>
+                    <Text style={s.noteS}>
+                      Vous êtes entré dans le périmètre du chantier. Le bureau en a été informé.
+                    </Text>
+                  </View>
+                )}
                 <View style={s.chrono}>
                   <Text style={s.chronoL}>
                     {j?.en_pause ? 'En pause' : 'Sur le chantier depuis'}

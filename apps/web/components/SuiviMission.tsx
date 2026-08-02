@@ -3,22 +3,76 @@
 import { duree, ecart, heure, heureCourte, metres } from '@/lib/format';
 import type { Destinataire, SuiviMission as Suivi } from '@/lib/types';
 
+/**
+ * Minutes depuis minuit, pour une heure « 08:00 » comme pour une date.
+ *
+ * On reconnaît une heure seule à sa forme, pas à son type : un horodatage ISO
+ * est lui aussi une chaîne, et « 2026-08-02T10:21:00Z ».split(':')[0] vaut
+ * « 2026-08-02T10 », dont Number() ne tire que NaN.
+ */
+function minutesDuJour(v: string): number {
+  if (/^\d{1,2}:\d{2}/.test(v)) {
+    const [h, m] = v.split(':').map(Number);
+    return h * 60 + m;
+  }
+  const d = new Date(v);
+  return d.getHours() * 60 + d.getMinutes();
+}
+
+/** Retard à l'arrivée, en minutes. Null si pas encore arrivé. */
+function retardArrivee(d: Destinataire, heureRdv: string): number | null {
+  const t = d.arrivee ?? d.confirme_le;
+  if (!t) return null;
+  return minutesDuJour(t) - minutesDuJour(heureRdv || '08:00');
+}
+
+/**
+ * L'état se déduit des faits, personne ne le décide.
+ *
+ *   arrivé              → vert, avec le retard signalé s'il y en a un
+ *   pas encore arrivé   → gris avant l'heure, orange après, rouge à +30 min
+ *   GPS insuffisant     → le seul cas où un humain doit trancher
+ */
 function Etat({ d, heureRdv }: { d: Destinataire; heureRdv: string }) {
   if (d.etat === 'confirme') {
     if (d.depart) return <span className="pastille idle">Journée close</span>;
-    return <span className="pastille ok">Sur le chantier</span>;
+    const r = retardArrivee(d, heureRdv);
+    return (
+      <>
+        <span className="pastille ok">Sur le chantier</span>
+        {r != null && r > 5 && (
+          <span className="pastille warn" style={{ marginLeft: 6 }}>Arrivé en retard</span>
+        )}
+      </>
+    );
   }
-  if (d.etat === 'probleme') return <span className="pastille bad">Ne peut pas confirmer</span>;
+  if (d.etat === 'probleme') return <span className="pastille bad">GPS insuffisant</span>;
 
-  // En retard : l'heure de rendez-vous est dépassée de plus de 30 min.
-  const [h, m] = heureRdv.split(':').map(Number);
-  const rdv = new Date();
-  rdv.setHours(h, m, 0, 0);
-  if (Date.now() > rdv.getTime() + 30 * 60000) {
-    return <span className="pastille bad">Absent</span>;
-  }
+  const ecoule = minutesDuJour(
+    `${String(new Date().getHours()).padStart(2, '0')}:${String(new Date().getMinutes()).padStart(2, '0')}`
+  ) - minutesDuJour(heureRdv || '08:00');
+
+  if (ecoule > 30) return <span className="pastille bad">Absent</span>;
+  if (ecoule > 5) return <span className="pastille warn">En retard · {duree(ecoule)}</span>;
   if (d.vue_le) return <span className="pastille pig">Vue {heure(d.vue_le)}</span>;
-  return <span className="pastille idle">Envoyée</span>;
+  return <span className="pastille idle">Attendu {heureCourte(heureRdv)}</span>;
+}
+
+/** Heure d'arrivée, et le retard juste en dessous s'il y en a un. */
+function Arrivee({ d, heureRdv }: { d: Destinataire; heureRdv: string }) {
+  const t = d.arrivee ?? d.confirme_le;
+  if (!t) return <>—</>;
+  const r = retardArrivee(d, heureRdv);
+  return (
+    <>
+      {heure(t)}
+      {r != null && r > 5 && (
+        <span style={{ display: 'block', fontSize: '0.72rem', fontWeight: 650, color: 'var(--alerte)' }}>
+          + {duree(r)} de retard
+        </span>
+      )}
+    </>
+  );
 }
 
 function Avancement({ fait, prevu }: { fait: number | null; prevu: number }) {
@@ -88,10 +142,10 @@ export default function SuiviMission({
                     <b>{d.nom}</b>
                     {d.motif && <span title={d.motif}>« {d.motif} »</span>}
                   </td>
-                  <td className="n">{heure(d.arrivee ?? d.confirme_le)}</td>
+                  <td className="n"><Arrivee d={d} heureRdv={mission.heure_rdv} /></td>
                   <td className="n">
                     {d.confirme_source === 'bureau'
-                      ? 'validé bureau'
+                      ? 'débloqué'
                       : metres(d.confirme_dist_m)}
                   </td>
                   <td className="n">{d.pause_min ? `${Math.round(Number(d.pause_min))} min` : '—'}</td>
@@ -107,13 +161,16 @@ export default function SuiviMission({
                   </td>
                   <td><Etat d={d} heureRdv={mission.heure_rdv} /></td>
                   <td className="n">
-                    {d.etat !== 'confirme' && (
+                    {/* Un seul cas demande une décision humaine : le GPS ne permet pas
+                        de confirmer et l'ouvrier l'a signalé. Le reste se règle seul. */}
+                    {d.etat === 'probleme' && (
                       <button
                         type="button"
-                        className={`btn-x ${d.etat === 'probleme' ? 'solide' : ''}`}
+                        className="btn-x solide"
+                        title="Le GPS ne permet pas de confirmer sa présence"
                         onClick={() => onValider(d.destinataire_id)}
                       >
-                        Valider
+                        Débloquer
                       </button>
                     )}
                   </td>

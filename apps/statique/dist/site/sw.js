@@ -6,8 +6,14 @@
  * ferait croire à l'ouvrier que sa journée est enregistrée alors qu'elle ne
  * l'est pas. Tout ce qui touche aux données part sur le réseau, et échoue
  * franchement quand il n'y en a pas — l'application sait gérer ce cas.
+ *
+ * La page elle-même est servie réseau d'abord, cache en secours. Le cache
+ * d'abord ferait qu'après un nouveau dépôt, la première ouverture montre
+ * encore l'ancienne version — et personne ne pense à ouvrir deux fois.
+ * Le reste de la coquille (icônes, manifeste) change rarement et reste servi
+ * depuis le cache, rafraîchi en arrière-plan.
  */
-const CACHE = "2pg-coquille-v1";
+const CACHE = "2pg-coquille-2026-08-02.1040";
 const COQUILLE = [
   "./",
   "./index.html",
@@ -40,19 +46,27 @@ self.addEventListener("fetch", (e) => {
   // Supabase et l'API Adresse : réseau uniquement, jamais de cache.
   if (url.origin !== self.location.origin) return;
 
-  // La coquille : on sert le cache d'abord pour un démarrage instantané, et on
-  // rafraîchit en arrière-plan pour la prochaine ouverture.
+  const memorise = (rep) => {
+    if (rep && rep.status === 200) {
+      const copie = rep.clone();
+      caches.open(CACHE).then((c) => c.put(req, copie));
+    }
+    return rep;
+  };
+
+  // La page : réseau d'abord, pour ne jamais afficher une version périmée
+  // quand la connexion est là. Le cache prend le relais hors ligne.
+  if (req.mode === "navigate" || url.pathname.endsWith("/") || url.pathname.endsWith("/index.html")) {
+    e.respondWith(
+      fetch(req).then(memorise).catch(() => caches.match(req).then((c) => c || caches.match("./index.html")))
+    );
+    return;
+  }
+
+  // Icônes et manifeste : cache d'abord, rafraîchi en arrière-plan.
   e.respondWith(
     caches.match(req).then((cache) => {
-      const reseau = fetch(req)
-        .then((rep) => {
-          if (rep && rep.status === 200) {
-            const copie = rep.clone();
-            caches.open(CACHE).then((c) => c.put(req, copie));
-          }
-          return rep;
-        })
-        .catch(() => cache);
+      const reseau = fetch(req).then(memorise).catch(() => cache);
       return cache || reseau;
     })
   );

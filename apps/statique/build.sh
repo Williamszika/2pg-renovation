@@ -13,18 +13,27 @@ fi
 
 rm -rf dist/site && mkdir -p dist/site
 python3 src/icones.py
-cp src/manifest.webmanifest src/sw.js src/_headers dist/site/
+cp src/manifest.webmanifest src/_headers dist/site/
 
-python3 - "$BUNDLE" <<'PY'
+# Date de fabrication : inscrite dans la page ET dans le nom du cache du
+# service worker. Sans elle, un ancien depot reste servi depuis le cache sans
+# qu'on puisse le distinguer du nouveau.
+VERSION="$(date -u +%Y-%m-%d.%H%M)"
+sed "s/__VERSION__/$VERSION/g" src/sw.js > dist/site/sw.js
+
+python3 - "$BUNDLE" "$VERSION" <<'PY'
 import sys, pathlib
 bundle = pathlib.Path(sys.argv[1]).read_text(encoding='utf-8')
 src = pathlib.Path('src/app.html').read_text(encoding='utf-8')
 marqueur = '<!-- INJECTION:supabase-js -->'
 if marqueur not in src:
     raise SystemExit('marqueur INJECTION:supabase-js absent de la source')
+if '__VERSION__' not in src:
+    raise SystemExit('marqueur __VERSION__ absent de la source')
 out = src.replace(marqueur, '<script>\n' + bundle + '\n</script>')
+out = out.replace('__VERSION__', sys.argv[2])
 pathlib.Path('dist/site/index.html').write_text(out, encoding='utf-8')
-print(f"  index.html  {len(out)//1024} Ko")
+print(f"  index.html  {len(out)//1024} Ko  (version {sys.argv[2]})")
 PY
 
 # Copie a plat, pour ceux qui preferent un seul fichier sans installation.
