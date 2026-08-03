@@ -3,3 +3,9 @@ node_modules/
 dist/
 *.log
 .env
+
+# Projet natif regenere par « npx expo prebuild » — rien a versionner ici.
+# Il contient aussi la cle de signature, qui ne doit jamais partir dans git.
+android/
+ios/
+*.keystore
