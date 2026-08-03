@@ -1,0 +1,15 @@
+# La cle de signature ne doit jamais partir dans git : quiconque l'a peut
+# publier une mise a jour qui se fera passer pour la notre.
+*.keystore
+local.properties
+
+# Sorties intermediaires et caches
+app/build/
+build/
+.gradle/
+app-release-unsigned*.apk
+app-release-signed.apk
+app-release-bundle.aab
+
+# Signatures incrementales, regenerees a chaque compilation
+*.idsig

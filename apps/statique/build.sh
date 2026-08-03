@@ -15,6 +15,12 @@ rm -rf dist/site && mkdir -p dist/site
 python3 src/icones.py
 cp src/manifest.webmanifest src/_headers dist/site/
 
+# Prouve que l'APK Android et ce site sont bien la meme application. Sans ce
+# fichier, l'application installee affiche une barre d'adresse Chrome en haut
+# au lieu de s'ouvrir en plein ecran.
+mkdir -p dist/site/.well-known
+cp src/.well-known/assetlinks.json dist/site/.well-known/
+
 # Date de fabrication : inscrite dans la page ET dans le nom du cache du
 # service worker. Sans elle, un ancien depot reste servi depuis le cache sans
 # qu'on puisse le distinguer du nouveau.
