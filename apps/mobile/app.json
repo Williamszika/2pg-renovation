@@ -11,7 +11,9 @@
       "resizeMode": "contain",
       "backgroundColor": "#2E3FA3"
     },
-    "assetBundlePatterns": ["**/*"],
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "fr.pg2renovation.pointage",
@@ -22,7 +24,9 @@
     },
     "android": {
       "package": "fr.pg2renovation.pointage",
-      "adaptiveIcon": { "backgroundColor": "#2E3FA3" },
+      "adaptiveIcon": {
+        "backgroundColor": "#2E3FA3"
+      },
       "permissions": [
         "ACCESS_COARSE_LOCATION",
         "ACCESS_FINE_LOCATION",
@@ -38,10 +42,18 @@
           "isAndroidBackgroundLocationEnabled": true
         }
       ],
-      ["expo-notifications", { "color": "#2E3FA3" }]
+      [
+        "expo-notifications",
+        {
+          "color": "#2E3FA3"
+        }
+      ],
+      "expo-asset"
     ],
     "extra": {
-      "eas": { "projectId": "" }
+      "eas": {
+        "projectId": ""
+      }
     }
   }
 }

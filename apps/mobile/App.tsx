@@ -101,6 +101,24 @@ export default function App() {
             <Text style={s.lienT}>Se déconnecter</Text>
           </Pressable>
         </View>
+      ) : profil && profil.role !== 'ouvrier' ? (
+        // Cette application est celle de l'ouvrier : elle n'affiche qu'une
+        // adresse du jour. Un encadrant qui s'y connecte n'a aucune mission
+        // reçue et lirait « rien pour aujourd'hui » — autant le dire.
+        <View style={[s.plein, s.pad, { backgroundColor: c.fond }]}>
+          <Text style={s.titre}>Compte d'encadrement</Text>
+          <Text style={s.texte}>
+            Cette application affiche l'adresse du jour et enregistre les arrivées :
+            elle est faite pour les ouvriers.
+          </Text>
+          <Text style={s.texte}>
+            Le suivi des équipes, l'envoi des adresses et l'ajout des comptes se
+            font depuis le tableau de bord, dans le navigateur.
+          </Text>
+          <Pressable style={s.lien} onPress={() => supabase.auth.signOut()}>
+            <Text style={s.lienT}>Se déconnecter</Text>
+          </Pressable>
+        </View>
       ) : profil ? (
         <MissionScreen nom={profil.nom} />
       ) : (
