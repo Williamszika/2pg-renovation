@@ -33,7 +33,7 @@ jobs:
       name: github-pages
       url: ${{ steps.deploiement.outputs.page_url }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       # Le dossier est deja construit et versionne : rien a compiler ici.
       # On verifie seulement qu'il contient bien la page, faute de quoi la
@@ -46,7 +46,12 @@ jobs:
             apps/statique/dist/site/index.html | head -1)"
           ls -la apps/statique/dist/site/
 
+      # enablement: active Pages depuis le workflow si le depot ne l'a pas
+      # deja. Sans ce drapeau, l'action echoue par « Not Found » tant que
+      # quelqu'un n'a pas coche la case a la main dans les reglages.
       - uses: actions/configure-pages@v5
+        with:
+          enablement: true
 
       - uses: actions/upload-pages-artifact@v3
         with:
