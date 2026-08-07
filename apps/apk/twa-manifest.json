@@ -1,6 +1,6 @@
 {
   "packageId": "fr.pg2renovation.pointage",
-  "host": "hilarious-biscotti-6d0ccf.netlify.app",
+  "host": "xugujaxoqzsypltvzyny.supabase.co",
   "name": "2PG Pointage",
   "launcherName": "2PG",
   "display": "standalone",
@@ -12,19 +12,19 @@
   "navigationDividerColorDark": "#2E3FA3",
   "backgroundColor": "#2E3FA3",
   "enableNotifications": true,
-  "startUrl": "/",
-  "iconUrl": "https://hilarious-biscotti-6d0ccf.netlify.app/icone-512.png",
-  "maskableIconUrl": "https://hilarious-biscotti-6d0ccf.netlify.app/icone-maskable-512.png",
+  "startUrl": "/functions/v1/app/",
+  "iconUrl": "https://xugujaxoqzsypltvzyny.supabase.co/functions/v1/app/icone-512.png",
+  "maskableIconUrl": "https://xugujaxoqzsypltvzyny.supabase.co/functions/v1/app/icone-maskable-512.png",
   "splashScreenFadeOutDuration": 300,
   "signingKey": {
     "path": "./2pg.keystore",
     "alias": "2pg"
   },
-  "appVersionName": "1.0.0",
-  "appVersionCode": 1,
+  "appVersionName": "1.1.0",
+  "appVersionCode": 2,
   "shortcuts": [],
   "generatorApp": "bubblewrap-cli",
-  "webManifestUrl": "https://hilarious-biscotti-6d0ccf.netlify.app/manifest.webmanifest",
+  "webManifestUrl": "https://xugujaxoqzsypltvzyny.supabase.co/functions/v1/app/manifest.webmanifest",
   "fallbackType": "customtabs",
   "features": {},
   "alphaDependencies": {
@@ -33,12 +33,12 @@
   "enableSiteSettingsShortcut": true,
   "isChromeOSOnly": false,
   "isMetaQuest": false,
-  "fullScopeUrl": "https://hilarious-biscotti-6d0ccf.netlify.app/",
+  "fullScopeUrl": "https://xugujaxoqzsypltvzyny.supabase.co/functions/v1/app/",
   "minSdkVersion": 24,
   "orientation": "portrait",
   "fingerprints": [],
   "additionalTrustedOrigins": [],
   "retainedBundles": [],
   "displayOverride": [],
-  "appVersion": "1.0.0"
+  "appVersion": "1.1.0"
 }

@@ -151,6 +151,8 @@
                 <data android:scheme="https"
                     android:host="@string/hostName"
                 
+                    android:pathPrefix="/functions/v1/app/"
+                
                 />
             </intent-filter>
 
