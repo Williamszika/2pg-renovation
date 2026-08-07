@@ -13,7 +13,7 @@
  * Le reste de la coquille (icônes, manifeste) change rarement et reste servi
  * depuis le cache, rafraîchi en arrière-plan.
  */
-const CACHE = "2pg-coquille-2026-08-03.0938";
+const CACHE = "2pg-coquille-2026-08-07.0247";
 const COQUILLE = [
   "./",
   "./index.html",
@@ -45,6 +45,10 @@ self.addEventListener("fetch", (e) => {
   const url = new URL(req.url);
   // Supabase et l'API Adresse : réseau uniquement, jamais de cache.
   if (url.origin !== self.location.origin) return;
+
+  // L'APK se télécharge une fois, sur un seul téléphone. Le mettre en cache
+  // logerait presque un mégaoctet sur celui de chaque ouvrier, pour rien.
+  if (url.pathname.endsWith(".apk")) return;
 
   const memorise = (rep) => {
     if (rep && rep.status === 200) {

@@ -21,6 +21,13 @@ cp src/manifest.webmanifest src/_headers dist/site/
 mkdir -p dist/site/.well-known
 cp src/.well-known/assetlinks.json dist/site/.well-known/
 
+# L'APK voyage avec le site : une seule adresse a donner aux ouvriers, et le
+# fichier est servi par le domaine que assetlinks.json declare deja.
+if [ -f ../apk/2pg-pointage.apk ]; then
+  cp ../apk/2pg-pointage.apk dist/site/
+  echo "  2pg-pointage.apk  $(du -k ../apk/2pg-pointage.apk | cut -f1) Ko"
+fi
+
 # Date de fabrication : inscrite dans la page ET dans le nom du cache du
 # service worker. Sans elle, un ancien depot reste servi depuis le cache sans
 # qu'on puisse le distinguer du nouveau.

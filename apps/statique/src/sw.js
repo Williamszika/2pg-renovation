@@ -46,6 +46,10 @@ self.addEventListener("fetch", (e) => {
   // Supabase et l'API Adresse : réseau uniquement, jamais de cache.
   if (url.origin !== self.location.origin) return;
 
+  // L'APK se télécharge une fois, sur un seul téléphone. Le mettre en cache
+  // logerait presque un mégaoctet sur celui de chaque ouvrier, pour rien.
+  if (url.pathname.endsWith(".apk")) return;
+
   const memorise = (rep) => {
     if (rep && rep.status === 200) {
       const copie = rep.clone();
