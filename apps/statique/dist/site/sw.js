@@ -13,15 +13,15 @@
  * Le reste de la coquille (icônes, manifeste) change rarement et reste servi
  * depuis le cache, rafraîchi en arrière-plan.
  */
-const CACHE = "2pg-coquille-2026-08-07.0257";
+const CACHE = "2pg-coquille-2026-08-07.1351";
 const COQUILLE = [
   "./",
   "./index.html",
   "./manifest.webmanifest",
-  "./icone-192.png",
-  "./icone-512.png",
-  "./icone-maskable-512.png",
-  "./apple-touch-icon.png",
+  "./icone192.png",
+  "./icone512.png",
+  "./iconemaskable512.png",
+  "./appletouchicon.png",
 ];
 
 self.addEventListener("install", (e) => {

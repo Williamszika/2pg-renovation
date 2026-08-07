@@ -15,6 +15,6 @@
 # Le type qui declenche l'installateur d'Android plutot qu'un telechargement
 # anonyme. Content-Disposition force un nom de fichier lisible dans la liste
 # des telechargements du telephone.
-/2pg-pointage.apk
+/2pgpointage.apk
   Content-Type: application/vnd.android.package-archive
-  Content-Disposition: attachment; filename="2pg-pointage.apk"
+  Content-Disposition: attachment; filename="2pgpointage.apk"

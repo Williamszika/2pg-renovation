@@ -75,10 +75,10 @@ if __name__ == "__main__":
     sortie = pathlib.Path("dist/site")
     sortie.mkdir(parents=True, exist_ok=True)
     for taille, maskable, nom in [
-        (192, False, "icone-192.png"),
-        (512, False, "icone-512.png"),
-        (512, True, "icone-maskable-512.png"),
-        (180, False, "apple-touch-icon.png"),
+        (192, False, "icone192.png"),
+        (512, False, "icone512.png"),
+        (512, True, "iconemaskable512.png"),
+        (180, False, "appletouchicon.png"),
     ]:
         chemin = sortie / nom
         chemin.write_bytes(icone(taille, maskable))

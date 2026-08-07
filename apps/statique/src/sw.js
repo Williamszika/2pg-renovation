@@ -18,10 +18,10 @@ const COQUILLE = [
   "./",
   "./index.html",
   "./manifest.webmanifest",
-  "./icone-192.png",
-  "./icone-512.png",
-  "./icone-maskable-512.png",
-  "./apple-touch-icon.png",
+  "./icone192.png",
+  "./icone512.png",
+  "./iconemaskable512.png",
+  "./appletouchicon.png",
 ];
 
 self.addEventListener("install", (e) => {
