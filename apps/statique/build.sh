@@ -15,17 +15,12 @@ rm -rf dist/site && mkdir -p dist/site
 python3 src/icones.py
 cp src/manifest.webmanifest src/_headers dist/site/
 
-# Prouve que l'APK Android et ce site sont bien la meme application. Sans ce
-# fichier, l'application installee affiche une barre d'adresse Chrome en haut
-# au lieu de s'ouvrir en plein ecran.
-mkdir -p dist/site/.well-known
-cp src/.well-known/assetlinks.json dist/site/.well-known/
-
-# L'APK voyage avec le site : une seule adresse a donner aux ouvriers, et le
-# fichier est servi par le domaine que assetlinks.json declare deja.
-if [ -f ../apk/2pgpointage.apk ]; then
-  cp ../apk/2pgpointage.apk dist/site/
-  echo "  2pgpointage.apk  $(du -k ../apk/2pgpointage.apk | cut -f1) Ko"
+# L'APK Android voyage avec le site : une seule adresse a donner aux ouvriers.
+# C'est celui de apps/natif, qui porte l'application dans le fichier — pas
+# celui de apps/apk, qui ouvrait une adresse et n'a plus lieu d'etre.
+if [ -f ../natif/2pgpointage.apk ]; then
+  cp ../natif/2pgpointage.apk dist/site/
+  echo "  2pgpointage.apk  $(du -k ../natif/2pgpointage.apk | cut -f1) Ko"
 fi
 
 # Date de fabrication : inscrite dans la page ET dans le nom du cache du

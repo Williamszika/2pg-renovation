@@ -1,0 +1,56 @@
+# Publie l'application sur GitHub Pages a chaque modification.
+#
+# Le depot manuel des fichiers a coute plus de temps que tout le reste :
+# traits d'union supprimes par le navigateur, suffixes « (1) » ajoutes aux
+# telechargements, renommages un par un. Ici, plus personne ne touche un
+# fichier : le site part de ce qui est dans le depot.
+name: Publier l'application
+
+on:
+  push:
+    branches: [claude/worker-tracking-app-v3a9tn]
+    paths:
+      - 'apps/statique/dist/site/**'
+      - '.github/workflows/pages.yml'
+  # Permet aussi de republier a la demande, depuis l'onglet Actions.
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Une seule publication a la fois ; si deux poussees se suivent, la plus
+# recente gagne plutot que d'attendre son tour.
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  publier:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploiement.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      # Le dossier est deja construit et versionne : rien a compiler ici.
+      # On verifie seulement qu'il contient bien la page, faute de quoi la
+      # publication remplacerait le site par du vide sans rien signaler.
+      - name: Verifier le contenu
+        run: |
+          test -f apps/statique/dist/site/index.html \
+            || { echo "index.html absent — publication annulee"; exit 1; }
+          echo "Version publiee : $(grep -o 'const VERSION = "[^"]*"' \
+            apps/statique/dist/site/index.html | head -1)"
+          ls -la apps/statique/dist/site/
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: apps/statique/dist/site
+
+      - id: deploiement
+        uses: actions/deploy-pages@v4
