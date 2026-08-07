@@ -1,0 +1,11 @@
+{
+  "appId": "fr.pg2renovation.pointage",
+  "appName": "2PG Pointage",
+  "webDir": "www",
+  "android": {
+    "allowMixedContent": false
+  },
+  "server": {
+    "androidScheme": "https"
+  }
+}

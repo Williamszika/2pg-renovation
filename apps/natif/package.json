@@ -1,0 +1,12 @@
+{
+  "name": "2pg-natif",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Application Android autonome : les fichiers web voyagent dans l'APK, il n'y a plus rien a heberger.",
+  "dependencies": {
+    "@capacitor/android": "^8.5.0",
+    "@capacitor/cli": "^8.5.0",
+    "@capacitor/core": "^8.5.0",
+    "@capacitor/geolocation": "^8.2.1"
+  }
+}

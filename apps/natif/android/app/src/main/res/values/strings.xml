@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">2PG Pointage</string>
+    <string name="title_activity_main">2PG Pointage</string>
+    <string name="package_name">fr.pg2renovation.pointage</string>
+    <string name="custom_url_scheme">fr.pg2renovation.pointage</string>
+</resources>
