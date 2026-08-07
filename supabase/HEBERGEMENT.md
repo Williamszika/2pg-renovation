@@ -1,22 +1,60 @@
-# Héberger l'application sur Supabase, et seulement Supabase
+# Héberger l'application sur Supabase
 
-Résultat : l'application s'ouvre à l'adresse
+## Conclusion : une page web ne peut pas être servie depuis `*.supabase.co`
+
+Testé, déployé, mesuré. **Supabase neutralise tout document affichable**, quelle
+qu'en soit la source :
 
 ```
-https://xugujaxoqzsypltvzyny.supabase.co/functions/v1/app/
+content-type: text/plain
+content-security-policy: default-src 'none'; sandbox
+x-content-type-options: nosniff
 ```
 
-Base de données, comptes, fichiers et application au même endroit. Aucun autre
-hébergeur.
+C'est une protection contre l'hébergement de pages d'hameçonnage sur un domaine
+partagé. Elle s'applique aux fichiers de Storage **et** aux réponses des Edge
+Functions, et ne se désactive par aucun réglage.
 
-## Pourquoi une fonction, et pas simplement un fichier dans Storage
+Deux types déclarés ont été essayés, tous deux neutralisés :
+
+| Type déclaré par la fonction | Type réellement renvoyé |
+|---|---|
+| `text/html; charset=utf-8` | `text/plain` + sandbox |
+| `application/xhtml+xml; charset=utf-8` | `text/plain` + sandbox |
+
+**Tout le reste passe intact.** Mesuré sur la fonction déployée :
+
+| Fichier | Type renvoyé |
+|---|---|
+| `manifest.webmanifest` | `application/manifest+json` ✅ |
+| `icone192.png` | `image/png` ✅ |
+| `sw.js` | `text/javascript` ✅ |
+| `2pgpointage.apk` | `application/vnd.android.package-archive` ✅ |
+| `index.html` | `text/plain` ❌ |
+
+La fonction elle-même est correcte et reste déployée — elle sert parfaitement
+tout ce qui n'est pas une page. C'est la plateforme qui refuse, pas le code.
+
+### Ce qu'il reste comme options
+
+1. **Les 8 fichiers d'affichage sur un hébergeur statique** (Netlify, gratuit),
+   toutes les données chez Supabase. C'est le montage qui fonctionne
+   aujourd'hui. Seuls des fichiers figés sortent ; aucune donnée d'ouvrier.
+2. **Un domaine personnalisé chez Supabase** (10 $/mois). Non vérifié — et peu
+   probable : le filtre semble appliqué par le moteur d'exécution lui-même,
+   pas par le domaine. À ne pas payer sur une supposition.
+3. **Une vraie application native** (`apps/mobile`), qui parle directement à
+   l'API Supabase sans aucune page web. Seul chemin réellement « Supabase
+   uniquement », et le seul qui apporte la surveillance de zone en arrière-plan.
+   Demande EAS Build et un compte Expo gratuit.
+
+Le reste de ce document décrit le montage par Edge Function, conservé parce
+qu'il fonctionne pour tout sauf la page elle-même.
+
+## La fonction
 
 Storage renvoie **tout fichier HTML en `text/plain`**, quel que soit le type
-déclaré à l'envoi. C'est une protection délibérée contre l'hébergement de pages
-d'hameçonnage, et elle ne se désactive pas. Un `index.html` déposé dans un
-bucket s'affiche donc en code source au lieu de s'exécuter.
-
-Vérifiable en une commande :
+déclaré à l'envoi. Vérifiable en une commande :
 
 ```
 curl -sI "https://xugujaxoqzsypltvzyny.supabase.co/storage/v1/object/public/app/tableaudebord.html" | grep content-type

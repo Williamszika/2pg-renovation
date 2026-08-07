@@ -27,12 +27,12 @@ const DEFAUT = "index.html";
  *   .webmanifest   sans lui, Safari refuse d'installer l'application
  */
 const TYPES: Record<string, string> = {
-  // Pas « text/html » : la passerelle de Supabase reecrit toute reponse
-  // text/html en text/plain et y ajoute une politique de securite qui
-  // interdit toute execution — protection anti-hameconnage, appliquee aussi
-  // bien aux fichiers de Storage qu'aux reponses des fonctions. Les
-  // navigateurs affichent application/xhtml+xml comme une page ordinaire.
-  html: "application/xhtml+xml; charset=utf-8",
+  // Sans effet sur *.supabase.co : la passerelle reecrit toute reponse en
+  // text/plain des que le document est une page, et y ajoute
+  // « content-security-policy: default-src 'none'; sandbox ». Teste avec
+  // text/html puis avec application/xhtml+xml — les deux sont neutralises.
+  // Tous les autres types passent intacts. Voir supabase/HEBERGEMENT.md.
+  html: "text/html; charset=utf-8",
   js: "text/javascript; charset=utf-8",
   json: "application/json; charset=utf-8",
   webmanifest: "application/manifest+json; charset=utf-8",
