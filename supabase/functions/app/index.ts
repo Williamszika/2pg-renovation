@@ -27,7 +27,12 @@ const DEFAUT = "index.html";
  *   .webmanifest   sans lui, Safari refuse d'installer l'application
  */
 const TYPES: Record<string, string> = {
-  html: "text/html; charset=utf-8",
+  // Pas « text/html » : la passerelle de Supabase reecrit toute reponse
+  // text/html en text/plain et y ajoute une politique de securite qui
+  // interdit toute execution — protection anti-hameconnage, appliquee aussi
+  // bien aux fichiers de Storage qu'aux reponses des fonctions. Les
+  // navigateurs affichent application/xhtml+xml comme une page ordinaire.
+  html: "application/xhtml+xml; charset=utf-8",
   js: "text/javascript; charset=utf-8",
   json: "application/json; charset=utf-8",
   webmanifest: "application/manifest+json; charset=utf-8",
