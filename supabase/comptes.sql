@@ -50,14 +50,34 @@ order by
 --                                de 5 ans, la base refuse de les supprimer.
 
 -- -----------------------------------------------------------------------------
--- Changer un mot de passe
+-- « Identifiant ou mot de passe incorrect » — dans l'ordre
 -- -----------------------------------------------------------------------------
--- Pas en SQL. Authentication > Users > les trois points au bout de la ligne :
---   « Send password recovery »  envoie un lien à l'intéressé
---   « Reset password »          en fixe un nouveau, à lui transmettre
+-- Supabase renvoie le même message qu'on se trompe de mot de passe ou que le
+-- compte n'existe pas : c'est volontaire, pour qu'on ne puisse pas deviner
+-- quelles adresses sont enregistrées. Il faut donc vérifier l'adresse d'abord.
 --
--- Le patron peut aussi simplement recréer le compte depuis le tableau de bord
--- avec un nouveau mot de passe provisoire.
+-- 1) L'adresse existe-t-elle, exactement ? La requête du haut la montre.
+--    Attention à la casse et aux points : « 2pg.renovation@ » et
+--    « 2pgrenovation@ » sont deux comptes différents.
+
+-- 2) Poser un nouveau mot de passe. Remplacer les deux valeurs, puis exécuter.
+--    email_confirmed_at est renseigné au passage : sans lui, la connexion
+--    échouerait même avec le bon mot de passe.
+--
+-- update auth.users
+--    set encrypted_password = extensions.crypt('NOUVEAU-MOT-DE-PASSE',
+--                                              extensions.gen_salt('bf')),
+--        email_confirmed_at = coalesce(email_confirmed_at, now()),
+--        updated_at         = now()
+--  where email = lower('adresse@exemple.fr')
+-- returning email, email_confirmed_at is not null as "e-mail confirmé";
+--
+--    « 0 rows » en retour = l'adresse n'existe pas sous cette forme.
+--    Si « function extensions.crypt does not exist », retirer les deux
+--    « extensions. » : l'extension est alors installée dans public.
+
+-- 3) Depuis le tableau de bord Supabase, si l'on préfère les boutons :
+--    Authentication > Users > les trois points au bout de la ligne.
 
 -- -----------------------------------------------------------------------------
 -- Rattacher un compte resté orphelin — remplacer l'adresse
