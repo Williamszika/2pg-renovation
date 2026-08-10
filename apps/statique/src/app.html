@@ -183,6 +183,26 @@ td.n{text-align:right}
 .csv .h b{font-size:.72rem;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--encre-douce)}
 .csv pre{font-family:var(--mono);font-size:.72rem;line-height:1.65;padding:12px;overflow-x:auto;color:var(--encre-douce);max-height:260px}
 
+/* ══ Brouillons ═════════════════════════════════════════════════════════ */
+.actions-brouillon{display:flex;gap:8px;margin-top:10px}
+.actions-brouillon .btn-x{flex:1}
+#etatBrouillon{font-size:.68rem;font-weight:650;color:var(--encre-pale);letter-spacing:.04em}
+
+.brouillons{border:1px solid var(--trait);border-radius:10px;overflow:hidden;margin-bottom:14px}
+.brouillons .h{display:flex;justify-content:space-between;align-items:center;
+               padding:8px 12px;background:var(--surface-2)}
+.brouillons .h b{font-size:.7rem;font-weight:700;letter-spacing:.08em;
+                 text-transform:uppercase;color:var(--encre-douce)}
+.brouillons .l{display:flex;align-items:center;gap:10px;padding:9px 12px;
+               border-top:1px solid var(--trait-pale);background:var(--surface)}
+.brouillons .t{flex:1;min-width:0}
+.brouillons .t b{display:block;font-size:.86rem;font-weight:650;
+                 white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.brouillons .t span{display:block;font-size:.72rem;color:var(--encre-pale);
+                    white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.brouillons .l button{flex:none;font-size:.72rem;font-weight:650;color:var(--pigment);padding:2px 0}
+.brouillons .l button.sup{color:var(--arret)}
+
 .mdp-ligne{display:flex;gap:8px;align-items:stretch}
 .mdp-ligne input{flex:1;min-width:0}
 .mdp-ligne .btn-x{flex:0 0 auto;white-space:nowrap}
@@ -354,8 +374,10 @@ td.n{text-align:right}
 
     <!-- Envoi d'adresse -->
     <section class="panel accent">
-      <div class="panel-head"><h2>Envoyer une adresse</h2></div>
+      <div class="panel-head"><h2>Envoyer une adresse</h2><span id="etatBrouillon"></span></div>
       <div class="corps">
+        <div id="brouillons"></div>
+
         <div class="champ">
           <label for="adr">Adresse du chantier</label>
           <div class="ac">
@@ -377,13 +399,18 @@ td.n{text-align:right}
 
         <div class="deux">
           <div class="champ">
+            <label for="jour">Jour</label>
+            <input id="jour" type="date">
+          </div>
+          <div class="champ">
             <label for="heure">Heure de rendez-vous</label>
             <input id="heure" type="time" value="08:00">
           </div>
-          <div class="champ">
-            <label for="duree">Temps de service</label>
-            <select id="duree"></select>
-          </div>
+        </div>
+
+        <div class="champ">
+          <label for="duree">Temps de service</label>
+          <select id="duree"></select>
         </div>
 
         <div class="champ">
@@ -403,6 +430,10 @@ td.n{text-align:right}
 
         <p class="aide bad" id="erreurEnvoi" hidden></p>
         <button type="button" class="envoyer" id="btnEnvoyer" disabled>Choisissez une adresse</button>
+        <div class="actions-brouillon">
+          <button type="button" class="btn-x" id="btnGarder">Garder en brouillon</button>
+          <button type="button" class="btn-x" id="btnVider">Tout effacer</button>
+        </div>
       </div>
     </section>
 
@@ -526,6 +557,22 @@ function dateLongue(d) {
   const s = (d || new Date()).toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" });
   return s.charAt(0).toUpperCase() + s.slice(1);
 }
+
+/**
+ * « aujourd'hui », « demain », sinon « lundi 11 août ».
+ *
+ * On construit la date à midi : à minuit, une heure d'été ou un décalage
+ * pousserait la journée au jour précédent selon le fuseau.
+ */
+function dateCourte(iso) {
+  if (!iso) return "aujourd'hui";
+  const d = new Date(iso + "T12:00:00");
+  const ecart = Math.round((d - new Date(jourISO() + "T12:00:00")) / 86400000);
+  if (ecart === 0) return "aujourd'hui";
+  if (ecart === 1) return "demain";
+  if (ecart === -1) return "hier";
+  return d.toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" });
+}
 function esc(s) {
   return String(s == null ? "" : s)
     .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
@@ -622,6 +669,15 @@ async function demarrer() {
 
   remplirDurees();
   await charger();
+
+  // Après charger() : les cases des ouvriers n'existent qu'une fois l'équipe
+  // dessinée, et un brouillon en contient.
+  $("jour").min = jourISO();
+  const repris = lire(cleBrouillon("courant"), null);
+  restaurer(repris || Object.assign({ jour: jourISO() }, FORMULAIRE_VIERGE));
+  if (repris) $("etatBrouillon").textContent = "Brouillon repris";
+  dessinerBrouillons();
+
   brancherTempsReel();
   // Les durées en cours avancent sans qu'aucun évènement ne soit émis :
   // le rafraîchissement périodique reste nécessaire même avec le temps réel.
@@ -700,7 +756,8 @@ function dessinerDestinataires() {
     '<label><input type="checkbox" data-id="' + u.id + '"' + (coches.has(u.id) ? " checked" : "") + ">" +
     '<span class="qui">' + esc(u.nom.split(" ")[0]) + "<span>" + roleTexte(u.role) + "</span></span></label>"
   ).join("");
-  el.querySelectorAll("input").forEach((i) => i.addEventListener("change", majBoutonEnvoi));
+  el.querySelectorAll("input").forEach((i) =>
+    i.addEventListener("change", () => { majBoutonEnvoi(); sauverCourant(); }));
 }
 
 function dessinerRaccourcis() {
@@ -1035,10 +1092,11 @@ function choisir(a) {
   $("btnModifierAdr").addEventListener("click", () => {
     S.form.pick = null; S.form.chantierId = null;
     $("choisie").innerHTML = ""; $("adr").hidden = false; $("adr").value = ""; S.form.q = "";
-    dessinerRaccourcis(); majBoutonEnvoi(); $("adr").focus();
+    dessinerRaccourcis(); majBoutonEnvoi(); sauverCourant(); $("adr").focus();
   });
   dessinerRaccourcis();
   majBoutonEnvoi();
+  sauverCourant();
   if (!$("libelle").value) $("libelle").focus();
 }
 
@@ -1051,6 +1109,7 @@ $("seuils").querySelectorAll("[data-rayon]").forEach((b) =>
     $("aideSeuil").hidden = S.form.rayon > 20;
     // Le cadrage de l'aperçu dépend du rayon : on le redessine.
     if (S.form.pick) choisir(S.form.pick);
+    sauverCourant();
   })
 );
 
@@ -1063,6 +1122,180 @@ function remplirDurees() {
   s.innerHTML = h;
 }
 
+// ══ Brouillons ════════════════════════════════════════════════════════════
+//
+// Un envoi se prépare en plusieurs fois : on cherche l'adresse, on hésite sur
+// l'heure, le téléphone sonne. Fermer l'onglet ne doit rien coûter.
+//
+// Tout est gardé dans le téléphone, pas en base : c'est ce qu'il faut pour
+// survivre à un rechargement, et ça n'expose rien. En contrepartie, un
+// brouillon commencé au bureau ne suit pas sur le téléphone.
+//
+// Les clés portent l'identifiant du compte : deux comptes sur un même
+// appareil ne se mélangent pas.
+
+function cleBrouillon(quoi) {
+  return "2pg." + quoi + "." + (S.moi ? S.moi.id : "anonyme");
+}
+
+function lire(cle, defaut) {
+  try {
+    const v = localStorage.getItem(cle);
+    return v ? JSON.parse(v) : defaut;
+  } catch {
+    return defaut;   // stockage plein, navigation privée, contenu abîmé
+  }
+}
+
+function ecrire(cle, valeur) {
+  try {
+    localStorage.setItem(cle, JSON.stringify(valeur));
+  } catch {
+    // Sans stockage, l'application marche — elle ne retient simplement rien.
+  }
+}
+
+/** Ce qu'il y a dans le formulaire, à un instant donné. */
+function etatFormulaire() {
+  return {
+    pick: S.form.pick,
+    chantierId: S.form.chantierId,
+    rayon: S.form.rayon,
+    libelle: $("libelle").value,
+    jour: $("jour").value,
+    heure: $("heure").value,
+    duree: $("duree").value,
+    destinataires: destinatairesCoches(),
+  };
+}
+
+/** Le formulaire est-il vierge ? Inutile de garder trace du vide. */
+function formulaireVide(e) {
+  return !e.pick && !e.libelle.trim() && e.destinataires.length === 0;
+}
+
+function appliquerFormulaire(e) {
+  S.form.rayon = e.rayon || 50;
+  $("seuils").querySelectorAll("[data-rayon]").forEach((x) =>
+    x.setAttribute("aria-pressed", String(Number(x.dataset.rayon) === S.form.rayon)));
+  $("aideSeuil").hidden = S.form.rayon > 20;
+
+  $("libelle").value = e.libelle || "";
+  $("jour").value = e.jour || jourISO();
+  $("heure").value = e.heure || "08:00";
+  if (e.duree) $("duree").value = e.duree;
+
+  S.form.chantierId = e.chantierId || null;
+  if (e.pick) choisir(e.pick);
+  else {
+    S.form.pick = null;
+    $("choisie").innerHTML = ""; $("adr").hidden = false; $("adr").value = "";
+  }
+
+  // Les cases ne existent qu'une fois l'équipe dessinée.
+  const set = new Set(e.destinataires || []);
+  $("destinataires").querySelectorAll("input[data-id]").forEach((i) => {
+    i.checked = set.has(i.dataset.id);
+  });
+
+  dessinerRaccourcis();
+  majBoutonEnvoi();
+}
+
+/**
+ * Enregistrement automatique, différé d'une demi-seconde : on écrit après la
+ * frappe, pas à chaque lettre.
+ *
+ * Remplir le formulaire par programme — reprendre un brouillon, le vider —
+ * déclencherait ce report en cascade, et l'écriture retardée viendrait
+ * ensuite écraser le message affiché entre-temps. D'où le drapeau : pendant
+ * qu'on remplit les champs nous-mêmes, on ne réenregistre pas.
+ */
+let minuteurBrouillon = null;
+let enRestauration = false;
+
+function sauverCourant() {
+  if (enRestauration) return;
+  clearTimeout(minuteurBrouillon);
+  minuteurBrouillon = setTimeout(() => {
+    const e = etatFormulaire();
+    if (formulaireVide(e)) {
+      localStorage.removeItem(cleBrouillon("courant"));
+      $("etatBrouillon").textContent = "";
+      return;
+    }
+    ecrire(cleBrouillon("courant"), e);
+    $("etatBrouillon").textContent = "Brouillon gardé " + heure(new Date());
+  }, 500);
+}
+
+/** Remplit le formulaire sans que cela compte comme une modification. */
+function restaurer(e) {
+  enRestauration = true;
+  clearTimeout(minuteurBrouillon);
+  try { appliquerFormulaire(e); } finally { enRestauration = false; }
+}
+
+const FORMULAIRE_VIERGE = { rayon: 50, heure: "08:00", duree: "480", destinataires: [] };
+
+function viderFormulaire() {
+  localStorage.removeItem(cleBrouillon("courant"));
+  restaurer(Object.assign({ jour: jourISO() }, FORMULAIRE_VIERGE));
+  $("etatBrouillon").textContent = "";
+}
+
+function dessinerBrouillons() {
+  const liste = lire(cleBrouillon("liste"), []);
+  const el = $("brouillons");
+  if (!liste.length) { el.innerHTML = ""; return; }
+
+  el.innerHTML =
+    '<div class="brouillons"><div class="h"><b>Brouillons · ' + liste.length + "</b></div>" +
+    liste.map((b) =>
+      '<div class="l"><div class="t"><b>' +
+      esc(b.libelle || (b.pick && b.pick.voie) || "Sans titre") + "</b>" +
+      "<span>" + esc(dateCourte(b.jour)) + " à " + heureCourte(b.heure) + " · " +
+      (b.destinataires.length || "aucun") + " ouvrier" + (b.destinataires.length > 1 ? "s" : "") +
+      "</span></div>" +
+      '<button type="button" data-reprendre="' + b.id + '">Reprendre</button>' +
+      '<button type="button" class="sup" data-supprimer="' + b.id + '">Effacer</button></div>'
+    ).join("") + "</div>";
+
+  el.querySelectorAll("[data-reprendre]").forEach((b) =>
+    b.addEventListener("click", () => {
+      const t = lire(cleBrouillon("liste"), []).find((x) => x.id === b.dataset.reprendre);
+      if (!t) return;
+      restaurer(t);
+      ecrire(cleBrouillon("courant"), etatFormulaire());
+      $("etatBrouillon").textContent = "Brouillon repris";
+      $("adr").scrollIntoView({ block: "center" });
+    }));
+
+  el.querySelectorAll("[data-supprimer]").forEach((b) =>
+    b.addEventListener("click", () => {
+      ecrire(cleBrouillon("liste"),
+             lire(cleBrouillon("liste"), []).filter((x) => x.id !== b.dataset.supprimer));
+      dessinerBrouillons();
+    }));
+}
+
+$("btnGarder").addEventListener("click", () => {
+  const e = etatFormulaire();
+  if (formulaireVide(e)) { $("etatBrouillon").textContent = "Rien à garder"; return; }
+  e.id = String(Date.now());
+  const liste = lire(cleBrouillon("liste"), []);
+  liste.unshift(e);
+  ecrire(cleBrouillon("liste"), liste.slice(0, 20));   // au-delà, ce n'est plus un brouillon
+  dessinerBrouillons();
+  viderFormulaire();
+  $("etatBrouillon").textContent = "Mis de côté";
+});
+
+$("btnVider").addEventListener("click", viderFormulaire);
+
+["libelle", "jour", "heure", "duree"].forEach((id) =>
+  $(id).addEventListener("input", sauverCourant));
+
 // ══ Envoi ═════════════════════════════════════════════════════════════════
 function destinatairesCoches() {
   return [...$("destinataires").querySelectorAll("input:checked")].map((i) => i.dataset.id);
@@ -1072,9 +1305,12 @@ function majBoutonEnvoi() {
   const b = $("btnEnvoyer");
   if (!b) return;
   const n = destinatairesCoches().length;
+  const j = $("jour").value;
+  const plusTard = j && j > jourISO();
   b.disabled = !S.form.pick || n === 0;
   b.textContent = !S.form.pick ? "Choisissez une adresse"
     : n === 0 ? "Sélectionnez au moins un ouvrier"
+    : plusTard ? "Programmer pour " + dateCourte(j) + " · " + n + " ouvrier" + (n > 1 ? "s" : "")
     : "Envoyer l'adresse à " + n + " ouvrier" + (n > 1 ? "s" : "");
 }
 
@@ -1092,7 +1328,7 @@ $("btnEnvoyer").addEventListener("click", async () => {
     p_lat: p.lat,
     p_lon: p.lon,
     p_rayon_m: S.form.rayon,
-    p_jour: jourISO(),
+    p_jour: $("jour").value || jourISO(),
     p_heure_rdv: $("heure").value || "08:00",
     p_duree_min: Number($("duree").value),
     p_chantier_id: S.form.chantierId,
@@ -1104,8 +1340,9 @@ $("btnEnvoyer").addEventListener("click", async () => {
     b.disabled = false; majBoutonEnvoi();
     return;
   }
-  S.form.pick = null; S.form.chantierId = null; S.form.q = "";
-  $("adr").value = ""; $("adr").hidden = false; $("choisie").innerHTML = ""; $("libelle").value = "";
+  // Parti : le brouillon n'a plus lieu d'etre.
+  viderFormulaire();
+  S.form.q = "";
   await charger();
 });
 
