@@ -12,7 +12,6 @@ select
   a.email                                                   as "E-mail",
   coalesce(u.nom, '— compte non rattaché —')                as "Nom",
   coalesce(u.role::text, '—')                               as "Rôle",
-  case when u.developpeur then 'oui' else '' end            as "Dév.",
   case
     when u.id is null                then 'NE PEUT PAS ENTRER — aucune fiche'
     when not u.actif                 then 'DÉSACTIVÉ'

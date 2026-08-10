@@ -108,21 +108,6 @@ td.n,.tnum{font-variant-numeric:tabular-nums}
 .lien-gmaps:hover{background:var(--pigment-pale)}
 .lien-gmaps svg{width:14px;height:14px}
 
-/* ══ Outils du développeur ══════════════════════════════════════════════ */
-.dev-barre{display:flex;gap:3px;padding:3px;background:var(--surface-2);border:1px solid var(--trait);
-           border-radius:9px;margin-top:10px}
-.dev-barre button{flex:1;padding:7px 12px;border-radius:6px;font-size:.8rem;font-weight:650;color:var(--encre-douce);white-space:nowrap}
-.dev-barre button[aria-pressed="true"]{background:var(--pigment);color:#fff}
-.etiq-dev{display:inline-flex;align-items:center;gap:5px;font-size:.6rem;font-weight:800;
-          letter-spacing:.1em;text-transform:uppercase;color:#fff;background:var(--encre);
-          padding:2px 7px;border-radius:4px;margin-left:8px;vertical-align:middle}
-.diag{font-family:var(--mono);font-size:.72rem;line-height:1.7;padding:14px 16px;color:var(--encre-douce);
-      overflow-x:auto;white-space:pre-wrap;word-break:break-word}
-.diag b{color:var(--encre);font-weight:700}
-.dev-retour{position:fixed;left:0;right:0;bottom:0;z-index:40;background:var(--encre);color:#fff;
-            padding:10px calc(14px + env(safe-area-inset-bottom)) calc(10px + env(safe-area-inset-bottom));
-            display:flex;justify-content:center;gap:12px;align-items:center;font-size:.8rem}
-.dev-retour button{color:#fff;font-weight:700;text-decoration:underline}
 
 .dest{display:grid;gap:8px}
 @media (min-width:640px){.dest{grid-template-columns:repeat(auto-fit,minmax(160px,1fr))}}
@@ -351,24 +336,12 @@ td.n{text-align:right}
   <header class="top">
     <div>
       <p class="eyebrow" id="nomEntreprise">—</p>
-      <h1>Suivi de chantier<span class="etiq-dev" id="etiqDev" hidden>Développeur</span></h1>
+      <h1>Suivi de chantier</h1>
       <p class="jour" id="ligneJour">—</p>
-      <div class="dev-barre" id="barreDev" hidden role="group" aria-label="Changer de vue">
-        <button type="button" data-vue="patron" aria-pressed="true">Vue patron</button>
-        <button type="button" data-vue="ouvrier" aria-pressed="false">Vue ouvrier</button>
-        <button type="button" data-vue="diag" aria-pressed="false">Diagnostic</button>
-      </div>
     </div>
     <button type="button" class="btn-x" id="btnDeconnexion">Se déconnecter</button>
   </header>
 
-  <section class="panel" id="panneauDiag" hidden>
-    <div class="panel-head">
-      <h2>Diagnostic</h2>
-      <button type="button" class="btn-x" id="btnCopierDiag">Copier</button>
-    </div>
-    <pre class="diag" id="contenuDiag"></pre>
-  </section>
 
   <div class="pile">
     <div class="kpis" id="kpis"></div>
@@ -512,7 +485,7 @@ const CONFIG = {
 // Date de fabrication, inscrite par build.sh. Affichée sous le bouton de
 // connexion : sans elle, « j'ai redéployé mais je vois l'ancienne version »
 // n'est vérifiable qu'en comparant la taille des fichiers.
-const VERSION = "2026-08-10.0158";
+const VERSION = "2026-08-10.0220";
 
 // Adresse a transmettre aux ouvriers avec leurs identifiants.
 const ADRESSE_APP = "https://williamszika.github.io/2pg-renovation/";
@@ -621,7 +594,7 @@ async function demarrer() {
   if (!user) { $("ecranLogin").hidden = false; $("ecranBord").hidden = true; return; }
 
   const { data: moi } = await sb.from("utilisateurs")
-    .select("id, nom, role, entreprise_id, developpeur").eq("id", user.id).maybeSingle();
+    .select("id, nom, role, entreprise_id").eq("id", user.id).maybeSingle();
 
   if (!moi) {
     $("erreurLogin").textContent =
@@ -650,12 +623,6 @@ async function demarrer() {
   $("nomEntreprise").textContent = S.entreprise;
   $("ligneJour").textContent = dateLongue() + " · connecté en tant que " + moi.nom;
 
-  if (moi.developpeur) {
-    $("etiqDev").hidden = false;
-    $("barreDev").hidden = false;
-    brancherOutilsDev();
-  }
-
   remplirDurees();
   await charger();
   brancherTempsReel();
@@ -665,8 +632,7 @@ async function demarrer() {
   // Le retard d'un ouvrier qui n'est pas encore arrivé se calcule à l'affichage :
   // sans redessin, il resterait figé entre deux rechargements.
   setInterval(() => {
-    const surLeTableau = !$("ecranBord").hidden && $("panneauDiag").hidden;
-    if (surLeTableau) dessinerMissions();
+    if (!$("ecranBord").hidden) dessinerMissions();
   }, 30000);
 }
 
@@ -1334,126 +1300,6 @@ function montrerSecours(nom, email, raison) {
 // du rôle, et le serveur refusera toujours ce qu'il refusait.
 // ══════════════════════════════════════════════════════════════════════════
 
-function brancherOutilsDev() {
-  $("barreDev").querySelectorAll("[data-vue]").forEach((b) =>
-    b.addEventListener("click", () => basculerVue(b.dataset.vue))
-  );
-  $("btnCopierDiag").addEventListener("click", () => {
-    navigator.clipboard.writeText($("contenuDiag").textContent).then(
-      () => { $("btnCopierDiag").textContent = "Copié"; setTimeout(() => { $("btnCopierDiag").textContent = "Copier"; }, 1500); },
-      () => { $("btnCopierDiag").textContent = "Copie impossible"; }
-    );
-  });
-}
-
-function basculerVue(vue) {
-  $("barreDev").querySelectorAll("[data-vue]").forEach((x) =>
-    x.setAttribute("aria-pressed", String(x.dataset.vue === vue)));
-
-  const corpsBord = document.querySelector("#ecranBord .pile");
-
-  if (vue === "ouvrier") {
-    $("ecranBord").hidden = true;
-    $("ecranOuvrier").hidden = false;
-    if (!document.getElementById("devRetour")) {
-      const barre = document.createElement("div");
-      barre.className = "dev-retour";
-      barre.id = "devRetour";
-      barre.innerHTML = "Vue ouvrier <button type=\"button\">Revenir au tableau de bord</button>";
-      barre.querySelector("button").addEventListener("click", () => basculerVue("patron"));
-      document.body.appendChild(barre);
-    }
-    if (!O.data) demarrerOuvrier();
-    return;
-  }
-
-  const retour = document.getElementById("devRetour");
-  if (retour) retour.remove();
-  $("ecranOuvrier").hidden = true;
-  $("ecranBord").hidden = false;
-
-  const diag = vue === "diag";
-  $("panneauDiag").hidden = !diag;
-  if (corpsBord) corpsBord.hidden = diag;
-  if (diag) remplirDiagnostic();
-}
-
-/** Borne une promesse dans le temps : sans ça, un réseau muet fait attendre indéfiniment. */
-function avecDelai(promesse, ms, valeurSiTrop_long) {
-  return Promise.race([
-    promesse,
-    new Promise((r) => setTimeout(() => r(valeurSiTrop_long), ms)),
-  ]);
-}
-
-/**
- * Le panneau s'ouvre justement quand quelque chose ne marche pas — il ne doit
- * donc jamais rester bloqué à attendre le réseau. On affiche d'abord tout ce
- * qui est connu localement, puis on complète les deux lignes réseau dès
- * qu'elles répondent, ou qu'elles abandonnent.
- */
-async function remplirDiagnostic() {
-  const { data: { session } } = await sb.auth.getSession();
-  const sw = "serviceWorker" in navigator && navigator.serviceWorker.controller
-    ? "actif"
-    : "serviceWorker" in navigator ? "enregistré ou absent" : "non supporté";
-  const installee = window.matchMedia("(display-mode: standalone)").matches ||
-                    window.navigator.standalone === true;
-
-  let ePing = null, latence = null, ban = "test en cours…";
-  const rendre = () => { $("contenuDiag").textContent = texte(); };
-
-  const texte = () => [
-    "── Compte ──────────────────────────────",
-    "nom             " + S.moi.nom,
-    "role            " + S.moi.role + (S.moi.developpeur ? "  (développeur)" : ""),
-    "utilisateur_id  " + S.moi.id,
-    "entreprise      " + S.entreprise,
-    "entreprise_id   " + S.moi.entreprise_id,
-    "session expire  " + (session ? new Date(session.expires_at * 1000).toLocaleString("fr-FR") : "—"),
-    "",
-    "── Projet ──────────────────────────────",
-    "url             " + CONFIG.url,
-    "clé             " + CONFIG.cle.slice(0, 22) + "… (publique)",
-    "appel RPC       " + (latence === null ? "test en cours…"
-                        : ePing ? "ÉCHEC — " + ePing.message
-                        : latence < 0 ? "sans réponse après 8 s"
-                        : "OK en " + latence + " ms"),
-    "API Adresse     " + ban,
-    "",
-    "── Application ─────────────────────────",
-    "version         " + VERSION,
-    "service worker  " + sw,
-    "installée       " + (installee ? "oui (plein écran)" : "non (onglet navigateur)"),
-    "en ligne        " + (navigator.onLine ? "oui" : "NON"),
-    "langue          " + navigator.language,
-    "écran           " + window.innerWidth + " × " + window.innerHeight,
-    "appareil        " + navigator.userAgent,
-    "",
-    "── Données du jour ─────────────────────",
-    "missions        " + S.missions.length,
-    "destinataires   " + S.missions.reduce((n, m) => n + (m.destinataires || []).length, 0),
-    "alertes         " + S.alertes.length,
-    "équipe          " + S.equipe.length,
-    "chantiers       " + S.marges.length,
-  ].join("\n");
-
-  rendre();   // tout ce qui est local, tout de suite
-
-  const t0 = performance.now();
-  avecDelai(sb.rpc("missions_du_jour", { p_jour: jourISO() }), 8000, null).then((r) => {
-    if (r === null) { latence = -1; } else { ePing = r.error; latence = Math.round(performance.now() - t0); }
-    rendre();
-  });
-
-  const t1 = performance.now();
-  avecDelai(
-    fetch("https://api-adresse.data.gouv.fr/search/?q=blagnac&limit=1")
-      .then((r) => (r.ok ? "OK" : "HTTP " + r.status) + " en " + Math.round(performance.now() - t1) + " ms")
-      .catch((e) => "injoignable — " + e.message),
-    8000, "sans réponse après 8 s"
-  ).then((r) => { ban = r; rendre(); });
-}
 
 // ══════════════════════════════════════════════════════════════════════════
 // ÉCRAN OUVRIER

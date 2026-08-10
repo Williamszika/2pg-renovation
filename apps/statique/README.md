@@ -54,33 +54,6 @@ menu ⋮ → *Ajouter à l'écran d'accueil*.
 **iPhone** — ouvrir l'adresse **dans Safari** (Chrome iOS ne sait pas installer), bouton
 Partager, puis *Sur l'écran d'accueil*.
 
-## Mode développeur
-
-Un compte marqué `developpeur = true` voit une barre supplémentaire dans l'en-tête :
-
-| Vue | Ce qu'elle donne |
-|---|---|
-| **Vue patron** | Le tableau de bord habituel |
-| **Vue ouvrier** | L'écran de l'ouvrier, avec son propre compte — plus besoin d'un deuxième téléphone pour tester le parcours |
-| **Diagnostic** | Compte, projet, latence des appels, état du service worker, application installée ou non, volumes du jour. Bouton Copier pour transmettre le tout |
-
-L'indicateur **n'accorde aucun droit supplémentaire** : les règles de sécurité restent celles
-du rôle, et le serveur refuse exactement ce qu'il refusait. C'est de l'affichage.
-
-Pour se désigner :
-
-```sql
-update utilisateurs u
-   set developpeur = true
-  from auth.users a
- where a.id = u.id and a.email = 'vous@exemple.fr'
-returning u.nom, u.role, u.developpeur;
-```
-
-Le panneau de diagnostic s'ouvre justement quand quelque chose ne marche pas : il affiche donc
-tout ce qui est connu localement **immédiatement**, et complète les deux lignes réseau quand
-elles répondent — ou déclare forfait après 8 secondes. Il ne reste jamais bloqué à attendre.
-
 ## Cartes et itinéraires
 
 Trois usages distincts, trois choix différents :
