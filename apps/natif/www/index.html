@@ -183,6 +183,28 @@ td.n{text-align:right}
 .csv .h b{font-size:.72rem;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--encre-douce)}
 .csv pre{font-family:var(--mono);font-size:.72rem;line-height:1.65;padding:12px;overflow-x:auto;color:var(--encre-douce);max-height:260px}
 
+/* ══ Historique ═════════════════════════════════════════════════════════ */
+.histo-vide{padding:18px 4px;text-align:center;font-size:.85rem;color:var(--encre-pale)}
+.histo-titre{font-size:.7rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+             color:var(--encre-douce);margin:16px 0 6px}
+.histo-tot{display:flex;justify-content:space-between;align-items:baseline;gap:10px;
+           padding:8px 0;border-bottom:1px solid var(--trait-pale)}
+.histo-tot b{font-size:.9rem;font-weight:650}
+.histo-tot span{font-size:.78rem;color:var(--encre-pale)}
+.histo-tot .h{font-family:var(--mono);font-size:.95rem;font-weight:700;color:var(--encre)}
+
+.histo-jour{margin-top:14px}
+.histo-jour>.d{font-size:.76rem;font-weight:700;color:var(--pigment);
+               padding-bottom:4px;border-bottom:1px solid var(--trait)}
+.histo-l{display:flex;gap:10px;align-items:baseline;padding:7px 0;
+         border-bottom:1px solid var(--trait-pale);font-size:.8rem}
+.histo-l .q{flex:1;min-width:0}
+.histo-l .q b{display:block;font-weight:650;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.histo-l .q span{display:block;font-size:.72rem;color:var(--encre-pale);
+                 white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.histo-l .t{flex:none;font-family:var(--mono);font-size:.76rem;color:var(--encre-douce)}
+.histo-l .n{flex:none;font-family:var(--mono);font-size:.85rem;font-weight:700;min-width:52px;text-align:right}
+
 /* ══ Équipe ═════════════════════════════════════════════════════════════ */
 .actions-equipe{display:flex;gap:6px;justify-content:flex-end;flex-wrap:wrap}
 .ligne-bloquee td{opacity:.55}
@@ -455,13 +477,38 @@ td.n{text-align:right}
     <!-- Missions du jour -->
     <div id="missions"></div>
 
+    <!-- Historique -->
+    <section class="panel">
+      <div class="panel-head">
+        <h2>Historique</h2>
+        <button type="button" class="btn-x" id="btnHisto">Ouvrir</button>
+      </div>
+      <div class="corps" id="corpsHisto" hidden>
+        <div class="seg" id="periodes" role="group" aria-label="Période">
+          <button type="button" data-periode="7" aria-pressed="true">7 jours</button>
+          <button type="button" data-periode="mois">Ce mois</button>
+          <button type="button" data-periode="precedent">Mois dernier</button>
+        </div>
+        <div class="deux" style="margin-top:10px">
+          <div class="champ">
+            <label for="histoDebut">Du</label>
+            <input id="histoDebut" type="date">
+          </div>
+          <div class="champ">
+            <label for="histoFin">Au</label>
+            <input id="histoFin" type="date">
+          </div>
+        </div>
+        <div id="resultatHisto"></div>
+        <button type="button" class="btn-x" id="btnExport" style="width:100%;margin-top:10px">Exporter en CSV</button>
+      </div>
+    </section>
+
     <!-- Chantiers -->
     <section class="panel">
       <div class="panel-head">
         <h2>Chantiers · devisé vs réalisé</h2>
-        <button type="button" class="btn-x" id="btnExport">Exporter le mois</button>
       </div>
-      <div id="blocCsv"></div>
       <div id="listeChantiers"></div>
     </section>
 
@@ -531,7 +578,7 @@ const CONFIG = {
 // Date de fabrication, inscrite par build.sh. Affichée sous le bouton de
 // connexion : sans elle, « j'ai redéployé mais je vois l'ancienne version »
 // n'est vérifiable qu'en comparant la taille des fichiers.
-const VERSION = "2026-08-10.1826";
+const VERSION = "2026-08-10.1840";
 
 // Adresse a transmettre aux ouvriers avec leurs identifiants.
 const ADRESSE_APP = "https://williamszika.github.io/2pg-renovation/";
@@ -624,7 +671,7 @@ const S = {
   moi: null, entreprise: "",
   equipe: [], chantiers: [], missions: [], alertes: [], marges: [],
   form: { q: "", pick: null, chantierId: null, rayon: 50 },
-  csv: null,
+  histo: null,   // relevé de la période, chargé à la demande
   suggestionsEnCours: null,
 };
 
@@ -1430,33 +1477,143 @@ $("btnEnvoyer").addEventListener("click", async () => {
 });
 
 // ══ Export ════════════════════════════════════════════════════════════════
-$("btnExport").addEventListener("click", async () => {
-  if (S.csv) { S.csv = null; $("blocCsv").innerHTML = ""; $("btnExport").textContent = "Exporter le mois"; return; }
+// ══ Historique ════════════════════════════════════════════════════════════
+//
+// Rien de nouveau en base : export_mois() renvoie déjà, pour une période,
+// une ligne par salarié et par journée. Il ne manquait qu'un écran.
+
+/** Bornes d'une période nommée : [début, fin] en AAAA-MM-JJ. */
+function bornes(nom) {
   const d = new Date();
-  const debut = d.getFullYear() + "-" + dd(d.getMonth() + 1) + "-01";
-  const { data, error } = await sb.rpc("export_mois", { p_debut: debut, p_fin: jourISO() });
-  if (error) { alert(error.message); return; }
-  const lignes = data || [];
-  if (!lignes.length) {
-    S.csv = "Aucune journée sur la période.";
-  } else {
-    const cols = Object.keys(lignes[0]);
-    S.csv = [cols.join(";")].concat(
-      lignes.map((l) => cols.map((k) => String(l[k] == null ? "" : l[k]).replace(".", ",")).join(";"))
-    ).join("\n");
+  if (nom === "mois") {
+    return [d.getFullYear() + "-" + dd(d.getMonth() + 1) + "-01", jourISO()];
   }
-  $("btnExport").textContent = "Masquer l'export";
-  $("blocCsv").innerHTML = '<div class="csv"><div class="h"><b>pointages-' + jourISO() + ".csv</b>" +
-    '<button type="button" class="btn-x" id="btnTelecharger">Télécharger</button></div>' +
-    "<pre>" + esc(S.csv) + "</pre></div>";
-  $("btnTelecharger").addEventListener("click", () => {
-    const blob = new Blob(["﻿" + S.csv], { type: "text/csv;charset=utf-8" });
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(blob);
-    a.download = "pointages-" + jourISO() + ".csv";
-    document.body.appendChild(a); a.click(); a.remove();
-    setTimeout(() => URL.revokeObjectURL(a.href), 2000);
-  });
+  if (nom === "precedent") {
+    const p = new Date(d.getFullYear(), d.getMonth() - 1, 1);
+    // Le jour 0 du mois suivant est le dernier jour du mois voulu.
+    const fin = new Date(d.getFullYear(), d.getMonth(), 0);
+    return [jourISO(p), jourISO(fin)];
+  }
+  const debut = new Date(d.getTime() - 6 * 86400000);
+  return [jourISO(debut), jourISO()];
+}
+
+function heuresLisibles(h) {
+  const m = Math.round(Number(h || 0) * 60);
+  return Math.floor(m / 60) + " h " + dd(m % 60);
+}
+
+async function chargerHistorique() {
+  const debut = $("histoDebut").value, fin = $("histoFin").value;
+  if (!debut || !fin) return;
+  if (debut > fin) {
+    $("resultatHisto").innerHTML = '<p class="histo-vide">La date de début est après celle de fin.</p>';
+    return;
+  }
+  $("resultatHisto").innerHTML = '<p class="histo-vide">Lecture…</p>';
+  const { data, error } = await sb.rpc("export_mois", { p_debut: debut, p_fin: fin });
+  if (error) {
+    $("resultatHisto").innerHTML = '<p class="histo-vide">' + esc(error.message) + "</p>";
+    return;
+  }
+  S.histo = data || [];
+  dessinerHistorique();
+}
+
+function dessinerHistorique() {
+  const l = S.histo || [];
+  if (!l.length) {
+    $("resultatHisto").innerHTML = '<p class="histo-vide">Aucune journée sur cette période.</p>';
+    return;
+  }
+
+  // Total par salarié, puis détail jour par jour. Deux lectures du même
+  // relevé : combien chacun a fait, et ce qui s'est passé chaque jour.
+  const parQui = new Map();
+  const parJour = new Map();
+  let total = 0;
+
+  for (const r of l) {
+    const h = Number(r.duree_h || 0);
+    total += h;
+    const q = parQui.get(r.salarie) || { jours: 0, heures: 0 };
+    q.jours += 1; q.heures += h;
+    parQui.set(r.salarie, q);
+    if (!parJour.has(r.jour)) parJour.set(r.jour, []);
+    parJour.get(r.jour).push(r);
+  }
+
+  let h = '<p class="histo-titre">Total · ' + heuresLisibles(total) + " sur " +
+          parQui.size + " personne" + (parQui.size > 1 ? "s" : "") + "</p>";
+
+  h += [...parQui.entries()]
+    .sort((a, b) => b[1].heures - a[1].heures)
+    .map(([nom, q]) =>
+      '<div class="histo-tot"><b>' + esc(nom) + "</b>" +
+      "<span>" + q.jours + " jour" + (q.jours > 1 ? "s" : "") + "</span>" +
+      '<span class="h">' + heuresLisibles(q.heures) + "</span></div>")
+    .join("");
+
+  h += '<p class="histo-titre">Jour par jour</p>';
+  h += [...parJour.keys()].sort().reverse().map((jour) =>
+    '<div class="histo-jour"><div class="d">' + esc(dateCourte(jour)) + "</div>" +
+    parJour.get(jour).map((r) =>
+      '<div class="histo-l"><div class="q"><b>' + esc(r.salarie) + "</b>" +
+      "<span>" + esc(r.chantier || r.adresse || "") + "</span></div>" +
+      '<div class="t">' + heureCourte(r.arrivee) + " – " + heureCourte(r.depart) +
+      (r.pause_min ? "<br>" + r.pause_min + " min pause" : "") + "</div>" +
+      '<div class="n">' + heuresLisibles(r.duree_h) + "</div></div>"
+    ).join("") + "</div>"
+  ).join("");
+
+  $("resultatHisto").innerHTML = h;
+}
+
+$("btnHisto").addEventListener("click", () => {
+  const c = $("corpsHisto");
+  c.hidden = !c.hidden;
+  $("btnHisto").textContent = c.hidden ? "Ouvrir" : "Fermer";
+  // On ne va chercher le relevé qu'à la première ouverture : inutile de
+  // charger un mois d'historique à chaque affichage du tableau de bord.
+  if (!c.hidden && !S.histo) {
+    const [d, f] = bornes("7");
+    $("histoDebut").value = d; $("histoFin").value = f;
+    chargerHistorique();
+  }
+});
+
+$("periodes").querySelectorAll("[data-periode]").forEach((b) =>
+  b.addEventListener("click", () => {
+    $("periodes").querySelectorAll("button").forEach((x) =>
+      x.setAttribute("aria-pressed", String(x === b)));
+    const [d, f] = bornes(b.dataset.periode);
+    $("histoDebut").value = d; $("histoFin").value = f;
+    chargerHistorique();
+  }));
+
+["histoDebut", "histoFin"].forEach((id) =>
+  $(id).addEventListener("change", () => {
+    // Une date saisie à la main ne correspond plus à un raccourci.
+    $("periodes").querySelectorAll("button").forEach((x) => x.setAttribute("aria-pressed", "false"));
+    chargerHistorique();
+  }));
+
+$("btnExport").addEventListener("click", () => {
+  const l = S.histo || [];
+  if (!l.length) { alert("Rien à exporter sur cette période."); return; }
+  const cols = Object.keys(l[0]);
+  const csv = [cols.join(";")].concat(
+    l.map((r) => cols.map((k) => String(r[k] == null ? "" : r[k]).replace(".", ",")).join(";"))
+  ).join("\n");
+
+  const nom = "pointages-" + $("histoDebut").value + "-au-" + $("histoFin").value + ".csv";
+  // Le BOM en tête : sans lui, Excel lit les accents de travers.
+  const blob = new Blob(["\ufeff" + csv], { type: "text/csv;charset=utf-8" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = nom;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 2000);
 });
 
 // ══ Ajout d'un ouvrier ════════════════════════════════════════════════════
