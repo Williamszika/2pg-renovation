@@ -183,6 +183,12 @@ td.n{text-align:right}
 .csv .h b{font-size:.72rem;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--encre-douce)}
 .csv pre{font-family:var(--mono);font-size:.72rem;line-height:1.65;padding:12px;overflow-x:auto;color:var(--encre-douce);max-height:260px}
 
+/* ══ Équipe ═════════════════════════════════════════════════════════════ */
+.actions-equipe{display:flex;gap:6px;justify-content:flex-end;flex-wrap:wrap}
+.ligne-bloquee td{opacity:.55}
+.ligne-bloquee td:last-child{opacity:1}
+.btn-x.danger{color:var(--arret);border-color:var(--arret)}
+
 /* ══ Brouillons ═════════════════════════════════════════════════════════ */
 .actions-brouillon{display:flex;gap:8px;margin-top:10px}
 .actions-brouillon .btn-x{flex:1}
@@ -638,11 +644,15 @@ async function demarrer() {
   if (!user) { $("ecranLogin").hidden = false; $("ecranBord").hidden = true; return; }
 
   const { data: moi } = await sb.from("utilisateurs")
-    .select("id, nom, role, entreprise_id").eq("id", user.id).maybeSingle();
+    .select("id, nom, role, entreprise_id, actif").eq("id", user.id).maybeSingle();
 
-  if (!moi) {
-    $("erreurLogin").textContent =
-      "Ce compte n'est rattaché à aucune entreprise. Contactez l'administrateur.";
+  // Retiré : la fiche n'existe plus. Bloqué : elle existe mais est fermée.
+  // Dans les deux cas la session est coupée ici, et le serveur refuserait de
+  // toute façon — voir la migration 0010.
+  if (!moi || !moi.actif) {
+    $("erreurLogin").textContent = !moi
+      ? "Ce compte n'est plus rattaché à l'entreprise. Contactez le bureau."
+      : "Ce compte est bloqué. Contactez le bureau.";
     $("erreurLogin").hidden = false;
     $("btnLogin").disabled = false; $("btnLogin").textContent = "Se connecter";
     await sb.auth.signOut();
@@ -692,7 +702,7 @@ async function demarrer() {
 // ══ Chargement ════════════════════════════════════════════════════════════
 async function charger() {
   const [u, c, m, a, mg] = await Promise.all([
-    sb.from("utilisateurs").select("*").eq("actif", true).order("nom"),
+    sb.from("utilisateurs").select("*").order("actif", { ascending: false }).order("nom"),
     sb.from("chantiers").select("*").in("statut", ["prevu", "en_cours"]).order("libelle"),
     sb.rpc("missions_du_jour", { p_jour: jourISO() }),
     sb.from("alertes").select("*").eq("lue", false).order("cree_le", { ascending: false }).limit(30),
@@ -752,7 +762,7 @@ function dessinerDestinataires() {
     return;
   }
   const coches = new Set([...el.querySelectorAll("input:checked")].map((i) => i.dataset.id));
-  el.innerHTML = S.equipe.map((u) =>
+  el.innerHTML = S.equipe.filter((u) => u.actif).map((u) =>
     '<label><input type="checkbox" data-id="' + u.id + '"' + (coches.has(u.id) ? " checked" : "") + ">" +
     '<span class="qui">' + esc(u.nom.split(" ")[0]) + "<span>" + roleTexte(u.role) + "</span></span></label>"
   ).join("");
@@ -953,27 +963,88 @@ function dessinerChantiers() {
 }
 
 function dessinerEquipe() {
-  $("titreEquipe").textContent = "Équipe · " + S.equipe.length;
+  const actifs = S.equipe.filter((u) => u.actif).length;
+  const bloques = S.equipe.length - actifs;
+  $("titreEquipe").textContent =
+    "Équipe · " + actifs + (bloques ? " + " + bloques + " bloqué" + (bloques > 1 ? "s" : "") : "");
+
+  // On ne se propose pas à soi-même de se bloquer : le serveur le refuse, et
+  // le bouton n'aurait aucune raison d'exister.
+  const moi = S.moi.id;
+
   const lignes = S.equipe.map((u) =>
-    "<tr><td><b>" + esc(u.nom) + "</b></td><td>" + roleTexte(u.role) + "</td>" +
+    '<tr' + (u.actif ? "" : ' class="ligne-bloquee"') + "><td><b>" + esc(u.nom) + "</b>" +
+    (u.actif ? "" : ' <span class="pastille bad">Bloqué</span>') + "</td>" +
+    "<td>" + roleTexte(u.role) + "</td>" +
     "<td>" + esc(u.telephone || "—") + "</td>" +
     "<td>" + esc(u.appareil_nom || "—") +
     (u.appareil_nom && !u.appareil_valide_le ? ' <span class="pastille bad">À valider</span>' : "") + "</td>" +
-    '<td class="n">' + (u.appareil_nom && !u.appareil_valide_le
+    '<td class="n"><div class="actions-equipe">' +
+    (u.appareil_nom && !u.appareil_valide_le
       ? '<button type="button" class="btn-x solide" data-appareil="' + u.id + '">Valider l\'appareil</button>' : "") +
-    "</td></tr>"
+    (u.id === moi ? "" :
+      (u.actif
+        ? '<button type="button" class="btn-x" data-bloquer="' + u.id + '">Bloquer</button>'
+        : '<button type="button" class="btn-x solide" data-debloquer="' + u.id + '">Débloquer</button>' +
+          '<button type="button" class="btn-x danger" data-retirer="' + u.id + '">Supprimer</button>')) +
+    "</div></td></tr>"
   ).join("");
 
   $("listeEquipe").innerHTML = '<div class="tw"><table><thead><tr><th>Nom</th><th>Rôle</th>' +
     "<th>Téléphone</th><th>Appareil</th><th></th></tr></thead><tbody>" +
-    (lignes || '<tr><td colspan="5" class="vide-msg">Aucun compte.</td></tr>') + "</tbody></table></div>";
+    (lignes || '<tr><td colspan="5" class="vide-msg">Aucun compte.</td></tr>') + "</tbody></table></div>" +
+    '<p class="aide" id="msgEquipeAction" hidden></p>';
+
+  const nom = (id) => (S.equipe.find((x) => x.id === id) || {}).nom || "ce compte";
+  const dire = (texte, classe) => {
+    const m = $("msgEquipeAction");
+    m.className = "aide " + (classe || "");
+    m.textContent = texte;
+    m.hidden = false;
+  };
 
   $("listeEquipe").querySelectorAll("[data-appareil]").forEach((b) =>
     b.addEventListener("click", async () => {
       const { error } = await sb.from("utilisateurs")
         .update({ appareil_valide_le: new Date().toISOString() }).eq("id", b.dataset.appareil);
-      if (error) { alert(error.message); return; }
+      if (error) { dire(error.message, "bad"); return; }
       await charger();
+    })
+  );
+
+  $("listeEquipe").querySelectorAll("[data-bloquer], [data-debloquer]").forEach((b) => {
+    const id = b.dataset.bloquer || b.dataset.debloquer;
+    const bloquer = !!b.dataset.bloquer;
+    b.addEventListener("click", async () => {
+      if (bloquer && !confirm(
+        nom(id) + " ne pourra plus se connecter ni pointer, et les adresses du jour " +
+        "qu'il n'a pas encore confirmées lui seront retirées.\n\nSes heures déjà " +
+        "enregistrées sont conservées. Bloquer ?")) return;
+      b.disabled = true;
+      const { data, error } = await sb.rpc("definir_actif", {
+        p_utilisateur_id: id, p_actif: !bloquer,
+      });
+      if (error) { dire(error.message, "bad"); b.disabled = false; return; }
+      await charger();
+      dire(data.nom + (bloquer ? " est bloqué." : " peut de nouveau se connecter."), bloquer ? "warn" : "ok");
+    });
+  });
+
+  $("listeEquipe").querySelectorAll("[data-retirer]").forEach((b) =>
+    b.addEventListener("click", async () => {
+      const id = b.dataset.retirer;
+      if (!confirm("Supprimer définitivement " + nom(id) + " ?\n\n" +
+                   "Possible uniquement s'il n'a aucune heure enregistrée.")) return;
+      b.disabled = true;
+      const { data, error } = await sb.rpc("retirer_utilisateur", { p_utilisateur_id: id });
+      if (error) { dire(error.message, "bad"); b.disabled = false; return; }
+      await charger();
+      dire(data.ok
+        ? data.nom + " a été supprimé."
+        : data.nom + " a " + data.pointages + " pointage" + (data.pointages > 1 ? "s" : "") +
+          " enregistré" + (data.pointages > 1 ? "s" : "") + " : la loi impose de les garder cinq ans. " +
+          "Le compte reste bloqué, ce qui lui interdit tout accès.",
+        data.ok ? "ok" : "warn");
     })
   );
 }
