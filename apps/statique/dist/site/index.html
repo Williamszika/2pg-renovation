@@ -198,6 +198,24 @@ td.n{text-align:right}
 .csv .h b{font-size:.72rem;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--encre-douce)}
 .csv pre{font-family:var(--mono);font-size:.72rem;line-height:1.65;padding:12px;overflow-x:auto;color:var(--encre-douce);max-height:260px}
 
+.mdp-ligne{display:flex;gap:8px;align-items:stretch}
+.mdp-ligne input{flex:1;min-width:0}
+.mdp-ligne .btn-x{flex:0 0 auto;white-space:nowrap}
+
+/* Les identifiants du compte cree : le seul moment ou le mot de passe est
+   lisible. Une fois cette carte fermee, plus personne ne peut le retrouver. */
+.ident{border:1px solid var(--ok);background:var(--ok-pale);border-radius:10px;overflow:hidden;margin-top:10px}
+.ident .h{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:9px 12px}
+.ident .h b{font-size:.74rem;font-weight:700;color:var(--ok)}
+/* Un seul bloc porte le fond blanc. Deux boites blanches accolees laisseraient
+   au contraire une couture : leur frontiere tombe sur un demi-pixel, et le
+   vert de la carte transparait dans l'antialiasing. */
+.ident .corps{background:var(--surface);padding:8px 12px 12px}
+.ident dl{display:grid;grid-template-columns:auto 1fr;gap:2px 14px;margin:0 0 8px}
+.ident dt{font-size:.72rem;color:var(--encre-pale);align-self:center}
+.ident dd{font-family:var(--mono);font-size:.9rem;font-weight:700;color:var(--encre);word-break:break-all;user-select:all}
+.ident .rappel{margin:0;font-size:.72rem;color:var(--encre-douce);line-height:1.5}
+
 .sql-bloc{border:1px solid var(--alerte);background:var(--alerte-pale);border-radius:10px;overflow:hidden}
 .sql-bloc .h{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:9px 12px}
 .sql-bloc .h b{font-size:.74rem;font-weight:700;color:var(--alerte)}
@@ -450,10 +468,13 @@ td.n{text-align:right}
         </div>
         <div class="champ">
           <label for="ouvMdp">Mot de passe provisoire</label>
-          <input id="ouvMdp" type="text" autocomplete="off" placeholder="8 caractères minimum">
-          <p class="aide">À remettre à l'ouvrier avec l'adresse e-mail. C'est avec ces deux informations qu'il se connecte à l'application mobile.</p>
+          <div class="mdp-ligne">
+            <input id="ouvMdp" type="text" autocomplete="off" placeholder="8 caractères minimum">
+            <button type="button" class="btn-x" id="btnTirerMdp">Générer</button>
+          </div>
         </div>
         <p class="aide" id="msgEquipe" hidden></p>
+        <div id="identifiants"></div>
         <div id="sqlSecours"></div>
         <button type="button" class="envoyer" id="btnCreerOuvrier" disabled>Créer le compte</button>
       </div>
@@ -491,7 +512,10 @@ const CONFIG = {
 // Date de fabrication, inscrite par build.sh. Affichée sous le bouton de
 // connexion : sans elle, « j'ai redéployé mais je vois l'ancienne version »
 // n'est vérifiable qu'en comparant la taille des fichiers.
-const VERSION = "2026-08-07.1913";
+const VERSION = "2026-08-10.0201";
+
+// Adresse a transmettre aux ouvriers avec leurs identifiants.
+const ADRESSE_APP = "https://williamszika.github.io/2pg-renovation/";
 
 const sb = supabase.createClient(CONFIG.url, CONFIG.cle);
 const $ = (id) => document.getElementById(id);
@@ -1155,12 +1179,74 @@ $("btnOuvrirEquipe").addEventListener("click", () => {
   })
 );
 
+/**
+ * Mot de passe provisoire, tiré au sort.
+ *
+ * Il sera lu à voix haute ou recopié sur un bout de papier : on écarte donc
+ * ce qui se confond à l'oral comme à l'œil — I, l, 1, O, 0, et les majuscules
+ * qui obligent à préciser « en majuscule ». Deux syllabes prononçables et
+ * trois chiffres se transmettent au téléphone sans se tromper.
+ *
+ * crypto.getRandomValues et non Math.random : ce mot de passe ouvre l'accès
+ * aux données de l'entreprise le temps que l'ouvrier le change.
+ */
+function tirerMotDePasse() {
+  const c = "bcdfgjkmnpqrstvwxz", v = "aeiou", ch = "23456789";
+  const au = (s) => s[crypto.getRandomValues(new Uint32Array(1))[0] % s.length];
+  let m = "";
+  for (let i = 0; i < 3; i++) m += au(c) + au(v);
+  m += "-";
+  for (let i = 0; i < 3; i++) m += au(ch);
+  return m;
+}
+
+$("btnTirerMdp").addEventListener("click", () => {
+  $("ouvMdp").value = tirerMotDePasse();
+  $("ouvMdp").dispatchEvent(new Event("input"));
+});
+
+/**
+ * Les identifiants, affichés une seule fois.
+ *
+ * Le mot de passe n'est lisible qu'ici : la base n'en garde qu'une empreinte
+ * bcrypt, que personne ne sait inverser. Fermer cette carte sans l'avoir
+ * transmis oblige à en fixer un nouveau.
+ */
+function montrerIdentifiants(nom, email, mdp, utilisable) {
+  const message =
+    "Bonjour " + nom.split(" ")[0] + ", voici tes identifiants pour l'application 2PG.\n\n" +
+    "Adresse : " + ADRESSE_APP + "\n" +
+    "E-mail : " + email + "\n" +
+    "Mot de passe : " + mdp + "\n\n" +
+    "Sur iPhone, ouvre le lien avec Safari puis Partager > Sur l'ecran d'accueil.\n" +
+    "Sur Android, Chrome proposera d'installer l'application.";
+
+  $("identifiants").innerHTML =
+    '<div class="ident"><div class="h"><b>Identifiants de ' + esc(nom) + "</b>" +
+    '<button type="button" class="btn-x" id="btnCopierIdent">Copier le message</button></div>' +
+    '<div class="corps"><dl><dt>E-mail</dt><dd>' + esc(email) + "</dd>" +
+    "<dt>Mot de passe</dt><dd>" + esc(mdp) + "</dd></dl>" +
+    '<p class="rappel">' +
+    (utilisable
+      ? "Notez-le maintenant : il n'est lisible qu'ici. La base n'en conserve qu'une empreinte, personne ne pourra le retrouver ensuite."
+      : "La confirmation par e-mail est active sur le projet : ce compte ne pourra pas se connecter tant que le lien reçu n'aura pas été ouvert.") +
+    "</p></div></div>";
+
+  $("btnCopierIdent").addEventListener("click", () => {
+    navigator.clipboard.writeText(message).then(() => {
+      $("btnCopierIdent").textContent = "Copié";
+      setTimeout(() => ($("btnCopierIdent").textContent = "Copier le message"), 1800);
+    });
+  });
+}
+
 $("btnCreerOuvrier").addEventListener("click", async () => {
   const b = $("btnCreerOuvrier"), msg = $("msgEquipe"), sql = $("sqlSecours");
   const nom = $("ouvNom").value.trim();
   const email = $("ouvEmail").value.trim().toLowerCase();
   const mdp = $("ouvMdp").value;
-  b.disabled = true; b.textContent = "Création…"; msg.hidden = true; sql.innerHTML = "";
+  b.disabled = true; b.textContent = "Création…"; msg.hidden = true;
+  sql.innerHTML = ""; $("identifiants").innerHTML = "";
 
   // Client jetable : signUp ouvrirait une session au nom du nouveau compte et
   // remplacerait celle du patron. Avec persistSession à false, la session du
@@ -1188,13 +1274,20 @@ $("btnCreerOuvrier").addEventListener("click", async () => {
 
   // Sans session retournée, la confirmation par e-mail est active : le compte
   // existe mais ne pourra pas se connecter tant qu'il n'aura pas cliqué le lien.
-  msg.className = data.session ? "aide ok" : "aide warn";
-  msg.textContent = data.session
-    ? nom + " peut se connecter à l'application mobile avec " + email + "."
-    : nom + " est créé, mais la confirmation par e-mail est active sur le projet : "
-      + "il devra valider le lien reçu avant de pouvoir se connecter. "
-      + "Pour l'éviter : Authentication → Sign In / Providers → Email → décocher « Confirm email ».";
-  msg.hidden = false;
+  const utilisable = !!data.session;
+  if (!utilisable) {
+    msg.className = "aide warn";
+    msg.textContent =
+      "Compte créé, mais la confirmation par e-mail est active sur le projet : " +
+      "il devra valider le lien reçu avant de pouvoir se connecter. Pour l'éviter : " +
+      "Authentication → Sign In / Providers → Email → décocher « Confirm email ».";
+    msg.hidden = false;
+  }
+
+  // Les identifiants restent affichés, eux : les champs se vident pour la
+  // saisie suivante, mais le mot de passe doit rester lisible le temps de le
+  // transmettre — c'est la seule occasion de le lire.
+  montrerIdentifiants(nom, email, mdp, utilisable);
   $("ouvNom").value = ""; $("ouvEmail").value = ""; $("ouvMdp").value = "";
   b.textContent = "Créer le compte";
   await charger();
