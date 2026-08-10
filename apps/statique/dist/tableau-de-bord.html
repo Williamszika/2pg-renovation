@@ -232,6 +232,12 @@ td.n{text-align:right}
 .adr-btn .go svg{width:28px;height:28px;display:block}
 .adr-btn .go em{font-style:normal;font-size:.62rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase}
 
+/* La carte du chantier, chez l'ouvrier. Hauteur fixe : elle doit situer le
+   lieu sans repousser hors de l'ecran la distance et le bouton d'arrivee, qui
+   sont ce qu'il vient consulter. */
+.carte-ouv{border:1px solid var(--trait);border-radius:14px;overflow:hidden;background:var(--surface-2)}
+.carte-ouv iframe{display:block;width:100%;height:168px;border:0}
+
 .rdv{font-size:.85rem;color:var(--encre-douce);text-align:center}
 .rdv b{color:var(--encre);font-weight:700}
 
@@ -480,12 +486,15 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
 const CONFIG = {
   url: "https://xugujaxoqzsypltvzyny.supabase.co",
   cle: "sb_publishable__jvFyZBXCQaJoorIxLGJIQ_F0Us5-9N",
+  // Facultatif. Vide, les cartes passent par l'adresse d'integration sans cle.
+  // Renseignee, elles passent par l'API officielle de Google. Voir urlCarte().
+  cleGoogleMaps: "",
 };
 
 // Date de fabrication, inscrite par build.sh. Affichée sous le bouton de
 // connexion : sans elle, « j'ai redéployé mais je vois l'ancienne version »
 // n'est vérifiable qu'en comparant la taille des fichiers.
-const VERSION = "2026-08-10.0223";
+const VERSION = "2026-08-10.1306";
 
 // Adresse a transmettre aux ouvriers avec leurs identifiants.
 const ADRESSE_APP = "https://williamszika.github.io/2pg-renovation/";
@@ -989,24 +998,38 @@ function lienGoogleMaps(lat, lon) {
 }
 
 /**
- * Aperçu cartographique, via OpenStreetMap : gratuit, sans clé ni compte de
- * facturation, là où une carte Google exigerait les deux. Le bouton, lui,
- * ouvre bien Google Maps — c'est ce que tout le monde connaît.
+ * Adresse d'une carte Google intégrable.
+ *
+ * Sans clé, on passe par l'adresse d'intégration historique — celle que Google
+ * sert quand on demande « output=embed ». Elle ne demande ni compte ni
+ * facturation, mais n'est pas documentée : si elle cessait un jour de
+ * répondre, la carte disparaîtrait sans emporter le reste. L'adresse écrite et
+ * le bouton Itinéraire ne dépendent pas d'elle.
+ *
+ * En renseignant CONFIG.cleGoogleMaps, on bascule sur l'API officielle, elle
+ * documentée et gratuite pour cet usage. Rien d'autre à changer.
  */
+function urlCarte(lat, lon, zoom) {
+  if (CONFIG.cleGoogleMaps) {
+    return "https://www.google.com/maps/embed/v1/place?key=" +
+           encodeURIComponent(CONFIG.cleGoogleMaps) +
+           "&q=" + lat + "," + lon + "&zoom=" + zoom + "&language=fr&region=FR";
+  }
+  return "https://maps.google.com/maps?q=" + lat + "," + lon +
+         "&z=" + zoom + "&hl=fr&output=embed";
+}
+
+/** Aperçu cartographique du chantier, pour vérifier que le point tombe juste. */
 function apercuCarte(lat, lon, rayon) {
-  // Cadrage : environ six fois le rayon de confirmation, pour situer le point
-  // dans sa rue sans perdre le contexte.
-  const m = Math.max(300, rayon * 6);
-  const dLat = m / 111320;
-  const dLon = m / (111320 * Math.cos((lat * Math.PI) / 180));
-  const bbox = [lon - dLon, lat - dLat, lon + dLon, lat + dLat].map((v) => v.toFixed(6)).join(",");
-  const carte = "https://www.openstreetmap.org/export/embed.html?bbox=" + bbox +
-                "&layer=mapnik&marker=" + lat + "," + lon;
+  // Le zoom suit le rayon de confirmation : plus il est serré, plus on
+  // s'approche, pour juger si le point est sur la bonne porte.
+  const zoom = rayon <= 20 ? 18 : rayon <= 50 ? 17 : 16;
   return '<div class="apercu">' +
-    '<iframe src="' + carte + '" loading="lazy" title="Emplacement du chantier"></iframe>' +
+    '<iframe src="' + urlCarte(lat, lon, zoom) + '" loading="lazy" ' +
+    'referrerpolicy="no-referrer-when-downgrade" title="Emplacement du chantier"></iframe>' +
     '<div class="pied"><span>Vérifiez que le point est au bon endroit</span>' +
     '<a class="lien-gmaps" href="' + lienGoogleMaps(lat, lon) + '" target="_blank" rel="noopener">' +
-    IC_PIN + "Ouvrir dans Google Maps</a></div></div>";
+    IC_PIN + "Ouvrir en grand</a></div></div>";
 }
 
 function choisir(a) {
@@ -1461,6 +1484,13 @@ function dessinerOuvrier(erreur) {
         : "") + "</span>" +
       '<span class="go">' + IC_NAV + "<em>Itinéraire</em></span></button>";
 
+  // La carte se regarde, elle ne se navigue pas : l'ouvrier voit où il va sans
+  // quitter l'application, et garde le bouton Itinéraire pour la conduite.
+  // Elle vient après l'adresse écrite, qui reste lisible même sans réseau.
+  const carte =
+    '<div class="carte-ouv"><iframe src="' + urlCarte(m.lat, m.lon, 16) + '" loading="lazy" ' +
+    'referrerpolicy="no-referrer-when-downgrade" title="Le chantier sur la carte"></iframe></div>';
+
   if (O.data.etat !== "confirme") {
     if (O.approche && !peut) {
       h += '<div class="notif"><span class="cloche">🔔</span><span>' +
@@ -1468,6 +1498,7 @@ function dessinerOuvrier(erreur) {
            "<span>" + metres(O.dist) + " — " + esc(m.libelle) + "</span></span></div>";
     }
     h += carteAdresse;
+    h += carte;
     h += '<p class="rdv">Rendez-vous <b>' + heureCourte(m.heure_rdv) + "</b>  ·  " +
          duree(m.duree_service_min) + " de service</p>";
     h += '<div class="geo ' + (pres ? "in" : "out") + '"><div class="l">' +
