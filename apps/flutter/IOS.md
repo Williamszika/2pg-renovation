@@ -54,6 +54,45 @@ Flutter supprime la double écriture du code. Il ne supprime ni le Mac ni les
 L'étape 4 fonctionne avec un simple identifiant Apple gratuit, et suffit pour
 **vérifier que tout marche**. L'application expirera au bout de sept jours.
 
+### La première ouverture est refusée — c'est normal
+
+L'application s'installe, puis iOS affiche **« Développeur non fiable »** et
+refuse de l'ouvrir. Un certificat personnel doit être déclaré de confiance sur
+le téléphone lui-même ; le Mac ne peut pas le faire à sa place.
+
+Sur l'iPhone :
+
+**Réglages** → **Général** → **VPN et gestion de l'appareil** → sous
+*App développeur*, la ligne **Apple Development: …** → **Faire confiance**
+
+En allemand : *Einstellungen → Allgemein → VPN & Geräteverwaltung →
+Apple Development: … → Vertrauen*.
+
+Cette ligne n'apparaît **qu'après** une première tentative d'ouverture. Tant
+qu'on n'a pas touché l'icône au moins une fois, la page est vide et on cherche
+en vain.
+
+Une fois la confiance accordée, elle vaut pour toutes les applications signées
+par ce certificat, y compris les versions suivantes.
+
+### Deux échecs fréquents à l'étape 4
+
+**`"Macintosh HD" is out of space` / `Command CodeSign failed`.** La
+compilation iOS écrit plusieurs gigaoctets. À libérer, dans cet ordre :
+
+    rm -rf ~/Library/Developer/Xcode/DerivedData
+    rm -rf ~/Library/Developer/Xcode/"iOS DeviceSupport"
+    flutter clean
+
+Puis les runtimes de simulateur inutilisés — Xcode → Settings → Components —
+environ 8 Go chacun. Vider la corbeille ensuite : tant qu'elle n'est pas vide,
+l'espace n'est pas rendu.
+
+**Aucun certificat de signature.** Xcode → Settings → Accounts → ajouter
+l'identifiant Apple, puis dans Runner → Signing & Capabilities cocher
+*Automatically manage signing* et choisir l'équipe personnelle. Le mot de passe
+du trousseau sera demandé une fois.
+
 ## Distribuer aux ouvriers
 
 Une fois le compte développeur pris :
