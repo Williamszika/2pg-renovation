@@ -77,16 +77,43 @@ par ce certificat, y compris les versions suivantes.
 
 ### Deux échecs fréquents à l'étape 4
 
-**`"Macintosh HD" is out of space` / `Command CodeSign failed`.** La
-compilation iOS écrit plusieurs gigaoctets. À libérer, dans cet ordre :
+**`"Macintosh HD" is out of space` / `Command CodeSign failed`.** Chaque
+compilation iOS écrit plusieurs gigaoctets, et Xcode ne nettoie jamais
+derrière lui. Le même Mac se remplit donc à nouveau au bout de quelques
+essais. Il faut **au moins 15 Go libres** pour qu'une compilation aboutisse ;
+en dessous elle échoue à la signature, c'est-à-dire tout à la fin, après avoir
+fait attendre trois minutes.
+
+Voir d'abord où c'est parti :
+
+    df -h /
+    du -sh ~/Library/Developer/Xcode/DerivedData \
+           "$HOME/Library/Developer/Xcode/iOS DeviceSupport" \
+           /Library/Developer/CoreSimulator
+
+Puis libérer, dans cet ordre :
 
     rm -rf ~/Library/Developer/Xcode/DerivedData
-    rm -rf ~/Library/Developer/Xcode/"iOS DeviceSupport"
-    flutter clean
+    rm -rf "$HOME/Library/Developer/Xcode/iOS DeviceSupport"
+    rm -rf build
+    rm -rf ~/Library/Caches/CocoaPods ~/Library/Caches/com.apple.dt.Xcode
+    xcrun simctl delete all
 
-Puis les runtimes de simulateur inutilisés — Xcode → Settings → Components —
-environ 8 Go chacun. Vider la corbeille ensuite : tant qu'elle n'est pas vide,
-l'espace n'est pas rendu.
+Les runtimes de simulateur pèsent environ 8 Go chacun et ne servent à rien
+quand on teste sur un vrai iPhone :
+
+    sudo rm -rf /Library/Developer/CoreSimulator/Profiles/Runtimes
+
+Reste le coupable que personne ne soupçonne : les instantanés Time Machine
+**locaux**. macOS en garde sur le disque interne, ils peuvent occuper des
+dizaines de gigaoctets, et ils n'apparaissent nulle part dans le Finder — le
+disque paraît plein sans qu'on trouve de quoi.
+
+    tmutil listlocalsnapshots /
+    sudo tmutil thinlocalsnapshots / 20000000000 4
+
+Vider la corbeille pour finir : tant qu'elle n'est pas vide, l'espace n'est
+pas rendu.
 
 **Aucun certificat de signature.** Xcode → Settings → Accounts → ajouter
 l'identifiant Apple, puis dans Runner → Signing & Capabilities cocher
