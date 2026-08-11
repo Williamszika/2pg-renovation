@@ -13,7 +13,7 @@
  * Le reste de la coquille (icônes, manifeste) change rarement et reste servi
  * depuis le cache, rafraîchi en arrière-plan.
  */
-const CACHE = "2pg-coquille-2026-08-10.1842";
+const CACHE = "2pg-coquille-2026-08-11.0031";
 const COQUILLE = [
   "./",
   "./index.html",

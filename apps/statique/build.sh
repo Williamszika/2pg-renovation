@@ -15,13 +15,20 @@ rm -rf dist/site && mkdir -p dist/site
 python3 src/icones.py
 cp src/manifest.webmanifest src/_headers dist/site/
 
-# L'APK Android voyage avec le site : une seule adresse a donner aux ouvriers.
-# C'est celui de apps/natif, qui porte l'application dans le fichier — pas
-# celui de apps/apk, qui ouvrait une adresse et n'a plus lieu d'etre.
-if [ -f ../natif/2pgpointage.apk ]; then
-  cp ../natif/2pgpointage.apk dist/site/
-  echo "  2pgpointage.apk  $(du -k ../natif/2pgpointage.apk | cut -f1) Ko"
-fi
+# Les APK voyagent avec le site : une seule adresse a donner aux ouvriers, et
+# rien a deposer nulle part — le site se publie tout seul a chaque poussee.
+#
+#   2pgpointage.apk           Capacitor, l'application web dans une enveloppe
+#   2pgpointage-flutter.apk   Flutter, vraiment native — arm64, les telephones
+#                             d'aujourd'hui
+#   ...-32bits.apk            pour un appareil ancien qui refuserait le premier
+for src in ../natif/2pgpointage.apk \
+           ../flutter/2pgpointage-flutter.apk \
+           ../flutter/2pgpointage-flutter-32bits.apk; do
+  [ -f "$src" ] || continue
+  cp "$src" dist/site/
+  echo "  $(basename "$src")  $(du -m "$src" | cut -f1) Mo"
+done
 
 # Date de fabrication : inscrite dans la page ET dans le nom du cache du
 # service worker. Sans elle, un ancien depot reste servi depuis le cache sans
