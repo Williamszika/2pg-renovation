@@ -25,6 +25,22 @@ La carte du patron n'est pas décorative : une adresse correcte peut désigner
 le mauvais endroit, et il vaut mieux s'en apercevoir avant d'y envoyer trois
 personnes.
 
+## La carte, et pourquoi elle refusait de s'afficher
+
+Google ne sert sa carte intégrée qu'à l'intérieur d'un `<iframe>` : chargée
+comme page principale, elle répond *The Google Maps Embed API must be used in
+an iframe*. L'application web y échappait sans le savoir, étant elle-même
+faite d'iframes. Le WebView, lui, chargeait l'adresse directement.
+
+`pageCarte()` fabrique donc la page d'accueil de l'iframe, et le document
+reçoit `https://maps.google.com/` pour base — l'adresse redirige en portant
+`x-frame-options: SAMEORIGIN`, que cette base satisfait ; la réponse finale
+n'impose plus rien.
+
+La carte ne prend pas les gestes. Dans un formulaire qui défile, une carte qui
+capte le glissement du doigt enferme celui qui la touche. Une tape ouvre la
+vraie application Maps, où l'on peut vraiment regarder autour.
+
 ## La langue, et pourquoi c'est un piège
 
 Le calendrier et le choix de l'heure sont fournis par Flutter, pas écrits ici.
@@ -56,7 +72,7 @@ les règles d'Apple.
     export PATH=/opt/flutter/bin:$PATH
     export ANDROID_HOME=/opt/android-sdk
     flutter pub get
-    flutter test              # 24 contrôles : formats, retards, et les trois sélecteurs
+    flutter test              # 30 contrôles : formats, retards, sélecteurs, carte
     flutter build apk --release
 
 L'APK sort dans `build/app/outputs/flutter-apk/`.

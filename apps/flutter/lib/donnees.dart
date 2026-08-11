@@ -272,3 +272,25 @@ String urlCarte(double lat, double lon, int zoom) =>
 
 String urlItineraire(double lat, double lon) =>
     'https://www.google.com/maps/dir/?api=1&destination=$lat,$lon&travelmode=driving';
+
+/// Le lieu ouvert dans la vraie application Maps, pour regarder autour sans
+/// lancer un itinéraire.
+String urlLieu(double lat, double lon) =>
+    'https://www.google.com/maps/search/?api=1&query=$lat,$lon';
+
+/// Google refuse de servir sa carte intégrée en page principale :
+/// « The Google Maps Embed API must be used in an iframe. » L'application web
+/// y échappait sans le savoir, étant elle-même faite d'iframes ; dans un
+/// WebView il faut fabriquer l'iframe à la main.
+///
+/// Mesuré le 11 août 2026 : l'adresse répond 301 vers
+/// `www.google.com/maps/embed`, en portant `x-frame-options: SAMEORIGIN` ; la
+/// réponse finale, elle, n'impose plus rien — ni `x-frame-options`, ni
+/// `frame-ancestors`. D'où la base donnée au document dans `carte.dart` :
+/// `https://maps.google.com/`, qui met aussi la redirection en règle.
+String pageCarte(double lat, double lon, int zoom) =>
+    '<!doctype html>'
+    '<meta name="viewport" content="width=device-width,initial-scale=1">'
+    '<style>html,body{margin:0;height:100%;overflow:hidden;background:#fff}'
+    'iframe{border:0;display:block;width:100%;height:100%}</style>'
+    '<iframe src="${urlCarte(lat, lon, zoom)}" allowfullscreen></iframe>';
