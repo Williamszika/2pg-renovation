@@ -19,7 +19,7 @@ signalement quand le GPS ne suit pas.
 **Patron** — compteurs du jour, envoi d'adresse avec recherche à la Base
 Adresse Nationale et carte du lieu choisi, jour programmable, seuil de
 confirmation, suivi de chaque ouvrier avec retard chiffré, historique par
-période, équipe avec blocage et suppression.
+période, et l'équipe : créer un compte, bloquer, débloquer, supprimer.
 
 La carte du patron n'est pas décorative : une adresse correcte peut désigner
 le mauvais endroit, et il vaut mieux s'en apercevoir avant d'y envoyer trois
@@ -40,6 +40,25 @@ n'impose plus rien.
 La carte ne prend pas les gestes. Dans un formulaire qui défile, une carte qui
 capte le glissement du doigt enferme celui qui la touche. Une tape ouvre la
 vraie application Maps, où l'on peut vraiment regarder autour.
+
+## Embaucher depuis l'application
+
+`signUp` ouvre une session au nom du compte qu'il crée. Lancé depuis le client
+de l'application, il déconnecterait le patron au profit de son ouvrier. La
+création passe donc par un **client jetable**, qui n'écrit rien sur l'appareil
+et disparaît aussitôt ; seule la liaison à l'entreprise —
+`rattacher_utilisateur` — emprunte la session du patron, puisque c'est elle
+qui prouve son droit d'embaucher.
+
+Le mot de passe est tiré d'avance avec `Random.secure`, sous une forme qui se
+dicte de vive voix sur un chantier bruyant. Il n'est **lisible qu'une fois** :
+la base n'en garde qu'une empreinte bcrypt. La carte d'identifiants propose de
+copier un message prêt à envoyer, adresse et consignes d'installation
+comprises.
+
+Si « Confirm email » est actif sur le projet Supabase, `signUp` ne renvoie pas
+de session : le compte existe mais ne pourra pas se connecter. L'écran le dit,
+et dit où décocher la case.
 
 ## La langue, et pourquoi c'est un piège
 
@@ -72,7 +91,7 @@ les règles d'Apple.
     export PATH=/opt/flutter/bin:$PATH
     export ANDROID_HOME=/opt/android-sdk
     flutter pub get
-    flutter test              # 30 contrôles : formats, retards, sélecteurs, carte
+    flutter test              # 43 contrôles : formats, retards, écrans, carte, comptes
     flutter build apk --release
 
 L'APK sort dans `build/app/outputs/flutter-apk/`.
@@ -91,6 +110,7 @@ clé permettrait de publier une mise à jour se faisant passer pour la nôtre.
       donnees.dart         client Supabase, modèles, appels RPC
       format.dart          heures, durées, distances, dates — testé
       carte.dart           la carte intégrée, sans clé Google
+      motdepasse.dart      un mot de passe qui se dicte — testé
       theme.dart           la palette de l'application web, à l'identique
       ecran_connexion.dart
       ecran_ouvrier.dart   l'écran de l'ouvrier, et lui seul
@@ -99,7 +119,7 @@ clé permettrait de publier une mise à jour se faisant passer pour la nôtre.
         envoi.dart         envoyer une adresse
         suivi.dart         l'état de chacun, déduit des faits
         historique.dart    totaux et jour par jour
-        equipe.dart        bloquer, débloquer, supprimer
+        equipe.dart        créer un compte, bloquer, débloquer, supprimer
 
 Aucune règle métier ici : les distances sont recalculées par PostGIS, les
 horodatages posés par le serveur, et un compte bloqué est refusé par la base.

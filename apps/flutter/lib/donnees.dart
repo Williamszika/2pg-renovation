@@ -11,6 +11,12 @@ const clePublique = 'sb_publishable__jvFyZBXCQaJoorIxLGJIQ_F0Us5-9N';
 
 SupabaseClient get sb => Supabase.instance.client;
 
+/// L'adresse de la version web, transmise à l'ouvrier avec ses identifiants.
+/// Elle marche tout de suite, sur n'importe quel téléphone, sans rien
+/// installer — c'est le plus court chemin entre l'embauche et le premier
+/// pointage.
+const adresseApp = 'https://williamszika.github.io/2pg-renovation/';
+
 // ══ Le compte connecté ══════════════════════════════════════════════════════
 
 class Profil {
@@ -206,6 +212,52 @@ Future<String> creerMission({
     'p_destinataires': destinataires,
   });
   return r as String;
+}
+
+/// Ce qu'on sait du compte à l'instant où il vient d'être créé.
+class CompteCree {
+  CompteCree({required this.id, required this.utilisable});
+
+  final String id;
+
+  /// Faux quand « Confirm email » est actif sur le projet Supabase : le compte
+  /// existe, mais refusera la connexion tant que le lien reçu par courriel
+  /// n'aura pas été ouvert. Sur un chantier, personne ne le fera.
+  final bool utilisable;
+}
+
+/// Créer le compte d'un ouvrier sans perdre celui du patron.
+///
+/// `signUp` ouvre une session au nom du compte créé. Lancé depuis le client de
+/// l'application, il déconnecterait le patron au profit de son ouvrier —
+/// spectaculaire et parfaitement inutile. D'où ce client jetable : il ne
+/// conserve rien sur l'appareil et disparaît aussitôt après.
+///
+/// La liaison à l'entreprise, elle, passe par le client du patron : c'est sa
+/// session qui prouve à `rattacher_utilisateur` qu'il a le droit d'embaucher.
+Future<CompteCree> creerOuvrier({
+  required String nom,
+  required String email,
+  required String motDePasse,
+}) async {
+  final jetable = SupabaseClient(urlSupabase, clePublique);
+  try {
+    final r = await jetable.auth.signUp(email: email, password: motDePasse);
+    final u = r.user;
+    if (u == null) {
+      throw "Le compte n'a pas été créé. Les inscriptions sont peut-être "
+          'fermées sur le projet.';
+    }
+    await sb.rpc('rattacher_utilisateur', params: {
+      'p_user_id': u.id,
+      'p_nom': nom,
+      'p_role': 'ouvrier',
+      'p_telephone': null,
+    });
+    return CompteCree(id: u.id, utilisable: r.session != null);
+  } finally {
+    await jetable.dispose();
+  }
 }
 
 Future<Map<String, dynamic>> definirActif(String utilisateurId, bool actif) async {
