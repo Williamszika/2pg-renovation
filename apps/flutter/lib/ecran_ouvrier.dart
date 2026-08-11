@@ -3,8 +3,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:webview_flutter/webview_flutter.dart';
 
+import 'carte.dart';
 import 'donnees.dart';
 import 'format.dart';
 import 'theme.dart';
@@ -257,7 +257,7 @@ class _EcranOuvrierState extends State<EcranOuvrier> {
     final w = <Widget>[];
 
     if (_permis == false) {
-      w.add(_Bandeau(
+      w.add(const _Bandeau(
         'L\'accès à votre position est refusé. Sans lui, impossible de '
         'confirmer votre arrivée. Autorisez-le dans les réglages du téléphone.',
         ton: Ton.arret,
@@ -286,7 +286,7 @@ class _EcranOuvrierState extends State<EcranOuvrier> {
     return [
       _CarteAdresse(chantier: c),
       const SizedBox(height: 12),
-      _Carte(chantier: c),
+      CarteIntegree(lat: c.lat, lon: c.lon),
       const SizedBox(height: 12),
       Center(
         child: Text.rich(
@@ -537,45 +537,6 @@ class _CarteAdresse extends StatelessWidget {
           ]),
         ]),
       ),
-    );
-  }
-}
-
-/// La carte se regarde, elle ne se conduit pas : la navigation reste au
-/// bouton Itinéraire, qui ouvre la vraie application Google Maps.
-class _Carte extends StatefulWidget {
-  const _Carte({required this.chantier});
-
-  final Chantier chantier;
-
-  @override
-  State<_Carte> createState() => _CarteState();
-}
-
-class _CarteState extends State<_Carte> {
-  late final WebViewController _c;
-
-  @override
-  void initState() {
-    super.initState();
-    _c = WebViewController()
-      ..setJavaScriptMode(JavaScriptMode.unrestricted)
-      ..loadRequest(
-          Uri.parse(urlCarte(widget.chantier.lat, widget.chantier.lon, 16)));
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final t = Palette.de(context);
-    return Container(
-      height: 168,
-      decoration: BoxDecoration(
-        color: t.surface2,
-        border: Border.all(color: t.trait),
-        borderRadius: BorderRadius.circular(14),
-      ),
-      clipBehavior: Clip.antiAlias,
-      child: WebViewWidget(controller: _c),
     );
   }
 }

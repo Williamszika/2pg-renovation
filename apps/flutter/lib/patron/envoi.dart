@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import '../carte.dart';
 import '../donnees.dart';
 import '../format.dart';
 import '../theme.dart';
@@ -58,6 +59,25 @@ class _PanneauEnvoiState extends State<PanneauEnvoi> {
 
   List<Map<String, dynamic>> get _ouvriers =>
       widget.equipe.where((u) => u['actif'] == true).toList();
+
+  static final _durees = [for (var d = 60; d <= 660; d += 30) d];
+
+  /// Vingt-et-une durées ne tiennent pas dans un menu déroulant sur un
+  /// téléphone : il couvrait l'écran entier sans montrer par où sortir. Une
+  /// feuille par le bas, titrée, avec un bouton Fermer.
+  Future<void> _choisirDuree() async {
+    final t = Palette.de(context);
+    final choix = await showModalBottomSheet<int>(
+      context: context,
+      backgroundColor: t.surface,
+      showDragHandle: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(18)),
+      ),
+      builder: (_) => _FeuilleDuree(valeurs: _durees, courante: _duree),
+    );
+    if (choix != null && mounted) setState(() => _duree = choix);
+  }
 
   bool get _pret => _choisie != null && _coches.isNotEmpty;
 
@@ -156,6 +176,17 @@ class _PanneauEnvoiState extends State<PanneauEnvoi> {
                 ),
               ]),
             ),
+          // Une adresse juste peut désigner le mauvais endroit : deux rues du
+          // même nom, un numéro à l'autre bout. Le patron voit le lieu avant
+          // que trois ouvriers y aillent.
+          if (_choisie != null) ...[
+            const SizedBox(height: 10),
+            CarteIntegree(
+              lat: _choisie!.lat,
+              lon: _choisie!.lon,
+              hauteur: 150,
+            ),
+          ],
           const SizedBox(height: 12),
           TextField(
             controller: _libelle,
@@ -197,17 +228,13 @@ class _PanneauEnvoiState extends State<PanneauEnvoi> {
             ),
           ]),
           const SizedBox(height: 12),
-          _Etiquette('Temps de service'),
-          DropdownButtonFormField<int>(
-            initialValue: _duree,
-            items: [
-              for (var d = 60; d <= 660; d += 30)
-                DropdownMenuItem(value: d, child: Text(duree(d))),
-            ],
-            onChanged: (v) => setState(() => _duree = v ?? 480),
+          _Choix(
+            libelle: 'Temps de service',
+            valeur: duree(_duree),
+            onTap: _choisirDuree,
           ),
           const SizedBox(height: 12),
-          _Etiquette('Seuil de confirmation'),
+          const _Etiquette('Seuil de confirmation'),
           Row(children: [
             for (final (r, note) in [
               (20, 'strict'),
@@ -232,7 +259,7 @@ class _PanneauEnvoiState extends State<PanneauEnvoi> {
                 style: TextStyle(color: t.alerte, fontSize: 12)),
           ],
           const SizedBox(height: 14),
-          _Etiquette('Envoyer à'),
+          const _Etiquette('Envoyer à'),
           if (_ouvriers.isEmpty)
             Text('Aucun compte actif.',
                 style: TextStyle(color: t.encrePale, fontSize: 13))
@@ -286,6 +313,96 @@ class _PanneauEnvoiState extends State<PanneauEnvoi> {
   }
 }
 
+/// La liste des durées, ouverte sur la valeur en cours plutôt qu'en haut :
+/// huit heures est le cas courant, et il est au quatorzième rang.
+class _FeuilleDuree extends StatefulWidget {
+  const _FeuilleDuree({required this.valeurs, required this.courante});
+
+  final List<int> valeurs;
+  final int courante;
+
+  @override
+  State<_FeuilleDuree> createState() => _FeuilleDureeState();
+}
+
+class _FeuilleDureeState extends State<_FeuilleDuree> {
+  static const _hauteurLigne = 50.0;
+  late final ScrollController _defilement;
+
+  @override
+  void initState() {
+    super.initState();
+    final rang = widget.valeurs.indexOf(widget.courante);
+    // Deux lignes au-dessus, pour qu'on voie qu'il y a du choix avant. Un
+    // décalage trop grand est ramené dans les bornes une fois la hauteur
+    // réelle connue.
+    _defilement = ScrollController(
+      initialScrollOffset:
+          rang < 0 ? 0 : ((rang - 2) * _hauteurLigne).clamp(0.0, 1e6),
+    );
+  }
+
+  @override
+  void dispose() {
+    _defilement.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final t = Palette.de(context);
+    return SafeArea(
+      child: Column(mainAxisSize: MainAxisSize.min, children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(18, 0, 8, 6),
+          child: Row(children: [
+            Expanded(
+              child: Text('Temps de service',
+                  style: TextStyle(
+                      color: t.encre, fontSize: 16, fontWeight: FontWeight.w700)),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Fermer'),
+            ),
+          ]),
+        ),
+        Divider(height: 1, color: t.traitPale),
+        Flexible(
+          child: ListView.builder(
+            controller: _defilement,
+            shrinkWrap: true,
+            itemExtent: _hauteurLigne,
+            itemCount: widget.valeurs.length,
+            itemBuilder: (_, i) {
+              final d = widget.valeurs[i];
+              final actif = d == widget.courante;
+              return InkWell(
+                onTap: () => Navigator.pop(context, d),
+                child: Container(
+                  color: actif ? t.pigmentPale : null,
+                  padding: const EdgeInsets.symmetric(horizontal: 18),
+                  child: Row(children: [
+                    Expanded(
+                      child: Text(duree(d),
+                          style: TextStyle(
+                              color: actif ? t.pigment : t.encre,
+                              fontSize: 15.5,
+                              fontWeight:
+                                  actif ? FontWeight.w700 : FontWeight.w400)),
+                    ),
+                    if (actif) Icon(Icons.check, size: 19, color: t.pigment),
+                  ]),
+                ),
+              );
+            },
+          ),
+        ),
+      ]),
+    );
+  }
+}
+
 class _Etiquette extends StatelessWidget {
   const _Etiquette(this.texte);
   final String texte;
@@ -323,10 +440,17 @@ class _Choix extends StatelessWidget {
             border: Border.all(color: t.trait),
             borderRadius: BorderRadius.circular(10),
           ),
-          child: Text(valeur,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(color: t.encre, fontSize: 14.5)),
+          // Le chevron dit que ça s'ouvre. Sans lui, les trois champs
+          // ressemblent à du texte affiché et personne n'y touche.
+          child: Row(children: [
+            Expanded(
+              child: Text(valeur,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(color: t.encre, fontSize: 14.5)),
+            ),
+            Icon(Icons.expand_more, size: 19, color: t.encrePale),
+          ]),
         ),
       ),
     ]);

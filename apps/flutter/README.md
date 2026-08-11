@@ -17,9 +17,27 @@ la confirmation automatique dès l'entrée dans le périmètre, pause, départ,
 signalement quand le GPS ne suit pas.
 
 **Patron** — compteurs du jour, envoi d'adresse avec recherche à la Base
-Adresse Nationale, jour programmable, seuil de confirmation, suivi de chaque
-ouvrier avec retard chiffré, historique par période, équipe avec blocage et
-suppression.
+Adresse Nationale et carte du lieu choisi, jour programmable, seuil de
+confirmation, suivi de chaque ouvrier avec retard chiffré, historique par
+période, équipe avec blocage et suppression.
+
+La carte du patron n'est pas décorative : une adresse correcte peut désigner
+le mauvais endroit, et il vaut mieux s'en apercevoir avant d'y envoyer trois
+personnes.
+
+## La langue, et pourquoi c'est un piège
+
+Le calendrier et le choix de l'heure sont fournis par Flutter, pas écrits ici.
+Ils ne parlent français que si `MaterialApp` porte les délégations de
+`flutter_localizations`. Sans elles, demander le français à
+`showDatePicker` ne renvoie pas d'erreur visible : le dialogue échoue en cours
+de construction, et en version publiée Flutter peint un rectangle gris à la
+place. Écran voilé, rien dedans, aucun moyen de sortir.
+
+`test/envoi_test.dart` ouvre réellement les trois sélecteurs et vérifie qu'ils
+se referment. Retirer les délégations fait échouer le test avec le message
+exact : *A MaterialLocalizations delegate that supports the fr_FR locale was
+not found*.
 
 ## Ce qu'elle n'apporte pas encore
 
@@ -38,7 +56,7 @@ les règles d'Apple.
     export PATH=/opt/flutter/bin:$PATH
     export ANDROID_HOME=/opt/android-sdk
     flutter pub get
-    flutter test              # 19 contrôles sur la logique de retard et de format
+    flutter test              # 24 contrôles : formats, retards, et les trois sélecteurs
     flutter build apk --release
 
 L'APK sort dans `build/app/outputs/flutter-apk/`.
@@ -53,9 +71,10 @@ clé permettrait de publier une mise à jour se faisant passer pour la nôtre.
 ## Organisation
 
     lib/
-      main.dart            portail : session, rôle, aiguillage
+      main.dart            portail : session, rôle, langue, aiguillage
       donnees.dart         client Supabase, modèles, appels RPC
       format.dart          heures, durées, distances, dates — testé
+      carte.dart           la carte intégrée, sans clé Google
       theme.dart           la palette de l'application web, à l'identique
       ecran_connexion.dart
       ecran_ouvrier.dart   l'écran de l'ouvrier, et lui seul

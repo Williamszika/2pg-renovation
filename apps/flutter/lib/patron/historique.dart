@@ -175,7 +175,7 @@ class _PanneauHistoriqueState extends State<PanneauHistorique> {
                     fontSize: 14.5, fontWeight: FontWeight.w700)),
           ]),
         ),
-      _Titre('Jour par jour'),
+      const _Titre('Jour par jour'),
       for (final j in jours) ...[
         Padding(
           padding: const EdgeInsets.only(top: 12, bottom: 4),

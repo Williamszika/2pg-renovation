@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -11,9 +12,22 @@ import 'theme.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await initializeDateFormatting('fr_FR');
-  await Supabase.initialize(url: urlSupabase, anonKey: clePublique);
+  await Supabase.initialize(url: urlSupabase, publishableKey: clePublique);
   runApp(const Application());
 }
+
+/// Les réglages de langue, à un seul endroit. Le calendrier et le choix de
+/// l'heure sont fournis par Flutter et ne parlent français que si ces
+/// délégations sont posées ; sans elles, leur demander le français les fait
+/// échouer en silence — un voile gris, rien dedans, aucun moyen de sortir.
+/// Un test monte les écrans avec les mêmes réglages, pour qu'on ne puisse
+/// plus les retirer sans que quelque chose crie.
+const languesGerees = <Locale>[Locale('fr', 'FR')];
+const delegationsLangue = <LocalizationsDelegate<dynamic>>[
+  GlobalMaterialLocalizations.delegate,
+  GlobalWidgetsLocalizations.delegate,
+  GlobalCupertinoLocalizations.delegate,
+];
 
 class Application extends StatelessWidget {
   const Application({super.key});
@@ -26,7 +40,14 @@ class Application extends StatelessWidget {
       title: '2PG Pointage',
       debugShowCheckedModeBanner: false,
       theme: themeDepuis(t, sombre ? Brightness.dark : Brightness.light),
-      home: Palette(t: t, child: const Portail()),
+      locale: languesGerees.first,
+      supportedLocales: languesGerees,
+      localizationsDelegates: delegationsLangue,
+      // La palette est posee au-dessus du Navigator, pas dans la premiere
+      // page : les dialogues sont des pages voisines, et depuis une page
+      // voisine on ne voit pas ce qui est range dans une autre.
+      builder: (_, page) => Palette(t: t, child: page ?? const SizedBox()),
+      home: const Portail(),
     );
   }
 }

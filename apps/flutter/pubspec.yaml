@@ -9,6 +9,11 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  # Les textes francais des elements fournis par Flutter : calendrier, choix
+  # de l'heure, boutons Annuler / OK. Sans ce paquet, demander le calendrier
+  # en francais le fait echouer en silence — voile gris, rien dedans.
+  flutter_localizations:
+    sdk: flutter
   # Auth, appels RPC et temps reel, tout par le meme client.
   supabase_flutter: ^2.8.0
   # Position et distance. La distance affichee est calculee ici ; celle qui
@@ -20,7 +25,7 @@ dependencies:
   # web : pas de cle Google a demander.
   webview_flutter: ^4.10.0
   # Formats de dates et d'heures en francais.
-  intl: ^0.19.0
+  intl: ^0.20.2
   # Appels directs a la Base Adresse Nationale, hors Supabase.
   http: ^1.2.2
 
