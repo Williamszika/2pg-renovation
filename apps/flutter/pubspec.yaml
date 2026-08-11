@@ -1,0 +1,33 @@
+name: pg2_pointage
+description: Suivi de presence sur chantier — 2PG Renovation
+publish_to: none
+version: 1.0.0+1
+
+environment:
+  sdk: ">=3.4.0 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  # Auth, appels RPC et temps reel, tout par le meme client.
+  supabase_flutter: ^2.8.0
+  # Position et distance. La distance affichee est calculee ici ; celle qui
+  # fait foi est recalculee par PostGIS au moment du pointage.
+  geolocator: ^13.0.2
+  # Ouvre Google Maps pour la navigation, et compose les numeros.
+  url_launcher: ^6.3.1
+  # La carte du chantier, par la meme adresse d'integration que l'application
+  # web : pas de cle Google a demander.
+  webview_flutter: ^4.10.0
+  # Formats de dates et d'heures en francais.
+  intl: ^0.19.0
+  # Appels directs a la Base Adresse Nationale, hors Supabase.
+  http: ^1.2.2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+
+flutter:
+  uses-material-design: true
